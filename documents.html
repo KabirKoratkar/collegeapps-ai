@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Vault - CollegeApps.ai</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <div class="navbar-logo">CollegeApps.ai</div>
+            <ul class="navbar-links">
+                <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="colleges.html" class="navbar-link">Colleges</a></li>
+                <li><a href="essays.html" class="navbar-link">Essays</a></li>
+                <li><a href="documents.html" class="navbar-link active">Documents</a></li>
+                <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
+                <li><span class="badge badge-primary">Sarah R.</span></li>
+            </ul>
+            <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-2xl">
+        <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-2xl);">Document Vault</h1>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+            <div style="font-size: var(--text-5xl); margin-bottom: var(--space-md);">📤</div>
+            <h3 style="font-size: var(--text-xl); font-weight: 700; margin-bottom: var(--space-sm);">Upload Documents
+            </h3>
+            <p style="color: var(--gray-600); margin-bottom: var(--space-md);">Click to browse or drag and drop files
+                here</p>
+            <p style="color: var(--gray-500); font-size: var(--text-sm);">Supported: PDF, DOCX, JPG, PNG (Max 10MB)</p>
+            <input type="file" id="fileInput" style="display: none;" multiple>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div
+            style="display: flex; gap: var(--space-md); margin-top: var(--space-2xl); margin-bottom: var(--space-lg); overflow-x: auto;">
+            <button class="btn btn-sm btn-primary">All Documents</button>
+            <button class="btn btn-sm btn-ghost">📄 Transcripts</button>
+            <button class="btn btn-sm btn-ghost">📋 Resumes</button>
+            <button class="btn btn-sm btn-ghost">🏆 Awards</button>
+            <button class="btn btn-sm btn-ghost">📜 Certificates</button>
+            <button class="btn btn-sm btn-ghost">📊 Test Scores</button>
+            <button class="btn btn-sm btn-ghost">✍️ Essay Drafts</button>
+        </div>
+
+        <!-- File Grid -->
+        <div class="file-grid">
+            <div class="file-card">
+                <div class="file-icon">📄</div>
+                <div class="file-name">Official Transcript</div>
+                <div class="file-size">2.4 MB • PDF</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge badge-primary">Transcript</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">📋</div>
+                <div class="file-name">Resume - Fall 2024</div>
+                <div class="file-size">1.2 MB • PDF</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge"
+                        style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">Resume</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">🏆</div>
+                <div class="file-name">Science Fair Award</div>
+                <div class="file-size">856 KB • PDF</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">Award</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">📊</div>
+                <div class="file-name">SAT Score Report</div>
+                <div class="file-size">624 KB • PDF</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: var(--info);">Test
+                        Score</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">📜</div>
+                <div class="file-name">AP Scholar Certificate</div>
+                <div class="file-size">1.8 MB • PDF</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge"
+                        style="background: rgba(139, 123, 247, 0.1); color: var(--accent-purple);">Certificate</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">✍️</div>
+                <div class="file-name">Common App Draft v3</div>
+                <div class="file-size">48 KB • DOCX</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge badge-primary">Essay Draft</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">🖼️</div>
+                <div class="file-name">Portfolio Sample 1</div>
+                <div class="file-size">3.2 MB • JPG</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge"
+                        style="background: rgba(239, 68, 68, 0.1); color: var(--error);">Portfolio</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+
+            <div class="file-card">
+                <div class="file-icon">📄</div>
+                <div class="file-name">Teacher Rec Waiver</div>
+                <div class="file-size">124 KB • PDF</div>
+                <div style="margin-top: var(--space-md);">
+                    <span class="badge badge-primary">Document</span>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
+                    <button class="btn btn-sm btn-ghost">⋮</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Info -->
+        <div class="card mt-2xl">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                <h3 style="font-size: var(--text-lg); font-weight: 700;">Storage Usage</h3>
+                <span style="color: var(--gray-600);">10.2 GB / 20 GB</span>
+            </div>
+            <div class="progress-bar progress-lg">
+                <div class="progress-fill" style="width: 51%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/documents.js"></script>
+</body>
+
+</html>

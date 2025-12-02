@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding - CollegeApps.ai</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card" style="max-width: 600px;">
+            <div class="auth-title">
+                <h1 style="font-size: var(--text-3xl); margin-bottom: var(--space-sm);">Let's Get Started</h1>
+                <p style="color: var(--gray-600); margin-bottom: var(--space-2xl);">Tell us a bit about yourself so we
+                    can personalize your experience</p>
+            </div>
+
+            <form id="onboardingForm">
+                <!-- Step 1 -->
+                <div class="onboarding-step" id="step1">
+                    <div class="input-group">
+                        <label class="input-label" for="gradYear">High School Graduation Year</label>
+                        <select id="gradYear" class="input" required>
+                            <option value="">Select year...</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="intendedMajor">Intended Major (optional)</label>
+                        <input type="text" id="intendedMajor" class="input"
+                            placeholder="e.g., Computer Science, Biology, Undecided">
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="onboarding-step" id="step2" style="display: none;">
+                    <div class="input-group">
+                        <label class="input-label">Add Your College List</label>
+                        <p style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: var(--space-md);">
+                            Start with a few colleges you're interested in. You can add more later.</p>
+
+                        <div id="collegeList" style="margin-bottom: var(--space-md);"></div>
+
+                        <div style="display: flex; gap: var(--space-sm);">
+                            <input type="text" id="collegeInput" class="input" placeholder="Enter college name...">
+                            <button type="button" class="btn btn-secondary" onclick="addCollege()">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="onboarding-step" id="step3" style="display: none;">
+                    <div class="input-group">
+                        <label class="input-label">Application Deadlines You're Planning For</label>
+                        <p style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: var(--space-md);">
+                            Select all that apply</p>
+
+                        <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                            <label
+                                style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); background: var(--gray-50); border-radius: var(--radius-lg); cursor: pointer;">
+                                <input type="checkbox" name="deadline" value="ED">
+                                <div>
+                                    <strong>Early Decision (ED)</strong>
+                                    <p style="font-size: var(--text-sm); color: var(--gray-600); margin: 0;">November
+                                        1-15</p>
+                                </div>
+                            </label>
+
+                            <label
+                                style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); background: var(--gray-50); border-radius: var(--radius-lg); cursor: pointer;">
+                                <input type="checkbox" name="deadline" value="EA">
+                                <div>
+                                    <strong>Early Action (EA)</strong>
+                                    <p style="font-size: var(--text-sm); color: var(--gray-600); margin: 0;">November
+                                        1-15</p>
+                                </div>
+                            </label>
+
+                            <label
+                                style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); background: var(--gray-50); border-radius: var(--radius-lg); cursor: pointer;">
+                                <input type="checkbox" name="deadline" value="UC">
+                                <div>
+                                    <strong>University of California</strong>
+                                    <p style="font-size: var(--text-sm); color: var(--gray-600); margin: 0;">November 30
+                                    </p>
+                                </div>
+                            </label>
+
+                            <label
+                                style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); background: var(--gray-50); border-radius: var(--radius-lg); cursor: pointer;">
+                                <input type="checkbox" name="deadline" value="RD">
+                                <div>
+                                    <strong>Regular Decision (RD)</strong>
+                                    <p style="font-size: var(--text-sm); color: var(--gray-600); margin: 0;">January
+                                        1-15</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: var(--space-2xl);">
+                    <button type="button" class="btn btn-ghost" id="backBtn" style="display: none;"
+                        onclick="prevStep()">Back</button>
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">Continue</button>
+                    <button type="submit" class="btn btn-primary" id="finishBtn" style="display: none;">Finish
+                        Setup</button>
+                </div>
+            </form>
+
+            <div style="margin-top: var(--space-xl);">
+                <div style="display: flex; gap: var(--space-sm); justify-content: center;">
+                    <div class="step-indicator active" id="indicator1"></div>
+                    <div class="step-indicator" id="indicator2"></div>
+                    <div class="step-indicator" id="indicator3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .step-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            transition: all var(--transition-base);
+        }
+
+        .step-indicator.active {
+            background: var(--primary-blue);
+            width: 32px;
+            border-radius: var(--radius-full);
+        }
+
+        .college-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+            margin: var(--space-xs);
+            font-size: var(--text-sm);
+        }
+
+        .remove-college {
+            cursor: pointer;
+            color: var(--gray-500);
+            font-weight: 700;
+        }
+
+        .remove-college:hover {
+            color: var(--error);
+        }
+    </style>
+
+    <script src="js/onboarding.js"></script>
+</body>
+
+</html>

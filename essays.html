@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Essay Workspace - CollegeApps.ai</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <div class="navbar-logo">CollegeApps.ai</div>
+            <ul class="navbar-links">
+                <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="colleges.html" class="navbar-link">Colleges</a></li>
+                <li><a href="essays.html" class="navbar-link active">Essays</a></li>
+                <li><a href="documents.html" class="navbar-link">Documents</a></li>
+                <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
+                <li><span class="badge badge-primary">Sarah R.</span></li>
+            </ul>
+            <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-2xl">
+        <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-2xl);">Essay Workspace</h1>
+
+        <div class="grid" style="grid-template-columns: 250px 1fr; gap: var(--space-2xl);">
+            <!-- Sidebar - Essay List -->
+            <div>
+                <div class="card" style="position: sticky; top: 100px;">
+                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-lg);">My Essays
+                    </h3>
+
+                    <div style="margin-bottom: var(--space-xl);">
+                        <h4
+                            style="font-size: var(--text-sm); font-weight: 600; color: var(--gray-500); margin-bottom: var(--space-md); text-transform: uppercase;">
+                            Common App</h4>
+                        <div class="essay-nav-item active" data-essay="common-app">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Personal Essay</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">650 words</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: var(--space-xl);">
+                        <h4
+                            style="font-size: var(--text-sm); font-weight: 600; color: var(--gray-500); margin-bottom: var(--space-md); text-transform: uppercase;">
+                            UC PIQs</h4>
+                        <div class="essay-nav-item" data-essay="uc-piq-1">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">PIQ #1 - Leadership</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">350 words</div>
+                        </div>
+                        <div class="essay-nav-item" data-essay="uc-piq-2">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">PIQ #2 - Creative Talent</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">350 words</div>
+                        </div>
+                        <div class="essay-nav-item" data-essay="uc-piq-3">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">PIQ #3 - Challenge</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">350 words</div>
+                        </div>
+                        <div class="essay-nav-item" data-essay="uc-piq-4">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">PIQ #4 - Community</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">350 words</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4
+                            style="font-size: var(--text-sm); font-weight: 600; color: var(--gray-500); margin-bottom: var(--space-md); text-transform: uppercase;">
+                            Stanford</h4>
+                        <div class="essay-nav-item" data-essay="stanford-1">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">What Matters to You</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">250 words</div>
+                        </div>
+                        <div class="essay-nav-item" data-essay="stanford-2">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Why Stanford</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">100-250 words</div>
+                        </div>
+                        <div class="essay-nav-item" data-essay="stanford-3">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Roommate Letter</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">100-250 words</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor -->
+            <div>
+                <div class="essay-editor">
+                    <!-- Toolbar -->
+                    <div class="essay-toolbar">
+                        <button class="btn btn-sm btn-ghost">💡 Brainstorm</button>
+                        <button class="btn btn-sm btn-ghost">📝 Outline</button>
+                        <button class="btn btn-sm btn-ghost">✨ Rewrite</button>
+                        <button class="btn btn-sm btn-ghost">🎯 Improve Clarity</button>
+                        <div style="flex: 1;"></div>
+                        <button class="btn btn-sm btn-primary">💾 Save</button>
+                    </div>
+
+                    <!-- Essay Content -->
+                    <div class="essay-content" id="essayContent">
+                        <div class="essay-prompt">
+                            <strong>Common App Essay Prompt:</strong><br>
+                            Some students have a background, identity, interest, or talent that is so meaningful they
+                            believe their application would be incomplete without it. If this sounds like you, then
+                            please share your story.
+                        </div>
+
+                        <textarea class="input textarea" id="essayEditor" placeholder="Start writing your essay here..."
+                            style="border: none; min-height: 500px; font-size: var(--text-base); line-height: 1.8;">Growing up in a small town in rural California, I never imagined I would become passionate about technology. But everything changed when our local library received a grant for a computer lab. I was 12 years old when I first sat down at one of those desktop computers...
+
+...and from that moment, I knew technology would be my way to make a difference in the world.</textarea>
+                    </div>
+
+                    <!-- Word Count -->
+                    <div class="word-count">
+                        <div>
+                            <strong>Word Count:</strong> <span id="wordCount">142</span> / 650
+                        </div>
+                        <div>
+                            <strong>Character Count:</strong> <span id="charCount">847</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions -->
+                <div class="card mt-lg">
+                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">💡 AI
+                        Writing Suggestions</h3>
+                    <div
+                        style="background: var(--gradient-subtle); padding: var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-md);">
+                        <p style="margin: 0; color: var(--gray-700);"><strong>Tip:</strong> Your opening is engaging!
+                            Consider adding a specific sensory detail about the library to make it even more vivid.</p>
+                    </div>
+                    <div
+                        style="background: var(--gradient-subtle); padding: var(--space-lg); border-radius: var(--radius-lg);">
+                        <p style="margin: 0; color: var(--gray-700);"><strong>Structure:</strong> Great start! Make sure
+                            to connect your tech passion to specific actions you've taken and impact you've made.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .essay-nav-item {
+            padding: var(--space-md);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            margin-bottom: var(--space-sm);
+        }
+
+        .essay-nav-item:hover {
+            background: var(--gray-100);
+        }
+
+        .essay-nav-item.active {
+            background: var(--gradient-subtle);
+            border-left: 3px solid var(--primary-blue);
+        }
+    </style>
+
+    <script src="js/main.js"></script>
+    <script type="module" src="js/essays.js"></script>
+</body>
+
+</html>
