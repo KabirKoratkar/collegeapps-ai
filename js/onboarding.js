@@ -145,17 +145,22 @@ document.addEventListener('DOMContentLoaded', async function () {
             const location = document.getElementById('location').value;
             const birthDate = document.getElementById('birthDate').value;
 
+            // Collect deadlines
+            const selectedDeadlines = Array.from(document.querySelectorAll('input[name="deadline"]:checked'))
+                .map(cb => cb.value);
+
             if (window.showNotification) window.showNotification('Saving your profile...', 'info');
 
             try {
                 // 1. Create/Update Profile
-                // Note: Ensure your database has 'location' and 'birth_date' columns in 'profiles' table!
+                // Note: Ensure your database has 'location', 'birth_date', and 'planned_deadlines' columns
                 const profileData = {
                     id: currentUser.id,
                     email: currentUser.email,
                     graduation_year: parseInt(gradYear),
                     intended_major: major,
-                    full_name: fullName
+                    full_name: fullName,
+                    planned_deadlines: selectedDeadlines
                 };
 
                 if (location) profileData.location = location;

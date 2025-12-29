@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Update Basic UI
     updateNavbarUser(currentUser);
-    updateHeader();
+    updateHeader(window.currentUserProfile);
 
     // Load Data
     const tasks = await getUserTasks(currentUser.id);
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     generateAIActionPlan(tasks, essays, colleges);
 });
 
-function updateHeader() {
+function updateHeader(profile = null) {
     const greeting = document.getElementById('greeting');
     const dateEl = document.getElementById('currentDate');
 
@@ -49,18 +49,17 @@ function updateHeader() {
         if (hour >= 12 && hour < 17) intro = 'Good afternoon';
         if (hour >= 17) intro = 'Good evening';
 
-        // Use profile name if available, otherwise fallback to metadata or email
-        let name = currentUser.email.split('@')[0];
+        // Priority 1: Profile full_name
+        // Priority 2: User metadata full_name
+        // Priority 3: Email prefix
+        let name = 'Student';
 
-        // Check if we have a full name from the profile (passed or global if we stored it)
-        // To do this cleanly, we'll try to get it from the DOM element if we updated it elsewhere,
-        // or we can fetch it. Since this is just a visual sync, let's relie on the fact that
-        // main.js or other initializers might not have it.
-        // Optimal: Pass profile to this function.
-        if (window.currentUserProfile && window.currentUserProfile.full_name) {
-            name = window.currentUserProfile.full_name.split(' ')[0]; // First name
+        if (profile && profile.full_name) {
+            name = profile.full_name.split(' ')[0];
         } else if (currentUser.user_metadata && currentUser.user_metadata.full_name) {
             name = currentUser.user_metadata.full_name.split(' ')[0];
+        } else if (currentUser.email) {
+            name = currentUser.email.split('@')[0];
         }
 
         greeting.textContent = `${intro}, ${name}! 🌟`;

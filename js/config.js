@@ -14,8 +14,7 @@ const config = {
             if (customUrl) return customUrl;
 
             // Default production URL - Update this after your first deployment
-            // For example: 'https://college-apps-ai-production.up.railway.app'
-            return 'https://your-railway-app.railway.app';
+            return 'https://collegeapps-ai-production-28c4.up.railway.app';
         } else {
             return 'http://localhost:3001';
         }
