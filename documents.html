@@ -67,113 +67,7 @@
 
         <!-- File Grid -->
         <div class="file-grid">
-            <div class="file-card">
-                <div class="file-icon">📄</div>
-                <div class="file-name">Official Transcript</div>
-                <div class="file-size">2.4 MB • PDF</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge badge-primary">Transcript</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">📋</div>
-                <div class="file-name">Resume - Fall 2024</div>
-                <div class="file-size">1.2 MB • PDF</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge"
-                        style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">Resume</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">🏆</div>
-                <div class="file-name">Science Fair Award</div>
-                <div class="file-size">856 KB • PDF</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">Award</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">📊</div>
-                <div class="file-name">SAT Score Report</div>
-                <div class="file-size">624 KB • PDF</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: var(--info);">Test
-                        Score</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">📜</div>
-                <div class="file-name">AP Scholar Certificate</div>
-                <div class="file-size">1.8 MB • PDF</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge"
-                        style="background: rgba(139, 123, 247, 0.1); color: var(--accent-purple);">Certificate</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">✍️</div>
-                <div class="file-name">Common App Draft v3</div>
-                <div class="file-size">48 KB • DOCX</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge badge-primary">Essay Draft</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">🖼️</div>
-                <div class="file-name">Portfolio Sample 1</div>
-                <div class="file-size">3.2 MB • JPG</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge"
-                        style="background: rgba(239, 68, 68, 0.1); color: var(--error);">Portfolio</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
-
-            <div class="file-card">
-                <div class="file-icon">📄</div>
-                <div class="file-name">Teacher Rec Waiver</div>
-                <div class="file-size">124 KB • PDF</div>
-                <div style="margin-top: var(--space-md);">
-                    <span class="badge badge-primary">Document</span>
-                </div>
-                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                    <button class="btn btn-sm btn-ghost" style="flex: 1;">View</button>
-                    <button class="btn btn-sm btn-ghost">⋮</button>
-                </div>
-            </div>
+            <!-- Dynamically populated -->
         </div>
 
         <!-- Storage Info -->
@@ -181,10 +75,41 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
                 <h3 style="font-size: var(--text-lg); font-weight: 700;">Storage Usage</h3>
-                <span style="color: var(--gray-600);">10.2 GB / 20 GB</span>
+                <span style="color: var(--gray-600);">Using Supabase Storage</span>
             </div>
             <div class="progress-bar progress-lg">
-                <div class="progress-fill" style="width: 51%;"></div>
+                <div class="progress-fill" style="width: 15%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Upload Document</h3>
+                <button class="btn btn-ghost" onclick="closeUploadModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: var(--space-md);">Selected File: <strong id="selectedFileName"></strong></p>
+
+                <div class="input-group">
+                    <label class="input-label">Category</label>
+                    <select id="docCategory" class="input">
+                        <option value="Transcript">Transcript</option>
+                        <option value="Resume">Resume</option>
+                        <option value="Award">Award</option>
+                        <option value="Certificate">Certificate</option>
+                        <option value="Test Score">Test Score</option>
+                        <option value="Essay Draft">Essay Draft</option>
+                        <option value="Portfolio">Portfolio</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeUploadModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmUpload()">Upload</button>
             </div>
         </div>
     </div>

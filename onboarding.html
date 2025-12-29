@@ -29,23 +29,39 @@
             </div>
 
             <form id="onboardingForm">
-                <!-- Step 1 -->
+                <!-- Step 1: Personal Details -->
                 <div class="onboarding-step" id="step1">
                     <div class="input-group">
-                        <label class="input-label" for="gradYear">High School Graduation Year</label>
-                        <select id="gradYear" class="input" required>
-                            <option value="">Select year...</option>
-                            <option value="2025">2025</option>
-                            <option value="2026">2026</option>
-                            <option value="2027">2027</option>
-                            <option value="2028">2028</option>
-                        </select>
+                        <label class="input-label" for="fullName">Full Name</label>
+                        <input type="text" id="fullName" class="input" placeholder="First and Last Name" required>
                     </div>
 
-                    <div class="input-group">
-                        <label class="input-label" for="intendedMajor">Intended Major (optional)</label>
-                        <input type="text" id="intendedMajor" class="input"
-                            placeholder="e.g., Computer Science, Biology, Undecided">
+                    <div class="grid grid-2 gap-md">
+                        <div class="input-group">
+                            <label class="input-label" for="birthDate">Date of Birth</label>
+                            <input type="date" id="birthDate" class="input">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="location">Location (City, State)</label>
+                            <input type="text" id="location" class="input" placeholder="e.g. San Francisco, CA">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-2 gap-md">
+                        <div class="input-group">
+                            <label class="input-label" for="gradYear">Graduation Year</label>
+                            <select id="gradYear" class="input" required>
+                                <option value="">Select year...</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2028">2028</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="intendedMajor">Intended Major</label>
+                            <input type="text" id="intendedMajor" class="input" placeholder="e.g., Computer Science">
+                        </div>
                     </div>
                 </div>
 

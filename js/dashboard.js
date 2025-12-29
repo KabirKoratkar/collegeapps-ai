@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             window.location.assign('onboarding.html');
             return;
         }
+        window.currentUserProfile = profile;
     }
 
     // Update Basic UI
@@ -48,7 +49,21 @@ function updateHeader() {
         if (hour >= 12 && hour < 17) intro = 'Good afternoon';
         if (hour >= 17) intro = 'Good evening';
 
-        greeting.textContent = `${intro}, ${currentUser.email.split('@')[0]}! 🌟`;
+        // Use profile name if available, otherwise fallback to metadata or email
+        let name = currentUser.email.split('@')[0];
+
+        // Check if we have a full name from the profile (passed or global if we stored it)
+        // To do this cleanly, we'll try to get it from the DOM element if we updated it elsewhere,
+        // or we can fetch it. Since this is just a visual sync, let's relie on the fact that
+        // main.js or other initializers might not have it.
+        // Optimal: Pass profile to this function.
+        if (window.currentUserProfile && window.currentUserProfile.full_name) {
+            name = window.currentUserProfile.full_name.split(' ')[0]; // First name
+        } else if (currentUser.user_metadata && currentUser.user_metadata.full_name) {
+            name = currentUser.user_metadata.full_name.split(' ')[0];
+        }
+
+        greeting.textContent = `${intro}, ${name}! 🌟`;
     }
 
     if (dateEl) {

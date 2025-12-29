@@ -41,7 +41,15 @@ function showStep(step) {
 
 function nextStep() {
     if (currentStep === 1) {
+        const fullName = document.getElementById('fullName').value;
         const gradYear = document.getElementById('gradYear').value;
+
+        if (!fullName) {
+            if (window.showNotification) window.showNotification('Please enter your full name', 'error');
+            else alert('Please enter your full name');
+            return;
+        }
+
         if (!gradYear) {
             if (window.showNotification) window.showNotification('Please select your graduation year', 'error');
             else alert('Please select your graduation year');
@@ -133,18 +141,27 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             const gradYear = document.getElementById('gradYear').value;
             const major = document.getElementById('intendedMajor').value;
+            const fullName = document.getElementById('fullName').value;
+            const location = document.getElementById('location').value;
+            const birthDate = document.getElementById('birthDate').value;
 
             if (window.showNotification) window.showNotification('Saving your profile...', 'info');
 
             try {
                 // 1. Create/Update Profile
-                await upsertProfile({
+                // Note: Ensure your database has 'location' and 'birth_date' columns in 'profiles' table!
+                const profileData = {
                     id: currentUser.id,
                     email: currentUser.email,
                     graduation_year: parseInt(gradYear),
                     intended_major: major,
-                    full_name: currentUser.email.split('@')[0]
-                });
+                    full_name: fullName
+                };
+
+                if (location) profileData.location = location;
+                if (birthDate) profileData.birth_date = birthDate;
+
+                await upsertProfile(profileData);
 
                 // 2. Add Colleges
                 for (const name of selectedColleges) {

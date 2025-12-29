@@ -60,15 +60,46 @@ document.addEventListener('DOMContentLoaded', async function () {
     window.reviewWithAI = reviewWithAI;
 });
 
-async function handleUpload(file) {
+let pendingFile = null;
+
+function showUploadModal(file) {
+    pendingFile = file;
+    document.getElementById('selectedFileName').textContent = file.name;
+    document.getElementById('uploadModal').style.display = 'flex';
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').style.display = 'none';
+    pendingFile = null;
+    document.getElementById('fileInput').value = ''; // Reset input
+}
+
+async function confirmUpload() {
+    if (!pendingFile) return;
+
+    const category = document.getElementById('docCategory').value;
+    const file = pendingFile;
+
+    closeUploadModal(); // Close first to show progress behind or notification
+
     showNotification(`Uploading ${file.name}...`, 'info');
-    const category = prompt(`Select category for ${file.name} (Transcript, Resume, Award, etc.):`, 'Other') || 'Other';
 
     const doc = await uploadDocument(currentUser.id, file, category);
     if (doc) {
         showNotification(`${file.name} uploaded!`, 'success');
         await loadAndRenderDocuments();
+    } else {
+        showNotification('Upload failed.', 'error');
     }
+}
+
+// Make global
+window.closeUploadModal = closeUploadModal;
+window.confirmUpload = confirmUpload;
+
+async function handleUpload(file) {
+    // Instead of direct upload, show modal
+    showUploadModal(file);
 }
 
 async function loadAndRenderDocuments() {
