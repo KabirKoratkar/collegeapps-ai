@@ -47,12 +47,24 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Filter logic
-    document.querySelectorAll('.btn-ghost').forEach(btn => {
+    document.querySelectorAll('.filter-tab').forEach(btn => {
         btn.addEventListener('click', function () {
-            const categoryText = this.textContent.replace(/[^\w\s]/g, '').trim();
-            filterDocuments(categoryText === 'All Documents' ? 'all' : categoryText);
+            document.querySelectorAll('.filter-tab').forEach(b => {
+                b.classList.remove('btn-primary', 'active');
+                b.classList.add('btn-ghost');
+            });
+            this.classList.remove('btn-ghost');
+            this.classList.add('btn-primary', 'active');
+
+            const category = this.dataset.category;
+            filterDocuments(category);
         });
     });
+
+    // Modal close functions
+    window.closeReviewModal = () => {
+        document.getElementById('reviewModal').style.display = 'none';
+    };
 
     // Make functions global for inline onclick
     window.viewFile = viewFile;
@@ -166,14 +178,27 @@ async function deleteDoc(id, path) {
 }
 
 async function reviewWithAI(name, category) {
-    showNotification(`Analyzing ${name}...`, 'info');
+    const modal = document.getElementById('reviewModal');
+    const loading = document.getElementById('reviewLoading');
+    const results = document.getElementById('reviewResults');
+    const info = document.getElementById('reviewDocInfo');
+
+    info.textContent = `${category} • ${name}`;
+    modal.style.display = 'flex';
+    loading.style.display = 'block';
+    results.style.display = 'none';
 
     try {
         const response = await fetch(`${config.apiUrl}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: `Review this ${category} document called "${name}". Give me 2 pieces of constructive feedback or a summary of what's missing for a top-tier college application.`,
+                message: `Analyze this student ${category} document: "${name}". 
+                Since I don't have the text extraction yet, provide a high-level expert checklist of what a student should ensure is present in a top-tier version of this document. 
+                Structure your response with:
+                1. [STRENGTHS] (Common strengths in ${category}s)
+                2. [CHECKLIST] (3-4 essential items for elite colleges)
+                3. [ACTION] (One specific strategy to stand out)`,
                 userId: currentUser.id,
                 conversationHistory: []
             })
@@ -182,10 +207,34 @@ async function reviewWithAI(name, category) {
         if (!response.ok) throw new Error('AI Server error');
 
         const data = await response.json();
-        alert(`AI Review for ${name}:\n\n${data.response}`);
+        const feedback = data.response;
+
+        loading.style.display = 'none';
+        results.style.display = 'block';
+
+        // Parse sections
+        const strengths = feedback.match(/\[STRENGTHS\]([\s\S]*?)(?=\[|$)/i)?.[1]?.trim() || "Ready for review.";
+        const checklist = feedback.match(/\[CHECKLIST\]([\s\S]*?)(?=\[|$)/i)?.[1]?.trim() || "Check formatting and impact.";
+        const action = feedback.match(/\[ACTION\]([\s\S]*?)(?=\[|$)/i)?.[1]?.trim() || "Quantify your achievements.";
+
+        results.innerHTML = `
+            <div class="review-section">
+                <h4 style="color: var(--success); margin-bottom: 8px;">✅ Common Strengths</h4>
+                <p style="font-size: var(--text-sm); line-height: 1.5;">${strengths.replace(/\n/g, '<br>')}</p>
+            </div>
+            <div class="review-section mt-lg" style="border-top: 1px solid var(--gray-100); padding-top: var(--space-md);">
+                <h4 style="color: var(--primary-blue); margin-bottom: 8px;">📋 Elite College Checklist</h4>
+                <p style="font-size: var(--text-sm); line-height: 1.5;">${checklist.replace(/\n/g, '<br>')}</p>
+            </div>
+            <div class="review-section mt-lg" style="background: var(--gray-50); padding: var(--space-md); border-radius: var(--radius-md);">
+                <h4 style="color: var(--accent-purple); margin-bottom: 4px;">🚀 Pro Tip to Stand Out</h4>
+                <p style="font-size: var(--text-sm); font-weight: 500;">${action}</p>
+            </div>
+        `;
+
     } catch (error) {
         console.error('AI Review Error:', error);
-        showNotification('AI analysis failed. Is the server running?', 'error');
+        loading.innerHTML = `<p style="color: var(--error);">Error generating analysis. Please try again.</p>`;
     }
 }
 

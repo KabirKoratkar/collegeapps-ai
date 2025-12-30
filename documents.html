@@ -55,14 +55,14 @@
 
         <!-- Filter Tabs -->
         <div
-            style="display: flex; gap: var(--space-md); margin-top: var(--space-2xl); margin-bottom: var(--space-lg); overflow-x: auto;">
-            <button class="btn btn-sm btn-primary">All Documents</button>
-            <button class="btn btn-sm btn-ghost">📄 Transcripts</button>
-            <button class="btn btn-sm btn-ghost">📋 Resumes</button>
-            <button class="btn btn-sm btn-ghost">🏆 Awards</button>
-            <button class="btn btn-sm btn-ghost">📜 Certificates</button>
-            <button class="btn btn-sm btn-ghost">📊 Test Scores</button>
-            <button class="btn btn-sm btn-ghost">✍️ Essay Drafts</button>
+            style="display: flex; gap: var(--space-md); margin-top: var(--space-2xl); margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: var(--space-sm);">
+            <button class="btn btn-sm btn-primary filter-tab active" data-category="all">All Documents</button>
+            <button class="btn btn-sm btn-ghost filter-tab" data-category="Transcript">📄 Transcripts</button>
+            <button class="btn btn-sm btn-ghost filter-tab" data-category="Resume">📋 Resumes</button>
+            <button class="btn btn-sm btn-ghost filter-tab" data-category="Award">🏆 Awards</button>
+            <button class="btn btn-sm btn-ghost filter-tab" data-category="Certificate">📜 Certificates</button>
+            <button class="btn btn-sm btn-ghost filter-tab" data-category="Test Score">📊 Test Scores</button>
+            <button class="btn btn-sm btn-ghost filter-tab" data-category="Essay Draft">✍️ Essay Drafts</button>
         </div>
 
         <!-- File Grid -->
@@ -79,6 +79,34 @@
             </div>
             <div class="progress-bar progress-lg">
                 <div class="progress-fill" style="width: 15%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Review Modal -->
+    <div id="reviewModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="reviewModalTitle">AI Document Analysis</h3>
+                    <p style="font-size: var(--text-xs); color: var(--gray-500); margin: 0;" id="reviewDocInfo"></p>
+                </div>
+                <button class="btn btn-ghost" onclick="closeReviewModal()">×</button>
+            </div>
+            <div class="modal-body" id="reviewModalBody">
+                <div id="reviewLoading" style="text-align: center; padding: var(--space-2xl);">
+                    <div class="spinner mb-md" style="margin: 0 auto;"></div>
+                    <p style="font-weight: 600;">Analyzing document content...</p>
+                    <p style="font-size: var(--text-sm); color: var(--gray-500);">AI is checking for impact, clarity,
+                        and consistency.</p>
+                </div>
+                <div id="reviewResults" style="display: none;">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeReviewModal()">Close</button>
+                <button class="btn btn-primary" id="saveReviewBtn">Save to Notes</button>
             </div>
         </div>
     </div>
