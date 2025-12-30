@@ -74,9 +74,23 @@ async function loadConversationHistory() {
     const history = await getUserConversations(currentUser.id, 20);
     conversationHistory = history;
 
+    // Get profile for personalization
+    const { getUserProfile } = await import('./supabase-config.js');
+    const profile = await getUserProfile(currentUser.id);
+    const firstName = profile?.full_name ? profile.full_name.split(' ')[0] : (currentUser.user_metadata?.full_name?.split(' ')[0] || 'there');
+
     // Clear current messages except welcome
     const chatMessages = document.getElementById('chatMessages');
     const welcomeMessage = chatMessages.querySelector('.chat-message:first-child');
+
+    // Update welcome message name
+    if (welcomeMessage) {
+        const welcomeTitle = welcomeMessage.querySelector('strong');
+        if (welcomeTitle) {
+            welcomeTitle.textContent = `Hi ${firstName}! 👋`;
+        }
+    }
+
     chatMessages.innerHTML = '';
     if (welcomeMessage) {
         chatMessages.appendChild(welcomeMessage);

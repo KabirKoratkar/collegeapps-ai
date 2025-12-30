@@ -55,14 +55,29 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'Message and userId are required' });
         }
 
+        // Fetch user profile for personalization
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        const profileContext = profile ?
+            `You are talking to ${profile.full_name || 'a student'}. 
+             Graduation Year: ${profile.graduation_year || 'Unknown'}
+             Intended Major: ${profile.intended_major || 'Undecided'}
+             Location: ${profile.location || 'Unknown'}` : '';
+
         // Build conversation messages for OpenAI
         const messages = [
             {
                 role: 'system',
                 content: `You are an expert college application counselor helping high school students with their college applications. You have access to detailed information about college requirements, deadlines, essays, and test policies.
 
+${profileContext}
+
 When users mention they are applying to colleges, you should:
-1. Use the addCollege function to add the college to their list
+1. Use the addCollege function to add the college to their list. Suggest if it should be a "Reach", "Target", or "Safety" based on their profile if possible.
 2. Use the createEssays function to create all required essay tasks
 3. Use the createTasks function to create important tasks and deadlines
 4. Provide helpful, encouraging guidance
@@ -71,6 +86,8 @@ When users ask for help with essays:
 1. Use the brainstormEssay function to generate creative ideas for specific prompts
 2. Use the reviewEssay function to provide constructive feedback on drafts
 3. Focus on unique personal stories, showing rather than telling, and authentic voice
+
+When recommending colleges or giving advice, consider their major (${profile ? profile.intended_major : 'undecided'}) and location (${profile ? profile.location : 'unknown'}).
 
 Be conversational, supportive, and specific. When you add colleges or create tasks, let the user know what you've done.
 
