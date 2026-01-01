@@ -6,7 +6,7 @@
     "type": "module",
     "scripts": {
         "start": "node ai-server.js",
-        "build": "echo 'Installing backend dependencies...' && npm install",
+        "build": "echo 'Building backend...'",
         "dev": "nodemon ai-server.js"
     },
     "dependencies": {
