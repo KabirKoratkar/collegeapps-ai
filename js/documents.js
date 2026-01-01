@@ -5,6 +5,15 @@ import config from './config.js';
 let currentUser = null;
 let documents = [];
 
+// Notification helper (since main.js is not a module, we need to define it here or access via window)
+function showNotification(message, type = 'info') {
+    if (typeof window.showNotification === 'function') {
+        window.showNotification(message, type);
+    } else {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     currentUser = await getCurrentUser();
     if (!currentUser) {
