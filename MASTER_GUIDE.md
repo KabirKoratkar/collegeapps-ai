@@ -1,99 +1,111 @@
-# CollegeApps.ai - Master Guide
+# CollegeApps.ai - The Master Guide
 
-Welcome to the command center for your college applications. This guide consolidates all information about setting up, running, testing, and deploying the CollegeApps.ai platform.
+This document is the single source of truth for the CollegeApps.ai project. It contains the project overview, setup guides, technical architecture, and a complete history of every feature and fix implemented.
 
 ---
 
-## 🎯 Project Overview
+## 🎯 What is CollegeApps.ai?
 
-CollegeApps.ai helps students organize the entire application process. Instead of juggling multiple portals, students use one dashboard that manages tasks, essays, and deadlines.
+CollegeApps.ai is a unified "Command Center" for high school students navigating the college application process. It organizes deadlines, essays, and tasks into a single platform, supported by an intelligent AI Counselor.
 
 ### Core Features
-- **Daily Task Dashboard**: Know exactly what to work on today.
-- **Calendar View**: Visual monthly view of deadlines, essays, and tasks.
-- **Essay Workspace**: Modern editor with autosave and AI assistance.
-- **AI Counselor**: 24/7 expert guidance powered by GPT-4.
-- **Document Vault**: Secure storage for transcripts, resumes, and awards.
+- **Daily Task Dashboard**: Priority-based tasks, weekly goals, and deadline countdowns.
+- **AI Counselor (GPT-4)**: Automated college list management, requirement lookups, and essay brainstorming.
+- **Smart Calendar View**: Interactive monthly grid with color-coded events (Deadlines, Essays, Tasks).
+- **Essay Workspace**: Notion-like editor with real-time autosave, version control, and word counting.
+- **Analytics Dashboard**: Visual progress tracking via rings, status charts, and activity heatmaps.
+- **Document Vault**: Secure storage for transcripts, resumes, and recommendation letters.
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## �️ Technical Stack
 
-### Prerequisites
-- **Node.js** (v18 or higher)
-- **Supabase Account** (free tier)
-- **OpenAI API Key**
+- **Frontend**: Vanilla HTML5, CSS3 (Custom Design System), and ES6+ JavaScript.
+- **Backend**: Node.js & Express.
+- **Database**: Supabase (PostgreSQL) with Row Level Security (RLS).
+- **AI**: OpenAI GPT-4 Turbo with Function Calling.
+- **Hosting**: Railway (Backend) & Vercel (Frontend).
+- **Architecture**: Monorepo using **npm workspaces**.
 
-### 1. Database Setup (Supabase)
-1.  Create a new project on [Supabase](https://supabase.com).
-2.  Run the schema from `backend/supabase-schema.sql` in the SQL Editor.
-3.  **Crucial**: Run the `backend/profile-extension.sql` to add newer columns (`birth_date`, `location`).
-4.  Copy your **Project URL** and **anon public key**.
+---
 
-### 2. Backend Configuration
-1.  In `backend/`, copy `.env.example` to `.env`.
-2.  Fill in your `OPENAI_API_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_KEY`.
-3.  Run `npm install` in the root directory.
+## 🚀 Setup & Local Development
 
-### 3. Frontend Configuration
-1.  In `js/supabase-config.js`, update the `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+### 1. Prerequisites
+- **Node.js**: v20.x recommended.
+- **Supabase**: Access to a project with the SQL schema applied.
+- **OpenAI**: API Key with billing enabled for GPT-4 access.
+
+### 2. Environment Configuration
+Create a `backend/.env` file:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_KEY=your_service_role_key
+OPENAI_API_KEY=your_openai_key
+PORT=3001
+```
+
+### 3. Database Initialization
+1.  **Initial Schema**: Run `backend/supabase-schema.sql`.
+2.  **Profile Extensions**: Run `backend/profile-extension.sql` (Adds `location`, `birth_date`, etc.).
+3.  **Sample Data**: Run `backend/add-sample-colleges.sql` (Optional).
 
 ### 4. Running the App
-The project uses **npm workspaces**. You can run everything from the root:
-- **Build**: `npm install`
-- **Start Backend**: `npm start` (Runs AI Counselor server on port 3001)
-- **Start Frontend**: Open `index.html` or use `python3 -m http.server 8000`
+```bash
+# Install everything
+npm install
+
+# Start Backend + AI Counselor
+npm start
+
+# For Frontend
+# Simply open index.html or use a static server like Live Server (VSC)
+```
 
 ---
 
-## 🤖 AI Counselor & Integrations
+## 🤖 AI Counselor Deep-Dive
 
-The AI Counselor is the heart of the app. It can:
-- **Add Colleges**: "I'm applying to Stanford" adds the college and all its requirements.
-- **Create Tasks**: "Remind me to ask for LORs" creates a task synced to your calendar.
-- **Analyze Essays**: Get feedback on your drafts.
+The AI Counselor is not just a chatbot; it is integrated directly into the application state via **Function Calling**.
 
-### Testing the Sync
-1.  Ask the AI: "I want to apply to Georgia Tech."
-2.  Check the **Colleges** page to see it added.
-3.  Check the **Calendar** to see the Jan 4 deadline.
-4.  Check the **Essays** page for automatically generated prompts.
+### Automated Actions
+- **`addCollege(name)`**: Automatically look up requirements and add to database.
+- **`createEssays(college)`**: Generate all supplemental essay tasks with word limits.
+- **`createTasks(title, date)`**: Add reminders directly to the user's calendar.
+- **`getCollegeRequirements(college)`**: Instantly fetch deadlines, LOR requirements, and test policies.
 
 ---
 
-## 💾 Database Schema
+## � Complete Project History
 
-| Table | Purpose |
-|-------|---------|
-| `profiles` | User info (location, grad year, major) |
-| `colleges` | User's college list and application status |
-| `essays` | Essay drafts with word counts and versions |
-| `tasks` | Deadlines and to-do items |
-| `documents` | Metadata for uploaded transcripts/resumes |
-| `conversations` | AI chat history persistence |
+### Phase 1: Foundation & UI (Dec 2025)
+- **Design System**: Created a premium "Apple-style" UI with vibrant gradients and Inter/Outfit typography.
+- **Landing Page**: Built a high-conversion marketing site.
+- **Dashboard**: Designed the main grid layout for tasks and goals.
+- **Auth Flow**: Implemented Sign Up, Login, and a 3-step Onboarding flow.
+- **Calendar**: Built a custom 7-column calendar grid from scratch with event filtering.
+- **Essay Editor**: Created the cleaner editor interface with a sidebar for multiple drafts.
 
----
+### Phase 2: Intelligence & Backend (Dec 2024 - Jan 2025)
+- **Supabase Integration**: Migrated from placeholder data to a real PostgreSQL database.
+- **AI Counselor**: Integrated GPT-4 and built the "Function Calling" bridge between chat and the database.
+- **Essay Persistence**: Implemented **3-second autosave** and version history using Supabase triggers.
+- **Analytics**: Built the charts engine using Canvas API for progress rings and dynamic bars for status tracking.
+- **Document Management**: Fixed module-loading and permission issues to enable file uploads to Supabase Storage.
 
-## 🌐 Deployment
-
-### Backend (Railway)
-1.  Connect your GitHub repo to Railway.
-2.  Ensure **Root Directory** in settings is set to `/` (or left blank).
-3.  Railway uses the root `package.json` to start the workspace.
-4.  Add environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `OPENAI_API_KEY`.
-
-### Frontend (Vercel)
-1.  Import the repository.
-2.  Vercel will auto-detect it as a static site.
-3.  Live URL: [collegeapps-ai.vercel.app](https://collegeapps-ai.vercel.app)
+### Phase 3: Infrastructure & Stability (Current)
+- **Railway Build Fixes**: Migrated to **npm workspaces** to fix deployment failures. Optimized `railway.json` for Nixpacks.
+- **Onboarding Fixes**: Resolved critical "failed to create profile" bugs by extending the SQL schema.
+- **Documentation Overhaul**: Consolidated 15+ fragmented `.md` files and purged old "brain" session folders to clean up the workspace.
+- **Error Handling**: Improved the frontend to catch and display detailed Supabase and AI errors instead of generic failures.
 
 ---
 
-## 🛠️ Troubleshooting
+## 🌐 Deployment Links
 
-- **"Failed to create profile"**: Ensure you ran the `profile-extension.sql` in Supabase.
-- **"Build Failed" on Railway**: Check that Node version is set to `20.x` and `Root Directory` is correct.
-- **AI not responding**: Verify your OpenAI API key and billing status.
+- **Frontend**: [collegeapps-ai.vercel.app](https://collegeapps-ai.vercel.app)
+- **Backend API**: `https://collegeapps-ai-production-28c4.up.railway.app`
+- **GitHub**: [github.com/KabirKoratkar/collegeapps-ai](https://github.com/KabirKoratkar/collegeapps-ai)
 
 ---
 
