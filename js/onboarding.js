@@ -1,4 +1,4 @@
-import { getCurrentUser, upsertProfile, addCollege as supabaseAddCollege } from './supabase-config.js';
+import { getCurrentUser, upsertProfile, addCollege as supabaseAddCollege, getUserProfile } from './supabase-config.js';
 
 let currentStep = 1;
 const totalSteps = 3;
