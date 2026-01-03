@@ -133,12 +133,39 @@
                     </div>
                 </div>
 
+                <!-- Step 4: AI Plan -->
+                <div class="onboarding-step" id="step4" style="display: none;">
+                    <div id="planLoading" style="text-align: center; padding: 2rem;">
+                        <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                        <p>AI is crafting your personalized application schedule...</p>
+                    </div>
+
+                    <div id="planDisplay" style="display: none;">
+                        <div class="card card-compact mb-lg"
+                            style="background: var(--gradient-subtle); border: 1px solid var(--primary-blue);">
+                            <div style="display: flex; align-items: center; gap: var(--space-md);">
+                                <span style="font-size: 2rem;">🤖</span>
+                                <div>
+                                    <h4 style="margin: 0; color: var(--primary-blue);">Counselor Strategy</h4>
+                                    <p id="planSummary"
+                                        style="font-size: var(--text-sm); margin: 0; color: var(--gray-700);"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tasksContainer"
+                            style="display: flex; flex-direction: column; gap: var(--space-sm); max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                            <!-- AI Tasks will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
                 <div style="display: flex; justify-content: space-between; margin-top: var(--space-2xl);">
                     <button type="button" class="btn btn-ghost" id="backBtn" style="display: none;"
                         onclick="prevStep()">Back</button>
                     <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">Continue</button>
-                    <button type="submit" class="btn btn-primary" id="finishBtn" style="display: none;">Finish
-                        Setup</button>
+                    <button type="submit" class="btn btn-primary" id="finishBtn" style="display: none;">Finish & Go to
+                        Dashboard</button>
                 </div>
             </form>
 
@@ -147,6 +174,7 @@
                     <div class="step-indicator active" id="indicator1"></div>
                     <div class="step-indicator" id="indicator2"></div>
                     <div class="step-indicator" id="indicator3"></div>
+                    <div class="step-indicator" id="indicator4"></div>
                 </div>
             </div>
         </div>

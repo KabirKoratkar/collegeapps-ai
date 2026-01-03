@@ -427,6 +427,90 @@ app.post('/api/essays/sync', async (req, res) => {
     }
 });
 
+// Generate Comprehensive Onboarding Plan
+app.post('/api/onboarding/plan', async (req, res) => {
+    try {
+        const { userId, colleges, profile } = req.body;
+
+        if (!userId || !colleges) {
+            return res.status(400).json({ error: 'userId and colleges are required' });
+        }
+
+        console.log(`Generating comprehensive plan for user ${userId}...`);
+
+        const collegeListStr = colleges.join(', ');
+        const majorStr = profile?.intended_major || 'undecided';
+        const gradYearStr = profile?.graduation_year || '2026';
+
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a world-class college counselor. Your goal is to create a COMPREHENSIVE, premium application schedule for a student.
+                    
+                    The student is applying to: ${collegeListStr}
+                    Intended Major: ${majorStr}
+                    Graduation Year: ${gradYearStr}
+                    
+                    Create a list of 8-10 high-impact tasks/milestones for their application journey, spanning from today through their deadlines.
+                    
+                    Return the plan in JSON format:
+                    {
+                        "summary": "Short 2-sentence encouraging summary of their strategy",
+                        "tasks": [
+                            {
+                                "title": "...",
+                                "description": "...",
+                                "dueDate": "YYYY-MM-DD",
+                                "category": "Essay | Document | LOR | General",
+                                "priority": "High | Medium | Low"
+                            }
+                        ]
+                    }
+                    
+                    Be specific to their colleges and major. For example, if they apply to Stanford, include "Intellectual Vitality" essay focus. If CS major, include portfolio/project highlights.`
+                },
+                {
+                    role: 'user',
+                    content: 'Generate my comprehensive application plan.'
+                }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const plan = JSON.parse(completion.choices[0].message.content);
+
+        // Optionally save tasks to database immediately
+        if (plan.tasks && plan.tasks.length > 0) {
+            const tasksToSave = plan.tasks.map(t => ({
+                user_id: userId,
+                title: t.title,
+                description: t.description,
+                due_date: t.dueDate,
+                category: t.category,
+                priority: t.priority,
+                completed: false
+            }));
+
+            const { error } = await supabase
+                .from('tasks')
+                .insert(tasksToSave);
+
+            if (error) console.error('Error auto-saving onboarding tasks:', error);
+        }
+
+        res.json({
+            success: true,
+            plan: plan
+        });
+
+    } catch (error) {
+        console.error('Error generating onboarding plan:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
 // Function handlers
 
 async function handleAddCollege(userId, collegeName, type) {

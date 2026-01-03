@@ -1,7 +1,8 @@
 import { getCurrentUser, upsertProfile, addCollege as supabaseAddCollege, getUserProfile } from './supabase-config.js';
+import config from './config.js';
 
 let currentStep = 1;
-const totalSteps = 3;
+const totalSteps = 4;
 let selectedColleges = [];
 let currentUser = null;
 
@@ -91,6 +92,80 @@ function nextStep() {
     if (currentStep < totalSteps) {
         currentStep++;
         showStep(currentStep);
+
+        // If we just moved to step 4, trigger plan generation
+        if (currentStep === 4) {
+            generateAIPlan();
+        }
+    }
+}
+
+async function generateAIPlan() {
+    const planLoading = document.getElementById('planLoading');
+    const planDisplay = document.getElementById('planDisplay');
+    const planSummary = document.getElementById('planSummary');
+    const tasksContainer = document.getElementById('tasksContainer');
+
+    if (!planLoading || !planDisplay) return;
+
+    try {
+        const gradYear = document.getElementById('gradYear').value;
+        const major = document.getElementById('intendedMajor').value;
+        const fullName = document.getElementById('fullName').value;
+
+        const response = await fetch(`${config.apiUrl}/api/onboarding/plan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: currentUser.id,
+                colleges: selectedColleges,
+                profile: {
+                    graduation_year: gradYear,
+                    intended_major: major,
+                    full_name: fullName
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to generate plan');
+
+        const data = await response.json();
+        const plan = data.plan;
+
+        // Populate UI
+        planSummary.textContent = plan.summary;
+        tasksContainer.innerHTML = '';
+
+        plan.tasks.forEach(task => {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'task-card';
+            taskEl.style.padding = 'var(--space-md)';
+            taskEl.style.marginBottom = 'var(--space-sm)';
+
+            // Priority color
+            let borderColor = 'var(--primary-blue)';
+            if (task.priority === 'High') borderColor = 'var(--error)';
+            if (task.priority === 'Medium') borderColor = 'var(--warning)';
+
+            taskEl.style.borderLeft = `4px solid ${borderColor}`;
+
+            taskEl.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                    <h5 style="margin: 0; font-size: var(--text-base); font-weight: 700;">${task.title}</h5>
+                    <span class="badge" style="font-size: 10px;">${task.category}</span>
+                </div>
+                <p style="margin: 0 0 8px; font-size: var(--text-xs); color: var(--gray-600);">${task.description}</p>
+                <div style="font-size: 10px; font-weight: 600; color: var(--gray-500);">📅 Due: ${new Date(task.dueDate).toLocaleDateString()}</div>
+            `;
+            tasksContainer.appendChild(taskEl);
+        });
+
+        planLoading.style.display = 'none';
+        planDisplay.style.display = 'block';
+
+    } catch (error) {
+        console.error('Plan Generation Error:', error);
+        planLoading.innerHTML = `<p style="color: var(--error);">Failed to generate your plan. But don't worry, you can still finish setup!</p>`;
     }
 }
 
