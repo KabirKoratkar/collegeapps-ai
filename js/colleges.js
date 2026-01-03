@@ -181,8 +181,8 @@ async function loadAndRenderColleges() {
                     <div style="display: flex; align-items: center; gap: var(--space-sm);">
                         <a href="college-explorer.html?name=${encodeURIComponent(c.name)}" style="color: inherit; text-decoration: none;"><strong>${c.name}</strong></a>
                         <div style="display: flex; gap: 4px;">
-                            <button class="btn btn-sm btn-ghost" onclick="getAIStrategy('${c.name}')" title="Admission Strategy">✨</button>
-                            <button class="btn btn-sm btn-ghost" onclick="deepResearch('${c.name}')" title="'Why Us' Research">🔍</button>
+                            <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="getAIStrategy('${c.name.replace(/'/g, "\\'")}')" title="Admission Strategy">✨</button>
+                            <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="deepResearch('${c.name.replace(/'/g, "\\'")}')" title="'Why Us' Research">🔍</button>
                         </div>
                     </div>
                 </td>

@@ -145,10 +145,10 @@ function renderGrid(docs) {
             <div style="margin-top: var(--space-md);">
                 <span class="badge ${getCategoryClass(doc.category)}">${doc.category}</span>
             </div>
-            <div style="display: flex; gap: var(--space-xs); margin-top: var(--space-md);">
-                <button class="btn btn-sm btn-ghost" style="flex: 1;" onclick="viewFile('${doc.file_path}')">View</button>
-                <button class="btn btn-sm btn-primary" onclick="reviewWithAI('${doc.name}', '${doc.category}')">AI Review</button>
-                <button class="btn btn-sm btn-ghost" onclick="deleteDoc('${doc.id}', '${doc.file_path}')" title="Delete">🗑️</button>
+            <div style="display: flex; gap: var(--space-xs); margin-top: var(--space-md); flex-wrap: wrap;">
+                <button class="btn btn-sm btn-ghost" style="flex: 1; padding: 0.5rem 0.5rem; min-width: 60px;" onclick="viewFile('${doc.file_path}')">View</button>
+                <button class="btn btn-sm btn-primary" style="flex: 2; padding: 0.5rem 0.5rem; min-width: 90px; white-space: nowrap;" onclick="reviewWithAI('${doc.name}', '${doc.category}')">AI Review</button>
+                <button class="btn btn-icon btn-ghost btn-error" onclick="deleteDoc('${doc.id}', '${doc.file_path}')" title="Delete">🗑️</button>
             </div>
         </div>
     `).join('');

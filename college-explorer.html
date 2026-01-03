@@ -170,6 +170,18 @@
                 transform: rotate(360deg);
             }
         }
+
+        @media (max-width: 992px) {
+            .explorer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-lg);
+            }
+        }
     </style>
 </head>
 

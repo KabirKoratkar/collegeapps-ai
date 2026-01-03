@@ -63,6 +63,39 @@
     font-size: var(--text-sm);
 }
 
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.btn-icon-sm {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+.btn-error {
+    background: var(--error);
+    color: var(--white);
+}
+
+.btn-error.btn-ghost {
+    background: transparent;
+    color: var(--error);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-error.btn-ghost:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--error);
+}
+
 /* CARDS */
 .card {
     background: var(--white);
