@@ -1,4 +1,4 @@
-import { getCurrentUser, getUserColleges, addCollege, updateCollege, searchCollegeCatalog } from './supabase-config.js';
+import { getCurrentUser, getUserColleges, addCollege, updateCollege, searchCollegeCatalog, getUserEssays, getUserTasks } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 import config from './config.js';
 
