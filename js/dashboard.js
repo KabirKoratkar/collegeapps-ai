@@ -31,10 +31,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateNavbarUser(currentUser);
     updateHeader(window.currentUserProfile);
 
+    hideLoading();
+
     // Load Data
-    const tasks = await getUserTasks(currentUser.id);
-    const essays = await getUserEssays(currentUser.id);
-    const colleges = await getUserColleges(currentUser.id);
+    const { tasks, essays, colleges } = await fetchDashboardData(currentUser.id);
 
     // Render Data
     renderDashboard(tasks, essays, colleges);
@@ -127,9 +127,11 @@ function renderDashboard(tasks, essays, colleges) {
         const completedTasks = tasks.filter(t => t.completed).length;
         updateWidget(widgets[1], completedTasks, tasks.length);
 
-        // Colleges
-        const completedColleges = colleges.filter(c => c.status === 'Completed').length;
-        updateWidget(widgets[2], completedColleges, colleges.length);
+        // Application Progress (Average of all colleges)
+        const avgProgress = colleges.length > 0
+            ? colleges.reduce((acc, c) => acc + (c.smartProgress || 0), 0) / colleges.length
+            : 0;
+        updateWidget(widgets[2], avgProgress, 100);
     }
 }
 
@@ -137,8 +139,67 @@ function updateWidget(widget, completed, total) {
     const label = widget.querySelector('.progress-label span:last-child');
     const bar = widget.querySelector('.progress-fill');
 
-    if (label) label.textContent = `${completed}/${total || 1}`;
-    if (bar) bar.style.width = `${(completed / (total || 1)) * 100}%`;
+    if (label) {
+        // Find if we are showing percentage or counts
+        const header = widget.querySelector('h3').textContent;
+        if (header.includes('Application')) {
+            label.textContent = `${Math.round(completed)}% AVG`;
+        } else {
+            label.textContent = `${completed}/${total || 0}`;
+        }
+    }
+    if (bar) bar.style.width = `${(completed / (total || (header.includes('Application') ? 100 : 1))) * 100}%`;
+}
+
+async function fetchDashboardData(userId) {
+    const [tasks, essays, colleges] = await Promise.all([
+        getUserTasks(userId),
+        getUserEssays(userId),
+        getUserColleges(userId)
+    ]);
+
+    // Calculate smart progress for each college
+    colleges.forEach(college => {
+        college.smartProgress = calculateSmartProgress(college, essays, tasks);
+    });
+
+    return { tasks, essays, colleges };
+}
+
+function calculateSmartProgress(college, allEssays, allTasks) {
+    const collegeEssays = allEssays.filter(e => e.college_id === college.id);
+    const collegeTasks = allTasks.filter(t => t.college_id === college.id);
+
+    if (collegeEssays.length === 0 && collegeTasks.length === 0) return 0;
+
+    // Weighting: 40% Essays, 60% Tasks
+    let essayWeight = 0.4;
+    let taskWeight = 0.6;
+
+    // Adjust if one category is empty
+    if (collegeEssays.length === 0) { taskWeight = 1.0; essayWeight = 0; }
+    if (collegeTasks.length === 0) { essayWeight = 1.0; taskWeight = 0; }
+
+    // Calculate Essay Score
+    let essayScore = 0;
+    if (collegeEssays.length > 0) {
+        const totalEssayProgress = collegeEssays.reduce((acc, essay) => {
+            if (essay.is_completed) return acc + 1;
+            // Partial progress based on word count (capped at 1)
+            const wordProgress = essay.word_limit > 0 ? Math.min(essay.word_count / essay.word_limit, 1) : 0;
+            return acc + (wordProgress * 0.8); // Non-completed capped at 80%
+        }, 0);
+        essayScore = totalEssayProgress / collegeEssays.length;
+    }
+
+    // Calculate Task Score
+    let taskScore = 0;
+    if (collegeTasks.length > 0) {
+        const completedTasks = collegeTasks.filter(t => t.completed).length;
+        taskScore = completedTasks / collegeTasks.length;
+    }
+
+    return Math.round((essayScore * essayWeight + taskScore * taskWeight) * 100);
 }
 
 async function generateAIActionPlan(tasks, essays, colleges) {

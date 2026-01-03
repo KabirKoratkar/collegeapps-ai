@@ -666,8 +666,38 @@ export {
     getSharedEssays,
     addComment,
     getEssayComments,
-    syncEssays
+    syncEssays,
+    searchCollegeCatalog,
+    getCollegeFromCatalog
 };
+
+async function searchCollegeCatalog(query) {
+    const { data, error } = await supabase
+        .from('college_catalog')
+        .select('*')
+        .ilike('name', `%${query}%`)
+        .limit(10);
+
+    if (error) {
+        console.error('Error searching catalog:', error);
+        return [];
+    }
+    return data;
+}
+
+async function getCollegeFromCatalog(name) {
+    const { data, error } = await supabase
+        .from('college_catalog')
+        .select('*')
+        .ilike('name', name)
+        .single();
+
+    if (error) {
+        console.error('Error fetching from catalog:', error);
+        return null;
+    }
+    return data;
+}
 
 async function syncEssays(userId) {
     try {

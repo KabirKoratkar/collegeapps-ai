@@ -143,9 +143,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Dev Mode Toggle Listener
+    // Dev Mode Toggle Listener (Secure check for launch)
     const toggleDevMode = document.getElementById('toggleDevMode');
-    if (toggleDevMode) {
+    const devModeLink = document.getElementById('devModeLink');
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDebugMode = urlParams.get('debug') === 'true';
+
+    if (toggleDevMode && devModeLink) {
+        // Only show the dev mode container if ?debug=true is in the URL
+        if (isDebugMode) {
+            devModeLink.style.display = 'block';
+        } else {
+            devModeLink.style.display = 'none';
+        }
+
         toggleDevMode.addEventListener('click', function (e) {
             e.preventDefault();
             const isActive = localStorage.getItem('dev_mode_active') === 'true';

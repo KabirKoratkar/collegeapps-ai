@@ -51,9 +51,11 @@ function updateSummaryStats(colleges, essays, tasks) {
     const tasksCard = document.querySelector('.stats-summary .card:nth-child(4) div:last-child');
 
     if (completionCard) {
-        const completed = colleges.filter(c => c.status === 'Completed').length;
-        const total = colleges.length;
-        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const totalProgress = colleges.reduce((acc, c) => {
+            const progress = calculateSmartProgress(c, essays, tasks);
+            return acc + progress;
+        }, 0);
+        const percent = colleges.length > 0 ? Math.round(totalProgress / colleges.length) : 0;
         completionCard.textContent = `${percent}%`;
     }
 
@@ -136,7 +138,11 @@ function renderAppStatus(colleges) {
 
     const statusCounts = { 'Not Started': 0, 'In Progress': 0, 'Completed': 0 };
     colleges.forEach(c => {
-        statusCounts[c.status || 'Not Started']++;
+        const progress = calculateSmartProgress(c, [], []); // Basic check with no essays/tasks for now if not available
+        let status = 'Not Started';
+        if (progress === 100) status = 'Completed';
+        else if (progress > 0) status = 'In Progress';
+        statusCounts[status]++;
     });
 
     new Chart(ctx, {
@@ -298,4 +304,33 @@ function renderEssayProgress(essays) {
             }
         }
     });
+}
+function calculateSmartProgress(college, allEssays, allTasks) {
+    const collegeEssays = allEssays.filter(e => e.college_id === college.id);
+    const collegeTasks = allTasks.filter(t => t.college_id === college.id);
+
+    if (collegeEssays.length === 0 && collegeTasks.length === 0) return 0;
+
+    let essayScore = 0;
+    if (collegeEssays.length > 0) {
+        const totalEssayProgress = collegeEssays.reduce((acc, essay) => {
+            if (essay.is_completed) return acc + 1;
+            const wordProgress = essay.word_limit > 0 ? Math.min(essay.word_count / essay.word_limit, 1) : 0;
+            return acc + (wordProgress * 0.8);
+        }, 0);
+        essayScore = totalEssayProgress / collegeEssays.length;
+    }
+
+    let taskScore = 0;
+    if (collegeTasks.length > 0) {
+        const completedTasks = collegeTasks.filter(t => t.completed).length;
+        taskScore = completedTasks / collegeTasks.length;
+    }
+
+    let essayWeight = 0.4;
+    let taskWeight = 0.6;
+    if (collegeEssays.length === 0) { taskWeight = 1.0; essayWeight = 0; }
+    if (collegeTasks.length === 0) { essayWeight = 1.0; taskWeight = 0; }
+
+    return Math.round((essayScore * essayWeight + taskScore * taskWeight) * 100);
 }

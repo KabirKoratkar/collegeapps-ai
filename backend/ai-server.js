@@ -82,7 +82,13 @@ When users mention they are applying to colleges, you should:
 3. Use the createTasks function to create important tasks and deadlines
 4. Provide helpful, encouraging guidance
 
-When users ask for help with essays:
+When users ask for "How to Apply" or "Strategy" for a college:
+1. Provide a detailed, step-by-step application guide.
+2. Analyze what that specific college values (e.g., "Stanford values intellectual vitality", "UCLA values community service").
+3. Give specific advice on how to "Maximize Chances" (e.g., which supplemental prompt to pick, what ECs to highlight).
+4. Break it down into: "The Game Plan", "How to Stand Out", and "Critical Deadlines".
+
+When users ask help with essays:
 1. Use the brainstormEssay function to generate creative ideas for specific prompts
 2. Use the reviewEssay function to provide constructive feedback on drafts
 3. Focus on unique personal stories, showing rather than telling, and authentic voice
@@ -447,14 +453,68 @@ async function handleAddCollege(userId, collegeName, type) {
         .select()
         .single();
 
-    if (error) {
-        console.error('Error adding college:', error);
-        return { success: false, error: error.message };
+    const collegeId = data.id;
+
+    // 4. Create Core Requirement Tasks
+    const coreTasks = [
+        {
+            user_id: userId,
+            college_id: collegeId,
+            title: `Submit ${collegeData.application_platform || 'Common App'} Application`,
+            description: `Submit the formal application for ${collegeData.name} via ${collegeData.application_platform || 'Common App'}.`,
+            due_date: collegeData.deadline,
+            category: 'General',
+            priority: 'High'
+        }
+    ];
+
+    if (collegeData.test_policy !== 'Test Blind') {
+        coreTasks.push({
+            user_id: userId,
+            college_id: collegeId,
+            title: `Send Test Scores to ${collegeData.name}`,
+            description: `Ensure SAT/ACT scores are sent if required or desired. Policy: ${collegeData.test_policy}`,
+            due_date: collegeData.deadline,
+            category: 'Document',
+            priority: 'Medium'
+        });
+    }
+
+    if (collegeData.lors_required > 0) {
+        coreTasks.push({
+            user_id: userId,
+            college_id: collegeId,
+            title: `Request ${collegeData.lors_required} LORs for ${collegeData.name}`,
+            description: `Contact teachers and counselor for the ${collegeData.lors_required} required letters of recommendation.`,
+            due_date: new Date(new Date(collegeData.deadline).getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days before deadline
+            category: 'LOR',
+            priority: 'High'
+        });
+    }
+
+    if (collegeData.portfolio_required) {
+        coreTasks.push({
+            user_id: userId,
+            college_id: collegeId,
+            title: `Submit Portfolio to ${collegeData.name}`,
+            description: `Complete and submit required portfolio via SlideRoom or other platform.`,
+            due_date: collegeData.deadline,
+            category: 'Document',
+            priority: 'High'
+        });
+    }
+
+    const { error: tasksError } = await supabase
+        .from('tasks')
+        .insert(coreTasks);
+
+    if (tasksError) {
+        console.error('Error creating core tasks:', tasksError);
     }
 
     return {
         success: true,
-        message: `Added ${collegeData.name} to your college list`,
+        message: `Added ${collegeData.name} to your college list and created requirement tasks`,
         collegeId: data.id,
         college: collegeData
     };
