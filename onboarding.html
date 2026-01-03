@@ -130,6 +130,19 @@
                                 </div>
                             </label>
                         </div>
+
+                        <div class="input-group" style="margin-top: var(--space-xl);">
+                            <label class="input-label" for="submissionLeeway">Submission Leeway (Buffer Days)</label>
+                            <p
+                                style="font-size: var(--text-sm); color: var(--gray-600); margin-bottom: var(--space-md);">
+                                How many days before the actual deadline do you want to be "App Ready"?</p>
+                            <select id="submissionLeeway" class="input">
+                                <option value="0">On the deadline (No buffer)</option>
+                                <option value="1">1 Day early</option>
+                                <option value="3" selected>3 Days early (Recommended)</option>
+                                <option value="7">1 Week early (Anti-stress mode)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

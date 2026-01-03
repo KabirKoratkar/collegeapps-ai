@@ -441,6 +441,7 @@ app.post('/api/onboarding/plan', async (req, res) => {
         const collegeListStr = colleges.join(', ');
         const majorStr = profile?.intended_major || 'undecided';
         const gradYearStr = profile?.graduation_year || '2026';
+        const leeway = profile?.submission_leeway || 3;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
@@ -452,8 +453,12 @@ app.post('/api/onboarding/plan', async (req, res) => {
                     The student is applying to: ${collegeListStr}
                     Intended Major: ${majorStr}
                     Graduation Year: ${gradYearStr}
+                    Submission Leeway Preference: ${leeway} days before actual deadlines.
                     
-                    Create a list of 8-10 high-impact tasks/milestones for their application journey, spanning from today through their deadlines.
+                    REQUIREMENTS FOR THE PLAN:
+                    1. For major essay requirements (like Personal Statement), include specific milestones for "Draft 1 (Outline/Brainstorm)", "Draft 2 (First Full Draft)", and "Draft 3 (Final Polish)".
+                    2. The FINAL "Ready for Submission" milestone for each college MUST be exactly ${leeway} days BEFORE the actual deadline (around Nov 1 for EA/ED, Jan 1 for RD).
+                    3. Create a list of 10-12 high-impact tasks/milestones total.
                     
                     Return the plan in JSON format:
                     {
@@ -469,7 +474,7 @@ app.post('/api/onboarding/plan', async (req, res) => {
                         ]
                     }
                     
-                    Be specific to their colleges and major. For example, if they apply to Stanford, include "Intellectual Vitality" essay focus. If CS major, include portfolio/project highlights.`
+                    Today's date is ${new Date().toISOString().split('T')[0]}. Space out the drafts logically over the next few weeks/months.`
                 },
                 {
                     role: 'user',

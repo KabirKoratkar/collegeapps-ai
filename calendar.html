@@ -53,16 +53,31 @@
             </div>
 
             <!-- Filter Controls -->
-            <div class="calendar-filters">
-                <select id="collegeFilter" class="filter-select">
-                    <option value="all">All Colleges</option>
-                </select>
-                <select id="typeFilter" class="filter-select">
-                    <option value="all">All Events</option>
-                    <option value="deadline">Deadlines</option>
-                    <option value="essay">Essays</option>
-                    <option value="task">Tasks</option>
-                </select>
+            <div style="display: flex; gap: var(--space-md); align-items: flex-end;">
+                <div class="calendar-settings" style="display: flex; flex-direction: column; gap: 4px;">
+                    <span
+                        style="font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Submission
+                        Leeway</span>
+                    <select id="leewaySetting" class="filter-select"
+                        style="min-width: 150px; border-color: var(--primary-blue); font-weight: 600;">
+                        <option value="0">0 Days (Risky)</option>
+                        <option value="1">1 Day Buffer</option>
+                        <option value="3">3 Days Buffer</option>
+                        <option value="7">7 Days Buffer</option>
+                    </select>
+                </div>
+
+                <div class="calendar-filters">
+                    <select id="collegeFilter" class="filter-select">
+                        <option value="all">All Colleges</option>
+                    </select>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="all">All Events</option>
+                        <option value="deadline">Deadlines</option>
+                        <option value="essay">Essays</option>
+                        <option value="task">Tasks</option>
+                    </select>
+                </div>
             </div>
         </div>
 

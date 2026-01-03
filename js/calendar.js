@@ -1,4 +1,4 @@
-import { supabase, getCurrentUser } from './supabase-config.js';
+import { supabase, getCurrentUser, getUserProfile, upsertProfile } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 
 let currentDate = new Date();
@@ -15,10 +15,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateNavbarUser(user);
 
+    await loadLeeway(user.id);
     await loadEvents();
     renderCalendar();
     setupEventListeners();
 });
+
+async function loadLeeway(userId) {
+    const profile = await getUserProfile(userId);
+    if (profile && profile.submission_leeway !== undefined) {
+        const leewaySelect = document.getElementById('leewaySetting');
+        if (leewaySelect) {
+            leewaySelect.value = profile.submission_leeway;
+        }
+    }
+}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -26,6 +37,7 @@ function setupEventListeners() {
     document.getElementById('nextMonth').addEventListener('click', () => navigateMonth(1));
     document.getElementById('collegeFilter').addEventListener('change', applyFilters);
     document.getElementById('typeFilter').addEventListener('change', applyFilters);
+    document.getElementById('leewaySetting').addEventListener('change', updateLeeway);
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('modalOverlay').addEventListener('click', closeModal);
 
@@ -479,4 +491,23 @@ function closeModal() {
 function showNotification(message, type = 'info') {
     // Reuse existing notification system from main.js if available
     console.log(`[${type.toUpperCase()}] ${message}`);
+}
+async function updateLeeway(e) {
+    const leeway = parseInt(e.target.value);
+    const user = await getCurrentUser();
+    if (!user) return;
+
+    try {
+        await upsertProfile({ id: user.id, submission_leeway: leeway });
+        if (window.showNotification) {
+            window.showNotification(`Target leeway updated to ${leeway} days.`, 'success');
+        } else {
+            console.log(`Leeway updated to ${leeway}`);
+        }
+
+        // Note: In a real app, you might want to adjust existing "submission" tasks here.
+        // For now, we update the profile so future AI planning respects it.
+    } catch (error) {
+        console.error('Error updating leeway:', error);
+    }
 }

@@ -112,6 +112,7 @@ async function generateAIPlan() {
         const gradYear = document.getElementById('gradYear').value;
         const major = document.getElementById('intendedMajor').value;
         const fullName = document.getElementById('fullName').value;
+        const leeway = document.getElementById('submissionLeeway').value;
 
         const response = await fetch(`${config.apiUrl}/api/onboarding/plan`, {
             method: 'POST',
@@ -122,7 +123,8 @@ async function generateAIPlan() {
                 profile: {
                     graduation_year: gradYear,
                     intended_major: major,
-                    full_name: fullName
+                    full_name: fullName,
+                    submission_leeway: leeway
                 }
             })
         });
@@ -266,7 +268,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                     graduation_year: parseInt(gradYear),
                     intended_major: major,
                     full_name: fullName,
-                    planned_deadlines: selectedDeadlines
+                    planned_deadlines: selectedDeadlines,
+                    submission_leeway: parseInt(document.getElementById('submissionLeeway').value)
                 };
 
                 if (location) profileData.location = location;
