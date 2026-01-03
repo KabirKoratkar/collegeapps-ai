@@ -536,12 +536,14 @@ app.post('/api/colleges/research-deep', async (req, res) => {
             messages: [
                 {
                     role: 'system',
-                    content: `You are an expert college admissions researcher. Your task is to find specific, non-obvious "gems" at a university that a student can use in a "Why Us" essay.
+                    content: `You are an expert college admissions researcher. Your task is to find specific, non-obvious "research points" at a university that a student can use to write their own "Why Us" essay.
+                    
+                    CRITICAL RULE: DO NOT write any draft text, sentences, or copy-pasteable hooks. Your output MUST ONLY consist of facts, program names, and advice on WHAT the student should research and write about in their OWN voice.
                     
                     College: ${collegeName}
                     Student Major: ${major}
                     
-                    Find 4 distinct areas:
+                    Find 4 distinct research areas:
                     1. Academics: A specific unique program, lab, or professor related to ${major}.
                     2. Community: A unique student organization or tradition.
                     3. Location/Industry: How the school's location connects to ${major} (e.g., internships, local ecosystem).
@@ -554,11 +556,11 @@ app.post('/api/colleges/research-deep', async (req, res) => {
                             {
                                 "category": "Academic | Student Life | Career | Unique",
                                 "title": "Name of the target (e.g. The Vertigo Lab)",
-                                "description": "1-2 sentence description explaining exactly what it is.",
-                                "why_it_fits": "1 sentence explanation of why this specific student (Major: ${major}) would benefit from it."
+                                "description": "1-2 sentence factual explanation of what this is.",
+                                "advice": "Briefly describe WHAT the student should emphasize about this in their essay (e.g., 'Mention how your interest in X aligns with this lab's focus on Y')."
                             }
                         ],
-                        "essay_hook": "A one-sentence 'hook' or angle they could use to start their Why Us essay."
+                        "research_angle": "A one-sentence suggestion for the structural 'angle' or 'theme' the student should research to build their narrative."
                     }`
                 },
                 {

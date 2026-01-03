@@ -104,6 +104,7 @@ function renderDashboard(tasks, essays, colleges) {
             incompleteTasks.slice(0, 3).forEach(task => {
                 const card = document.createElement('div');
                 card.className = 'task-card';
+                card.style.cursor = 'pointer';
                 card.innerHTML = `
                     <h3 class="task-title">${task.title}</h3>
                     <div class="task-meta">
@@ -111,6 +112,22 @@ function renderDashboard(tasks, essays, colleges) {
                         <span>⏰ ${task.due_date ? 'Due ' + new Date(task.due_date).toLocaleDateString() : 'No due date'}</span>
                     </div>
                 `;
+
+                // Add click listener to navigate to relevant section
+                card.onclick = () => {
+                    const category = (task.category || '').toLowerCase();
+                    if (category.includes('essay')) {
+                        window.location.href = 'essays.html';
+                    } else if (category.includes('document')) {
+                        window.location.href = 'documents.html';
+                    } else if (category.includes('school') || category.includes('college')) {
+                        window.location.href = 'colleges.html';
+                    } else {
+                        // Default to calendar or task-related view if available
+                        window.location.href = 'calendar.html';
+                    }
+                };
+
                 taskContainer.appendChild(card);
             });
         }

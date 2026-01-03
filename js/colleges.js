@@ -397,7 +397,7 @@ function showResearchModal(findings) {
             </div>
             <p style="margin: 0 0 8px; font-size: var(--text-sm); line-height: 1.5; color: var(--gray-600);">${opt.description}</p>
             <div style="font-size: 11px; font-style: italic; color: var(--primary-blue);">
-                <strong>Impact:</strong> ${opt.why_it_fits}
+                <strong>Writing Advice:</strong> ${opt.advice}
             </div>
         </div>
     `).join('');
@@ -408,8 +408,8 @@ function showResearchModal(findings) {
                 <div style="display: flex; align-items: center; gap: var(--space-md);">
                     <span style="font-size: 28px;">🔍</span>
                     <div>
-                        <h2 style="margin: 0; font-size: var(--text-xl); font-weight: 800;">"Why ${findings.college}" Gems</h2>
-                        <p style="margin: 0; font-size: var(--text-xs); color: var(--gray-500);">Specific hooks for your supplements</p>
+                        <h2 style="margin: 0; font-size: var(--text-xl); font-weight: 800;">"Why ${findings.college}" Research</h2>
+                        <p style="margin: 0; font-size: var(--text-xs); color: var(--gray-500);">What to research and write in your own voice</p>
                     </div>
                 </div>
                 <button onclick="this.closest('.modal-overlay').remove()" style="background: var(--gray-100); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">×</button>
@@ -417,8 +417,8 @@ function showResearchModal(findings) {
 
             <div style="padding: var(--space-2xl);">
                 <div style="background: var(--gradient-subtle); padding: var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-xl); border: 1px dashed var(--primary-blue);">
-                    <h5 style="margin: 0 0 4px; color: var(--primary-blue); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em;">Suggested Essay Hook</h5>
-                    <p style="margin: 0; font-size: var(--text-md); font-weight: 500; font-style: italic; color: var(--gray-800);">"${findings.essay_hook}"</p>
+                    <h5 style="margin: 0 0 4px; color: var(--primary-blue); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em;">Recommended Narrative Angle</h5>
+                    <p style="margin: 0; font-size: var(--text-md); font-weight: 500; font-style: italic; color: var(--gray-800);">${findings.research_angle}</p>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -426,8 +426,8 @@ function showResearchModal(findings) {
                 </div>
 
                 <div style="margin-top: var(--space-xl); text-align: center;">
-                    <p style="font-size: var(--text-xs); color: var(--gray-500); margin-bottom: var(--space-lg);">Tip: Mentions of specific labs, professors, or student orgs show deep interest and fit.</p>
-                    <button class="btn btn-primary w-full" onclick="this.closest('.modal-overlay').remove()">Add to My Notes</button>
+                    <p style="font-size: var(--text-xs); color: var(--gray-500); margin-bottom: var(--space-lg);">Tip: Use these points as a starting bridge, but always verify details on the official university site.</p>
+                    <button class="btn btn-primary w-full" onclick="this.closest('.modal-overlay').remove()">Got it, I'll start researching!</button>
                 </div>
             </div>
         </div>
