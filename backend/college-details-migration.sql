@@ -1,3 +1,21 @@
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create college_catalog if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.college_catalog (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    application_platform TEXT,
+    deadline_date DATE,
+    deadline_type TEXT,
+    test_policy TEXT,
+    lors_required INTEGER,
+    portfolio_required BOOLEAN DEFAULT false,
+    essays JSONB DEFAULT '[]'::jsonb,
+    verified BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Add detailed fields to college_catalog
 ALTER TABLE public.college_catalog ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE public.college_catalog ADD COLUMN IF NOT EXISTS location TEXT;

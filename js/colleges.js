@@ -7,6 +7,8 @@ let colleges = [];
 
 // Export functions to global scope for HTML onclick
 window.openAddCollegeModal = openAddCollegeModal;
+window.closeAddCollegeModal = closeAddCollegeModal;
+window.submitModalAdd = submitModalAdd;
 window.getAIStrategy = getAIStrategy;
 window.updateStatus = updateStatus;
 window.addFromSearch = addFromSearch;
@@ -33,53 +35,86 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateNavbarUser(currentUser);
     await loadAndRenderColleges();
 
-    // Search logic
+    // Search logic for main header
     const searchInput = document.getElementById('collegeSearchInput');
     const resultsContainer = document.getElementById('searchResults');
+    setupSearch(searchInput, resultsContainer, 'jump');
 
-    if (searchInput) {
-        searchInput.addEventListener('input', async (e) => {
-            const query = e.target.value.trim();
-            if (query.length < 2) {
-                resultsContainer.style.display = 'none';
-                return;
-            }
-
-            const results = await searchCollegeCatalog(query);
-            renderSearchResults(results);
-        });
-
-        // Close search when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
-                resultsContainer.style.display = 'none';
-            }
-        });
-    }
+    // Search logic for modal
+    const modalSearchInput = document.getElementById('modalSearchInput');
+    const modalResultsContainer = document.getElementById('modalSearchResults');
+    setupSearch(modalSearchInput, modalResultsContainer, 'select');
 });
 
-function renderSearchResults(results) {
-    const resultsContainer = document.getElementById('searchResults');
-    if (!resultsContainer) return;
+function setupSearch(input, container, mode = 'jump') {
+    if (!input || !container) return;
+
+    input.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        if (query.length < 2) {
+            container.style.display = 'none';
+            return;
+        }
+
+        const results = await searchCollegeCatalog(query);
+        if (mode === 'jump') {
+            renderSearchResults(results, container);
+        } else {
+            renderModalSearchResults(results, container);
+        }
+    });
+
+    // Close search when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !container.contains(e.target)) {
+            container.style.display = 'none';
+        }
+    });
+}
+
+function renderSearchResults(results, container) {
+    if (!container) return;
 
     if (results.length === 0) {
-        resultsContainer.innerHTML = '<div style="padding: var(--space-md); color: var(--gray-500); text-align: center;">No colleges found. Try a different name?</div>';
+        container.innerHTML = '<div style="padding: var(--space-md); color: var(--gray-500); text-align: center;">No colleges found. Try a different name?</div>';
     } else {
-        resultsContainer.innerHTML = results.map(c => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-md); border-bottom: 1px solid var(--gray-100); cursor: pointer;" class="search-item" onclick="if(!event.target.closest('button')) window.location.href='college-explorer.html?name=${encodeURIComponent(c.name)}'">
-                <div>
-                    <div style="font-weight: 600; color: var(--gray-800);">${c.name}</div>
-                    <div style="font-size: var(--text-xs); color: var(--gray-500);">${c.application_platform || 'Common App'} • ${c.deadline_type || 'RD'} Deadline</div>
+        container.innerHTML = results.map(c => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--gray-100); cursor: pointer;" class="search-item" onclick="if(!event.target.closest('button')) window.location.href='college-explorer.html?name=${encodeURIComponent(c.name)}'">
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: var(--gray-800); font-size: var(--text-sm);">${c.name}</div>
+                    <div style="font-size: 11px; color: var(--gray-500);">${c.application_platform || 'Common App'} • ${c.deadline_type || 'RD'}</div>
                 </div>
-                <div style="display: flex; gap: var(--space-xs);">
-                    <a href="college-explorer.html?name=${encodeURIComponent(c.name)}" class="btn btn-sm btn-ghost" style="color: var(--gray-600);">View Details</a>
-                    <button class="btn btn-sm btn-ghost" onclick="addFromSearch('${c.name}')" style="color: var(--primary-blue);">+ Add</button>
-                </div>
+                <button class="btn btn-sm btn-ghost" onclick="addFromSearch('${c.name.replace(/'/g, "\\'")}')" style="color: var(--primary-blue); border: none; padding: 4px 8px;">+ Add</button>
             </div>
         `).join('');
     }
-    resultsContainer.style.display = 'block';
+    container.style.display = 'block';
 }
+
+function renderModalSearchResults(results, container) {
+    if (!container) return;
+
+    if (results.length === 0) {
+        container.innerHTML = '<div style="padding: var(--space-md); color: var(--gray-500); text-align: center;">New entry? We\'ll create a template!</div>';
+        container.style.display = 'none'; // Don't show if empty, let them type
+        return;
+    }
+
+    container.innerHTML = results.map(c => `
+        <div class="modal-search-item" onclick="selectModalCollege('${c.name.replace(/'/g, "\\'")}')">
+            <div style="font-weight: 600; font-size: var(--text-sm); color: var(--gray-800);">${c.name}</div>
+            <div style="font-size: 11px; color: var(--gray-500);">${c.location || 'University'}</div>
+        </div>
+    `).join('');
+    container.style.display = 'block';
+}
+
+window.selectModalCollege = (name) => {
+    const input = document.getElementById('modalSearchInput');
+    const container = document.getElementById('modalSearchResults');
+    if (input) input.value = name;
+    if (container) container.style.display = 'none';
+};
 
 async function addFromSearch(name) {
     const resultsContainer = document.getElementById('searchResults');
@@ -90,7 +125,7 @@ async function addFromSearch(name) {
     await performAddCollege(name);
 }
 
-async function performAddCollege(collegeName) {
+async function performAddCollege(collegeName, type = 'Target') {
     const btn = document.getElementById('addCollegeBtn');
     const originalText = btn ? btn.innerHTML : '+ Add College';
 
@@ -101,9 +136,9 @@ async function performAddCollege(collegeName) {
         }
 
         showNotification(`Adding ${collegeName}...`, 'info');
-        console.log(`Adding college: ${collegeName}`);
+        console.log(`Adding college: ${collegeName} (${type})`);
 
-        const newCollege = await addCollege(currentUser.id, collegeName);
+        const newCollege = await addCollege(currentUser.id, collegeName, type);
 
         if (newCollege) {
             console.log('College added successfully:', newCollege);
@@ -231,9 +266,27 @@ async function updateStatus(id, status) {
 }
 
 async function openAddCollegeModal() {
-    const collegeName = prompt('Enter college name (e.g., Stanford University):');
-    if (!collegeName) return;
-    await performAddCollege(collegeName);
+    document.getElementById('addCollegeModal').classList.add('active');
+    document.getElementById('modalSearchInput').focus();
+}
+
+function closeAddCollegeModal() {
+    document.getElementById('addCollegeModal').classList.remove('active');
+    document.getElementById('modalSearchInput').value = '';
+    document.getElementById('modalSearchResults').style.display = 'none';
+}
+
+async function submitModalAdd() {
+    const collegeName = document.getElementById('modalSearchInput').value.trim();
+    if (!collegeName) {
+        showNotification('Please enter or select a college name.', 'warning');
+        return;
+    }
+
+    const type = document.querySelector('input[name="collegeType"]:checked').value;
+
+    closeAddCollegeModal();
+    await performAddCollege(collegeName, type);
 }
 
 async function getAIStrategy(collegeName) {

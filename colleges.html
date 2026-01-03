@@ -40,30 +40,27 @@
 
     <!-- Main Content -->
     <div class="container py-2xl">
-        <div
-            style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-2xl); gap: var(--space-xl); flex-wrap: wrap;">
+        <div class="flex flex-between flex-wrap gap-lg mb-2xl" style="align-items: flex-end;">
             <div style="flex: 1; min-width: 300px;">
-                <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-sm);">My College
+                <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-xs);">My College
                     List</h1>
-                <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">Manage your colleges and track
-                    requirements</p>
+                <p style="color: var(--gray-600); margin-bottom: 0;">Manage your colleges and track requirements</p>
+            </div>
 
-                <!-- Exploration Search -->
-                <div style="position: relative;">
+            <div class="flex gap-md" style="align-items: center;">
+                <div style="position: relative; width: 320px;">
                     <span
-                        style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--gray-400);">🔍</span>
-                    <input type="text" id="collegeSearchInput" class="input"
-                        placeholder="Explore colleges (e.g. Stanford, UCLA...)"
-                        style="padding-left: 45px; width: 100%; height: 50px; font-size: var(--text-md); border-radius: 25px; border: 2px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; opacity: 0.5;">🔍</span>
+                    <input type="text" id="collegeSearchInput" class="input" placeholder="Jump to college..."
+                        style="padding-left: 42px; height: 48px; border-radius: var(--radius-full); font-size: var(--text-sm);">
                     <div id="searchResults" class="card"
-                        style="position: absolute; top: calc(100% + 10px); left: 0; width: 100%; z-index: 100; display: none; padding: var(--space-sm); max-height: 400px; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--gray-200);">
-                        <!-- Search results will appear here -->
+                        style="position: absolute; top: calc(100% + 8px); left: 0; width: 100%; z-index: 100; display: none; padding: var(--space-sm); max-height: 350px; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--gray-200); border-radius: var(--radius-xl);">
                     </div>
                 </div>
+                <button class="btn btn-primary" id="addCollegeBtn" onclick="openAddCollegeModal()"
+                    style="height: 48px; padding: 0 var(--space-xl); border-radius: var(--radius-full); white-space: nowrap;">+
+                    Add College</button>
             </div>
-            <button class="btn btn-primary" id="addCollegeBtn"
-                style="height: 50px; padding: 0 var(--space-xl); border-radius: 25px; margin-bottom: 2px;">+ Add
-                College</button>
         </div>
 
         <!-- Summary Cards -->
@@ -120,6 +117,107 @@
                 reserved.</p>
         </div>
     </footer>
+
+    <!-- Add College Modal -->
+    <div id="addCollegeModal" class="modal">
+        <div class="modal-overlay" onclick="closeAddCollegeModal()"></div>
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3>✨ Add New College</h3>
+                <button class="modal-close" onclick="closeAddCollegeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Search for a College</label>
+                    <div style="position: relative;">
+                        <input type="text" id="modalSearchInput" class="input"
+                            placeholder="e.g. Stanford, UCLA, Harvard..." autocomplete="off">
+                        <div id="modalSearchResults"
+                            style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; display: none; background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; margin-top: 4px;">
+                        </div>
+                    </div>
+                    <p style="font-size: var(--text-xs); color: var(--gray-500); margin-top: var(--space-xs);">Select a
+                        college from the list to automatically fetch requirements.</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Target Reach/Safety</label>
+                    <div class="grid grid-3 gap-sm">
+                        <label class="category-card" style="cursor: pointer;">
+                            <input type="radio" name="collegeType" value="Reach" style="display: none;">
+                            <div class="category-content">
+                                <span style="font-size: 20px;">🚀</span>
+                                <strong>Reach</strong>
+                            </div>
+                        </label>
+                        <label class="category-card" style="cursor: pointer;">
+                            <input type="radio" name="collegeType" value="Target" checked style="display: none;">
+                            <div class="category-content">
+                                <span style="font-size: 20px;">🎯</span>
+                                <strong>Target</strong>
+                            </div>
+                        </label>
+                        <label class="category-card" style="cursor: pointer;">
+                            <input type="radio" name="collegeType" value="Safety" style="display: none;">
+                            <div class="category-content">
+                                <span style="font-size: 20px;">🛡️</span>
+                                <strong>Safety</strong>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--space-xl); display: flex; gap: var(--space-md);">
+                    <button class="btn btn-ghost flex-1" onclick="closeAddCollegeModal()">Cancel</button>
+                    <button class="btn btn-primary flex-1" id="confirmAddBtn" onclick="submitModalAdd()">Add to My
+                        List</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .category-card input:checked+.category-content {
+            border-color: var(--primary-blue);
+            background: rgba(91, 141, 238, 0.05);
+            box-shadow: 0 0 0 2px var(--primary-blue);
+        }
+
+        .category-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-md);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-base);
+            text-align: center;
+            gap: 4px;
+        }
+
+        .category-content strong {
+            font-size: var(--text-sm);
+        }
+
+        .category-content:hover {
+            border-color: var(--gray-400);
+        }
+
+        .modal-search-item {
+            padding: var(--space-sm) var(--space-md);
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid var(--gray-50);
+        }
+
+        .modal-search-item:hover {
+            background: var(--gray-50);
+        }
+
+        .modal-search-item:last-child {
+            border-bottom: none;
+        }
+    </style>
 
     <script src="js/main.js"></script>
     <script type="module" src="js/colleges.js"></script>
