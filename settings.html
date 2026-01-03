@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - CollegeApps.ai</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <div class="navbar-logo">CollegeApps.ai</div>
+            <ul class="navbar-links">
+                <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+                <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+                <li><a href="colleges.html" class="navbar-link">Colleges</a></li>
+                <li><a href="essays.html" class="navbar-link">Essays</a></li>
+                <li><a href="documents.html" class="navbar-link">Documents</a></li>
+                <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
+                <li><a href="settings.html" class="navbar-link active">Settings</a></li>
+                <li id="user-nav-item"><span class="badge badge-primary" id="user-badge">User</span></li>
+            </ul>
+            <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-2xl">
+        <div class="mb-2xl">
+            <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-xs);">Control Center ⚙️
+            </h1>
+            <p style="color: var(--gray-600); margin-bottom: 0;">Tailor your application strategy and planner
+                preferences.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--space-2xl);">
+            <!-- Sidebar Tabs -->
+            <aside>
+                <div class="card card-compact"
+                    style="padding: var(--space-sm); position: sticky; top: var(--space-xl);">
+                    <button class="settings-tab active" data-tab="strategy">
+                        <span style="font-size: 1.2rem;">🗓️</span>
+                        Planner Strategy
+                    </button>
+                    <button class="settings-tab" data-tab="profile">
+                        <span style="font-size: 1.2rem;">👤</span>
+                        User Profile
+                    </button>
+                    <button class="settings-tab" data-tab="account" style="color: var(--error);">
+                        <span style="font-size: 1.2rem;">🚪</span>
+                        Account & Logout
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Tab Content -->
+            <main>
+                <!-- Planner Strategy Tab -->
+                <div id="strategyTab" class="tab-pane active">
+                    <div class="card mb-xl">
+                        <div
+                            style="border-bottom: 1px solid var(--gray-100); padding: var(--space-lg) var(--space-xl); background: var(--gray-50); border-radius: var(--radius-xl) var(--radius-xl) 0 0;">
+                            <h3 style="margin: 0; font-size: var(--text-lg); font-weight: 700;">Application Pace &
+                                Leeway</h3>
+                            <p style="margin: 4px 0 0; font-size: var(--text-xs); color: var(--gray-500);">Control how
+                                your AI counselor schedules your tasks.</p>
+                        </div>
+
+                        <div style="padding: var(--space-xl);">
+                            <div class="grid grid-2 gap-xl mb-xl">
+                                <div class="input-group">
+                                    <label class="input-label">Submission Leeway</label>
+                                    <select id="subLeeway" class="input">
+                                        <option value="0">0 Days (Deadline Day)</option>
+                                        <option value="1">1 Day Buffer</option>
+                                        <option value="3">3 Day Buffer (Recommended)</option>
+                                        <option value="7">7 Day Buffer (Anti-Stress)</option>
+                                    </select>
+                                    <p style="font-size: 11px; color: var(--gray-500); margin-top: 8px;">Your "Final
+                                        Submission" tasks will be set this many days before the actual deadline.</p>
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label">Writing Intensity</label>
+                                    <select id="writingIntensity" class="input">
+                                        <option value="Chill">Chill (100 words/day)</option>
+                                        <option value="Balanced" selected>Balanced (300 words/day)</option>
+                                        <option value="Grind">Grind Mode (600+ words/day)</option>
+                                    </select>
+                                    <p style="font-size: 11px; color: var(--gray-500); margin-top: 8px;">Adjusts the
+                                        dates for draft 1, 2, and 3 milestones.</p>
+                                </div>
+                            </div>
+
+                            <div
+                                style="padding: var(--space-lg); background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h4 style="margin: 0; font-size: var(--text-sm); font-weight: 700;">Work on
+                                            Weekends</h4>
+                                        <p style="margin: 0; font-size: var(--text-xs); color: var(--gray-500);">Keep
+                                            your Saturdays and Sundays free for rest.</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="workWeekends" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card"
+                        style="border: 1px solid var(--primary-blue); background: var(--gradient-subtle);">
+                        <div
+                            style="padding: var(--space-xl); display: flex; align-items: center; gap: var(--space-xl);">
+                            <div style="font-size: 2.5rem;">🤖</div>
+                            <div style="flex: 1;">
+                                <h3
+                                    style="margin: 0; font-size: var(--text-lg); font-weight: 700; color: var(--primary-blue);">
+                                    Apply Changes to Calendar</h3>
+                                <p style="margin: 4px 0 0; font-size: var(--text-sm); color: var(--gray-700);">Updating
+                                    these preferences can automatically re-adjust your upcoming task dates to fit your
+                                    new lifestyle.</p>
+                            </div>
+                            <button id="saveAndSync" class="btn btn-primary"
+                                style="white-space: nowrap; height: 48px; border-radius: var(--radius-full);">Save &
+                                Re-sync Plan</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Tab (Minimal for now) -->
+                <div id="profileTab" class="tab-pane">
+                    <div class="card" style="padding: var(--space-xl);">
+                        <h3 class="mb-lg">Personal Information</h3>
+                        <div class="grid grid-2 gap-lg mb-xl">
+                            <div class="input-group">
+                                <label class="input-label">Full Name</label>
+                                <input type="text" id="profName" class="input" placeholder="Loading...">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Intended Major</label>
+                                <input type="text" id="profMajor" class="input" placeholder="Loading...">
+                            </div>
+                        </div>
+                        <button id="saveProfile" class="btn btn-primary">Save Profile</button>
+                    </div>
+                </div>
+
+                <!-- Account Tab -->
+                <div id="accountTab" class="tab-pane">
+                    <div class="card" style="padding: var(--space-xl);">
+                        <h3 class="mb-lg" style="color: var(--error);">Danger Zone</h3>
+                        <p style="color: var(--gray-600); margin-bottom: var(--space-xl);">Logging out will end your
+                            current session. All your data is safely saved in our secure database.</p>
+                        <button id="logoutBtn" class="btn btn-error btn-outline">Logout of CollegeApps.ai</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <style>
+        .settings-tab {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            width: 100%;
+            padding: var(--space-md) var(--space-xl);
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--gray-700);
+            cursor: pointer;
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-base);
+        }
+
+        .settings-tab:hover {
+            background: var(--gray-100);
+        }
+
+        .settings-tab.active {
+            background: var(--primary-blue);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: var(--primary-blue);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script type="module" src="js/settings.js"></script>
+</body>
+
+</html>

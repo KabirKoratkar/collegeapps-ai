@@ -36,8 +36,11 @@ function setupEventListeners() {
     document.getElementById('prevMonth').addEventListener('click', () => navigateMonth(-1));
     document.getElementById('nextMonth').addEventListener('click', () => navigateMonth(1));
     document.getElementById('collegeFilter').addEventListener('change', applyFilters);
-    document.getElementById('typeFilter').addEventListener('change', applyFilters);
     document.getElementById('leewaySetting').addEventListener('change', updateLeeway);
+    document.getElementById('addEventBtn').addEventListener('click', openAddModal);
+    document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
+    document.getElementById('addModalOverlay').addEventListener('click', closeAddModal);
+    document.getElementById('addTaskForm').addEventListener('submit', handleAddTask);
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('modalOverlay').addEventListener('click', closeModal);
 
@@ -174,6 +177,18 @@ function populateCollegeFilter() {
         option.textContent = college;
         collegeFilter.appendChild(option);
     });
+
+    // Also populate the Modal's college dropdown
+    const modalCollegeFilter = document.getElementById('taskCollege');
+    if (modalCollegeFilter) {
+        modalCollegeFilter.innerHTML = '<option value="">None / General</option>';
+        colleges.forEach(college => {
+            const option = document.createElement('option');
+            option.value = college;
+            option.textContent = college;
+            modalCollegeFilter.appendChild(option);
+        });
+    }
 }
 
 // Apply filters
@@ -466,7 +481,10 @@ function getActionButton(event) {
     } else if (event.type === 'essay') {
         return `<a href="essays.html" class="btn btn-primary" style="flex: 1;">Edit Essay</a>`;
     } else if (event.type === 'task') {
-        return `<a href="dashboard.html" class="btn btn-primary" style="flex: 1;">View Task</a>`;
+        return `
+            <a href="dashboard.html" class="btn btn-primary" style="flex: 1;">View Task</a>
+            <button onclick="handleTaskDeletion('${event.id.replace('task-', '')}')" class="btn btn-error btn-outline" style="flex: 1;">Delete Task</button>
+        `;
     }
     return '';
 }
@@ -481,10 +499,86 @@ function getEventColor(type) {
     return colors[type] || '#7A8699';
 }
 
-// Close modal
+async function handleTaskDeletion(taskId) {
+    if (!confirm('Are you sure you want to remove this task from your schedule?')) return;
+
+    try {
+        const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+        if (error) throw error;
+
+        showNotification('Task removed.', 'info');
+        closeModal();
+        await loadEvents();
+        renderCalendar();
+    } catch (error) {
+        console.error('Delete error:', error);
+        showNotification('Failed to delete task.', 'error');
+    }
+}
+
+window.handleTaskDeletion = handleTaskDeletion;
+
+// Custom Task Logic
 function closeModal() {
     const modal = document.getElementById('eventModal');
     modal.classList.remove('active');
+}
+
+function openAddModal() {
+    const modal = document.getElementById('addTaskModal');
+    modal.classList.add('active');
+
+    // Default date to today
+    document.getElementById('taskDueDate').value = new Date().toISOString().split('T')[0];
+}
+
+function closeAddModal() {
+    const modal = document.getElementById('addTaskModal');
+    modal.classList.remove('active');
+    document.getElementById('addTaskForm').reset();
+}
+
+async function handleAddTask(e) {
+    e.preventDefault();
+    const user = await getCurrentUser();
+    if (!user) return;
+
+    const title = document.getElementById('taskTitle').value;
+    const dueDate = document.getElementById('taskDueDate').value;
+    const category = document.getElementById('taskCategory').value;
+    const priority = document.getElementById('taskPriority').value;
+    const collegeName = document.getElementById('taskCollege').value;
+    const description = document.getElementById('taskDescription').value;
+
+    try {
+        // Resolve college ID if possible
+        let collegeId = null;
+        if (collegeName) {
+            const { data: col } = await supabase.from('colleges').select('id').eq('name', collegeName).eq('user_id', user.id).single();
+            if (col) collegeId = col.id;
+        }
+
+        const { error } = await supabase.from('tasks').insert([{
+            user_id: user.id,
+            college_id: collegeId,
+            title,
+            due_date: dueDate,
+            category,
+            priority,
+            description
+        }]);
+
+        if (error) throw error;
+
+        showNotification('Task added to your schedule!', 'success');
+        closeAddModal();
+        await loadEvents();
+        renderCalendar();
+
+    } catch (error) {
+        console.error('Error adding task:', error);
+        showNotification('Failed to save task: ' + error.message, 'error');
+    }
 }
 
 // Show notification
