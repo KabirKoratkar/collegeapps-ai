@@ -172,12 +172,12 @@ function showIntelligenceModal(findings) {
                         ${renderModule(modules.culture, '🎉', 'var(--warning)')}
                         ${renderModule(modules.admissions, '🎯', 'var(--accent-purple)')}
                         
-                        <div class="card" style="background: var(--gray-900); color: white; border: none; padding: var(--space-lg); border-radius: var(--radius-lg);">
+                        <div class="card" style="background: var(--gray-100); color: var(--gray-900); border: 1px solid var(--gray-200); padding: var(--space-lg); border-radius: var(--radius-lg);">
                             <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
                                 <span style="font-size: 20px;">⚔️</span>
-                                <h3 style="margin: 0; font-size: var(--text-md); text-transform: uppercase; letter-spacing: 0.05em; color: white; font-family: 'Outfit', sans-serif;">The Competitive Edge</h3>
+                                <h3 style="margin: 0; font-size: var(--text-md); text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-900); font-family: 'Outfit', sans-serif;">The Competitive Edge</h3>
                             </div>
-                            <p style="font-size: var(--text-sm); line-height: 1.6; color: var(--gray-300); margin: 0;">${modules.edge.content}</p>
+                            <p style="font-size: var(--text-sm); line-height: 1.6; color: var(--gray-600); margin: 0;">${modules.edge.content}</p>
                         </div>
                     </div>
                 </div>
