@@ -132,7 +132,7 @@ function showIntelligenceModal(findings) {
         `).join('');
 
         return `
-            <div class="card" style="margin-bottom: var(--space-lg); border-left: 4px solid ${color}; background: white; padding: var(--space-lg); border-radius: var(--radius-lg);">
+            <div class="card" style="margin-bottom: var(--space-lg); border-left: 4px solid ${color}; background: var(--white); padding: var(--space-lg); border-radius: var(--radius-lg);">
                 <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
                     <span style="font-size: 20px;">${icon}</span>
                     <h3 style="margin: 0; font-size: var(--text-md); text-transform: uppercase; letter-spacing: 0.05em; color: ${color}; font-family: 'Outfit', sans-serif;">${mod.headline}</h3>

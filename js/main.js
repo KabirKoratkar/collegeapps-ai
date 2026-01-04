@@ -90,7 +90,7 @@ function showNotification(message, type = 'info') {
         position: fixed;
         bottom: 30px;
         right: 30px;
-        background: white;
+        background: var(--white);
         color: var(--gray-800);
         padding: 1rem 1.5rem;
         border-radius: var(--radius-xl);
@@ -109,7 +109,7 @@ function showNotification(message, type = 'info') {
         <span style="font-size: 1.25rem;">${icon}</span>
         <div style="flex: 1;">
             <div style="font-weight: 700; font-size: var(--text-sm);">${type.charAt(0) + type.slice(1)}</div>
-            <div style="font-size: var(--text-xs); color: var(--gray-500);">${message}</div>
+            <div style="font-size: var(--text-xs); color: var(--gray-600);">${message}</div>
         </div>
     `;
 

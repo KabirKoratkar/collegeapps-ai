@@ -608,10 +608,10 @@ function showAIResultModal(title, content) {
     modal.style.cssText = `
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(15, 23, 42, 0.85);
         display: flex; align-items: center; justify-content: center;
         z-index: 2000;
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(16px);
     `;
 
     const card = document.createElement('div');
@@ -619,7 +619,7 @@ function showAIResultModal(title, content) {
     card.style.cssText = `
         max-width: 600px; width: 90%; max-height: 80vh;
         overflow-y: auto; padding: var(--space-xl);
-        position: relative;
+        position: relative; background: var(--gray-50); border: 1px solid var(--gray-200);
     `;
 
     const header = document.createElement('h2');
