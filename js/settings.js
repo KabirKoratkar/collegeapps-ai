@@ -64,6 +64,7 @@ function setupEventListeners() {
         try {
             await upsertProfile({
                 id: currentUser.id,
+                email: currentUser.email,
                 full_name: name,
                 intended_major: major
             });
@@ -89,6 +90,7 @@ function setupEventListeners() {
             // 1. Save preferences
             await upsertProfile({
                 id: currentUser.id,
+                email: currentUser.email,
                 submission_leeway: subLeeway,
                 intensity_level: intensity,
                 work_weekends: workWeekends

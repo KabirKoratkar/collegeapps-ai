@@ -592,7 +592,7 @@ async function updateLeeway(e) {
     if (!user) return;
 
     try {
-        await upsertProfile({ id: user.id, submission_leeway: leeway });
+        await upsertProfile({ id: user.id, email: user.email, submission_leeway: leeway });
         if (window.showNotification) {
             window.showNotification(`Target leeway updated to ${leeway} days.`, 'success');
         } else {
