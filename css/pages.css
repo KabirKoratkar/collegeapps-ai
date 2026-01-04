@@ -669,7 +669,7 @@
     height: 40px;
     border-radius: 50%;
     background: var(--gradient-primary);
-    color: var(--white);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -691,7 +691,7 @@
 
 .chat-message.user .chat-bubble {
     background: var(--gradient-primary);
-    color: var(--white);
+    color: #ffffff;
 }
 
 .chat-input-container {
@@ -713,8 +713,8 @@
 }
 
 .suggestion-chip {
-    background: var(--white);
-    border: 1px solid var(--gray-300);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
     padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius-full);
     font-size: var(--text-sm);
