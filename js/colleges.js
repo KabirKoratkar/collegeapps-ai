@@ -13,6 +13,7 @@ window.getAIStrategy = getAIStrategy;
 window.deepResearch = deepResearch;
 window.updateStatus = updateStatus;
 window.addFromSearch = addFromSearch;
+window.removeCollegeFromList = removeCollegeFromList;
 
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('Colleges page loaded, initializing...');
@@ -167,7 +168,7 @@ async function loadAndRenderColleges() {
     updateSummary(colleges);
 
     if (colleges.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: var(--space-xl);">No colleges added yet. Use the "Add College" button or ask the AI Counselor!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: var(--space-xl);">No colleges added yet. Use the "Add College" button or ask the AI Counselor!</td></tr>';
         return;
     }
 
@@ -201,6 +202,9 @@ async function loadAndRenderColleges() {
                             <div style="width: ${progress}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease;"></div>
                         </div>
                     </div>
+                </td>
+                <td>
+                    <button class="btn btn-icon btn-ghost" onclick="removeCollegeFromList('${c.id}', '${c.name.replace(/'/g, "\\'")}')" title="Remove College" style="color: var(--error);">🗑️</button>
                 </td>
             </tr>
         `;
@@ -259,6 +263,27 @@ function updateSummary(collegesList) {
         cards[1].textContent = reach || colleges.filter(c => c.name.includes('Stanford') || c.name.includes('MIT')).length; // Fallback heuristic
         cards[2].textContent = target;
         cards[3].textContent = safety;
+    }
+}
+
+async function removeCollegeFromList(id, name) {
+    if (!confirm(`Are you sure you want to remove ${name} from your list? This will also remove all associated tasks and essay drafts.`)) {
+        return;
+    }
+
+    try {
+        const { deleteCollege } = await import('./supabase-config.js');
+        const success = await deleteCollege(id);
+
+        if (success) {
+            showNotification(`${name} has been removed.`, 'info');
+            await loadAndRenderColleges();
+        } else {
+            showNotification(`Failed to remove ${name}.`, 'error');
+        }
+    } catch (error) {
+        console.error('Error removing college:', error);
+        showNotification('Error: ' + error.message, 'error');
     }
 }
 
