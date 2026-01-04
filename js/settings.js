@@ -30,6 +30,10 @@ async function loadSettings() {
         document.getElementById('workWeekends').checked = profile.work_weekends;
     }
 
+    // Theme Setting
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    document.getElementById('darkModeToggle').checked = (currentTheme === 'dark');
+
     // Profile Settings
     document.getElementById('profName').value = profile.full_name || '';
     document.getElementById('profMajor').value = profile.intended_major || '';
@@ -104,6 +108,13 @@ function setupEventListeners() {
             syncBtn.disabled = false;
             syncBtn.innerHTML = originalText;
         }
+    });
+
+    // Theme Toggle
+    document.getElementById('darkModeToggle').addEventListener('change', (e) => {
+        const newTheme = e.target.checked ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
     });
 
     // Logout

@@ -17,6 +17,16 @@
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
+
+    <!-- Theme Initialization (Head script to prevent flash) -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -108,7 +118,7 @@
                             </div>
 
                             <div
-                                style="padding: var(--space-lg); background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+                                style="padding: var(--space-lg); background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); margin-bottom: var(--space-md);">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div>
                                         <h4 style="margin: 0; font-size: var(--text-sm); font-weight: 700;">Work on
@@ -118,6 +128,23 @@
                                     </div>
                                     <label class="toggle-switch">
                                         <input type="checkbox" id="workWeekends" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Appearance Section -->
+                            <div
+                                style="padding: var(--space-lg); background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h4 style="margin: 0; font-size: var(--text-sm); font-weight: 700;">Dark Mode
+                                        </h4>
+                                        <p style="margin: 0; font-size: var(--text-xs); color: var(--gray-500);">Switch
+                                            to a deep space theme to reduce eye strain.</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="darkModeToggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </div>

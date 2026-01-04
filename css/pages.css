@@ -445,7 +445,7 @@
     flex-direction: column;
     padding: 0 !important;
     overflow: hidden;
-    background: white;
+    background: var(--white);
     border: 1px solid var(--gray-200);
     box-shadow: var(--shadow-lg);
 }

@@ -28,49 +28,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Theme Initialization
-    const initTheme = () => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
+    // Theme Watcher (Sync with Settings changes)
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'theme') {
+            document.documentElement.setAttribute('data-theme', e.newValue);
         }
-    };
-    initTheme();
-
-    // Inject Theme Toggle into Navbar
-    const navbarContainer = document.querySelector('.navbar-container');
-    if (navbarContainer) {
-        const themeToggle = document.createElement('button');
-        themeToggle.id = 'themeToggle';
-        themeToggle.className = 'btn btn-icon btn-ghost';
-        themeToggle.style.marginLeft = 'var(--space-md)';
-        themeToggle.style.fontSize = '1.2rem';
-        themeToggle.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-        themeToggle.title = 'Toggle Dark Mode';
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            themeToggle.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
-
-            // Re-trigger chart renders if they exist on the page
-            if (window.renderDashboardCharts) window.renderDashboardCharts();
-            if (window.renderAnalyticsCharts) window.renderAnalyticsCharts();
-        });
-
-        // Add before user nav item if it exists, otherwise at the end
-        const userNav = document.getElementById('user-nav-item');
-        if (userNav) {
-            userNav.parentNode.insertBefore(themeToggle, userNav);
-        } else {
-            const links = navbarContainer.querySelector('.navbar-links');
-            if (links) links.appendChild(themeToggle);
-        }
-    }
+    });
 
     // Add active class to current page in navigation
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
