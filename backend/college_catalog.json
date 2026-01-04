@@ -761,5 +761,34 @@
         "word_limit": 650
       }
     ]
+  },
+  "Purdue University": {
+    "name": "Purdue University",
+    "application_platform": "Common App",
+    "deadline": "2025-01-15",
+    "deadline_type": "RD",
+    "test_policy": "Test Flexible",
+    "lors_required": 1,
+    "portfolio_required": false,
+    "essays_required": [
+      {
+        "title": "Common App Personal Statement",
+        "essay_type": "Common App",
+        "prompt": "Common App Prompt",
+        "word_limit": 650
+      },
+      {
+        "title": "Purdue Why Major",
+        "essay_type": "Supplement",
+        "prompt": "Briefly discuss your reasons for pursuing the major(s) you have selected in your application, or if you are undecided, please describe your current areas of interest.",
+        "word_limit": 200
+      },
+      {
+        "title": "Purdue Why Purdue",
+        "essay_type": "Supplement",
+        "prompt": "How will opportunities at Purdue support your interests, both in and out of the classroom?",
+        "word_limit": 100
+      }
+    ]
   }
 }

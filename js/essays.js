@@ -124,15 +124,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     });
 
-    // AI assistance buttons
-    const aiButtons = document.querySelectorAll('.essay-toolbar .btn');
+    // AI assistance buttons (New Sidebar Buttons)
+    const aiButtons = document.querySelectorAll('.ai-action-btn');
     aiButtons.forEach(btn => {
-        if (btn.id !== 'shareBtn') {
-            btn.addEventListener('click', function () {
-                const action = this.textContent.trim();
-                handleAIAction(action);
-            });
-        }
+        btn.addEventListener('click', function () {
+            const action = this.dataset.action || this.textContent.trim();
+            handleAIAction(action);
+        });
     });
 
     // Save on page unload
@@ -379,8 +377,8 @@ async function loadEssayContent(essayId, isReadOnly = false) {
     lastSavedContent = essay.content || '';
 
     const essayEditor = document.getElementById('essayEditor');
-    const essayPrompt = document.querySelector('.essay-prompt');
-    const toolbar = document.querySelector('.essay-toolbar');
+    const essayPrompt = document.getElementById('currentPrompt');
+    const essayTypeBadge = document.getElementById('essayTypeBadge');
 
     if (essayEditor) {
         essayEditor.value = essay.content || '';
@@ -389,7 +387,11 @@ async function loadEssayContent(essayId, isReadOnly = false) {
     }
 
     if (essayPrompt) {
-        essayPrompt.innerHTML = `<strong>${essay.title}</strong><br>${essay.prompt || ''}`;
+        essayPrompt.innerHTML = essay.prompt || 'No prompt provided for this essay.';
+    }
+
+    if (essayTypeBadge) {
+        essayTypeBadge.textContent = essay.essay_type || 'Common App';
     }
 
     // Load comments
@@ -399,14 +401,17 @@ async function loadEssayContent(essayId, isReadOnly = false) {
     await loadLinkedDocuments(essayId);
 
     // Disable AI buttons and Save if read only
-    if (toolbar) {
-        const buttons = toolbar.querySelectorAll('button');
-        buttons.forEach(btn => {
-            if (btn.id !== 'shareBtn') {
-                btn.disabled = isReadOnly;
-                btn.style.opacity = isReadOnly ? '0.5' : '1';
-            }
+    const aiButtons = document.querySelectorAll('.ai-action-btn');
+    if (aiButtons) {
+        aiButtons.forEach(btn => {
+            btn.disabled = isReadOnly;
+            btn.style.opacity = isReadOnly ? '0.5' : '1';
         });
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = isReadOnly;
+        saveBtn.style.opacity = isReadOnly ? '0.5' : '1';
     }
 
     showNotification(isReadOnly ? `Viewing Shared Essay: ${essay.title}` : `Loaded: ${essay.title}`, 'info');
@@ -599,7 +604,7 @@ async function handleAIAction(action) {
     } catch (error) {
         console.error('AI Action Error:', error);
         showSavingIndicator(false);
-        showNotification('AI server error. Make sure it\'s running on port 3001.', 'error');
+        showNotification('AI service is currently unavailable. Please check your internet connection or try again later.', 'error');
     }
 }
 

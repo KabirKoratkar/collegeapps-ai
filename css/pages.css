@@ -549,6 +549,23 @@
     border-left: 3px solid var(--primary-blue);
 }
 
+.ai-action-btn {
+    width: 100%;
+    transition: all var(--transition-base);
+    border: 1px solid var(--gray-200);
+}
+
+.ai-action-btn:hover {
+    border-color: var(--primary-blue);
+    background: var(--white);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.ai-action-btn:active {
+    transform: translateY(0);
+}
+
 .sidebar-header-flex {
     display: flex;
     justify-content: space-between;

@@ -78,75 +78,124 @@
                 <div class="essay-editor-card card">
                     <!-- Toolbar -->
                     <div class="essay-toolbar">
-                        <button class="btn btn-sm btn-ghost">💡 Brainstorm</button>
-                        <button class="btn btn-sm btn-ghost">📝 Outline</button>
-                        <button class="btn btn-sm btn-ghost">✨ Rewrite</button>
-                        <button class="btn btn-sm btn-ghost">🎯 Improve</button>
+                        <div style="display: flex; align-items: center; gap: var(--space-md);">
+                            <div class="badge badge-primary" id="essayTypeBadge">Select Essay</div>
+                            <div id="save-status" style="font-size: var(--text-xs); color: var(--gray-400);">Draft</div>
+                        </div>
                         <div style="flex: 1;"></div>
                         <button class="btn btn-sm btn-ghost" id="shareBtn" title="Share with counselor">📤
                             Share</button>
                         <button class="btn btn-sm btn-primary" id="saveBtn">💾 Save</button>
                     </div>
+                </div>
 
-                    <!-- Essay Content -->
-                    <div class="essay-content-area" id="essayContent">
-                        <div class="essay-prompt" id="currentPrompt">
-                            <strong>Select an essay to begin writing.</strong>
-                        </div>
-
-                        <textarea class="essay-textarea" id="essayEditor"
-                            placeholder="Start writing your masterpiece..."></textarea>
+                <!-- Essay Content -->
+                <div class="essay-prompt-container"
+                    style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg);">
+                    <div
+                        style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs);">
+                        <span style="font-size: 1rem;">📋</span>
+                        <h4
+                            style="margin: 0; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500);">
+                            Prompt</h4>
                     </div>
-
-                    <!-- Word Count Footer -->
-                    <div class="essay-footer">
-                        <div class="stats-group">
-                            <span><strong>Words:</strong> <span id="wordCount">0</span></span>
-                            <span><strong>Chars:</strong> <span id="charCount">0</span></span>
-                        </div>
-                        <div id="save-status" style="font-size: var(--text-xs); color: var(--gray-400);">All changes
-                            saved</div>
+                    <div id="currentPrompt"
+                        style="font-weight: 600; font-size: var(--text-base); color: var(--gray-800); line-height: 1.5;">
+                        Select an essay to begin writing.
                     </div>
                 </div>
+
+                <textarea class="essay-textarea" id="essayEditor"
+                    placeholder="Start writing your masterpiece..."></textarea>
             </div>
 
-            <!-- Right Sidebar - Activity & Feedback (Right) -->
-            <div class="essay-sidebar-right">
-                <!-- AI Suggestions -->
-                <div class="card mb-lg">
-                    <h3 class="sidebar-title">💡 AI Suggestions</h3>
-                    <div id="aiSuggestions">
-                        <div class="ai-tip-card">
-                            <p>Select an essay to see AI writing tips.</p>
-                        </div>
-                    </div>
+            <!-- Word Count Footer -->
+            <div class="essay-footer">
+                <div class="stats-group">
+                    <span><strong>Words:</strong> <span id="wordCount">0</span></span>
+                    <span><strong>Chars:</strong> <span id="charCount">0</span></span>
                 </div>
-
-                <!-- Collaborative Comments -->
-                <div class="card mb-lg">
-                    <h3 class="sidebar-title">💬 Feedback</h3>
-                    <div id="commentList" class="comment-list">
-                        <p class="empty-state">No comments yet.</p>
-                    </div>
-
-                    <div class="comment-input-group">
-                        <input type="text" class="input input-sm" id="commentInput" placeholder="Add a note...">
-                        <button class="btn btn-sm btn-primary" id="addCommentBtn">Post</button>
-                    </div>
-                </div>
-
-                <!-- Linked Documents -->
-                <div class="card">
-                    <div class="sidebar-header-flex">
-                        <h3 class="sidebar-title">📎 Sources</h3>
-                        <button class="btn btn-xs btn-ghost" id="linkDocBtn">Link +</button>
-                    </div>
-                    <div id="linkedDocsList" class="linked-docs-list">
-                        <p class="empty-state">No documents linked.</p>
-                    </div>
-                </div>
+                <div id="save-status" style="font-size: var(--text-xs); color: var(--gray-400);">All changes
+                    saved</div>
             </div>
         </div>
+    </div>
+
+    <!-- Right Sidebar - Activity & Feedback (Right) -->
+    <div class="essay-sidebar-right">
+        <!-- AI Suggestions -->
+        <div class="card mb-lg">
+            <h3 class="sidebar-title">💡 AI Suggestions</h3>
+            <div id="aiSuggestions" style="display: flex; flex-direction: column; gap: var(--space-md);">
+                <button class="btn btn-outline ai-action-btn" data-action="Brainstorm"
+                    style="justify-content: flex-start; text-align: left; padding: var(--space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <span style="font-size: 1.5rem;">💡</span>
+                        <div>
+                            <div style="font-weight: 700;">Brainstorm</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">Generate unique angles</div>
+                        </div>
+                    </div>
+                </button>
+                <button class="btn btn-outline ai-action-btn" data-action="Outline"
+                    style="justify-content: flex-start; text-align: left; padding: var(--space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <span style="font-size: 1.5rem;">📝</span>
+                        <div>
+                            <div style="font-weight: 700;">Outline</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">Structure your thoughts
+                            </div>
+                        </div>
+                    </div>
+                </button>
+                <button class="btn btn-outline ai-action-btn" data-action="Rewrite"
+                    style="justify-content: flex-start; text-align: left; padding: var(--space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <span style="font-size: 1.5rem;">✨</span>
+                        <div>
+                            <div style="font-weight: 700;">Rewrite</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">Refine voice & tone</div>
+                        </div>
+                    </div>
+                </button>
+                <button class="btn btn-outline ai-action-btn" data-action="Improve"
+                    style="justify-content: flex-start; text-align: left; padding: var(--space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <span style="font-size: 1.5rem;">🎯</span>
+                        <div>
+                            <div style="font-weight: 700;">Improve</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">Fix grammar & flow</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Collaborative Comments -->
+        <div class="card mb-lg">
+            <h3 class="sidebar-title">💬 Feedback</h3>
+            <div id="commentList" class="comment-list">
+                <p class="empty-state">No comments yet.</p>
+            </div>
+
+            <div class="comment-input-group">
+                <input type="text" class="input input-sm" id="commentInput" placeholder="Add a note...">
+                <button class="btn btn-sm btn-primary" id="addCommentBtn">Post</button>
+            </div>
+        </div>
+
+        <!-- Linked Documents -->
+        <div class="card">
+            <div class="sidebar-header-flex">
+                <h3 class="sidebar-title">📎 Sources</h3>
+                <button class="btn btn-xs btn-ghost" id="linkDocBtn">Link +</button>
+            </div>
+            <div id="linkedDocsList" class="linked-docs-list">
+                <p class="empty-state">No documents linked.</p>
+            </div>
+        </div>
+    </div>
+    </div>
     </div>
 
 
