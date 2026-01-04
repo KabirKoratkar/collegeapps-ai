@@ -43,7 +43,7 @@
     right: 0;
     width: 400px;
     height: 600px;
-    background: white;
+    background: var(--white);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-2xl);
     display: flex;
@@ -107,7 +107,7 @@
     flex: 1;
     padding: var(--space-lg);
     overflow-y: auto;
-    background: #f8fafc;
+    background: var(--gray-50);
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
@@ -123,7 +123,7 @@
 
 .widget-message.ai {
     align-self: flex-start;
-    background: white;
+    background: var(--white);
     color: var(--gray-800);
     box-shadow: var(--shadow-sm);
     border-bottom-left-radius: 4px;
@@ -139,7 +139,7 @@
 /* Typing Indicator */
 .typing-indicator {
     padding: var(--space-sm) var(--space-lg);
-    background: white;
+    background: var(--white);
     border-radius: var(--radius-lg);
     width: fit-content;
     display: flex;
@@ -180,7 +180,7 @@
 /* Chat Input */
 .chat-window-input {
     padding: var(--space-md) var(--space-lg);
-    background: white;
+    background: var(--white);
     border-top: 1px solid var(--gray-200);
     display: flex;
     gap: var(--space-md);
@@ -194,6 +194,7 @@
     font-family: inherit;
     font-size: var(--text-sm);
     padding: var(--space-sm) 0;
+    color: var(--gray-800);
 }
 
 .chat-send-btn {
@@ -216,13 +217,13 @@
     gap: var(--space-xs);
     overflow-x: auto;
     padding: var(--space-sm) var(--space-lg);
-    background: #f8fafc;
+    background: var(--gray-50);
     border-top: 1px solid var(--gray-100);
 }
 
 .widget-suggestion-chip {
     padding: 6px 12px;
-    background: white;
+    background: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-full);
     font-size: 11px;
