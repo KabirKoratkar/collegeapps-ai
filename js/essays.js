@@ -110,6 +110,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         updateCounts();
     }
 
+    // Google Import 
+    const importBtn = document.getElementById('importGoogleBtn');
+    if (importBtn) {
+        importBtn.addEventListener('click', () => {
+            showNotification('Google Drive integration coming soon! For now, please copy and paste your draft.', 'info');
+        });
+    }
+
+
     // Essay navigation (Static items)
     document.querySelectorAll('.essay-nav-item').forEach(item => {
         if (!item.dataset.shared) { // Don't double bind if already handled in loadEssays
@@ -211,7 +220,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Export global functions
     window.loadLinkedDocuments = loadLinkedDocuments;
     window.unlinkDocument = unlinkDocument;
+
+    // Sample Modal Close
+    const closeSampleModal = document.getElementById('closeSampleModal');
+    if (closeSampleModal) {
+        closeSampleModal.onclick = () => {
+            document.getElementById('sampleModal').classList.remove('active');
+        };
+    }
 });
+
 
 async function loadComments(essayId) {
     const commentList = document.getElementById('commentList');
@@ -241,64 +259,93 @@ async function loadComments(essayId) {
 
 async function loadLinkedDocuments(essayId) {
     const list = document.getElementById('linkedDocsList');
-    if (!list) return;
+    const samplesContainer = document.getElementById('sampleEssaysList');
+    if (!list || !samplesContainer) return;
 
-    const docs = await getEssayDocuments(essayId);
+    // 1. Render Sample Essays
     const samples = getSampleEssays(currentEssay);
+    if (samples.length === 0) {
+        samplesContainer.innerHTML = '<p class="empty-state" style="color: var(--gray-400);">No premium samples available for this specific prompt yet.</p>';
+    } else {
+        samplesContainer.innerHTML = samples.map(sample => `
+            <div class="card card-compact" style="padding: var(--space-sm); border: 1px solid rgba(91, 141, 238, 0.1); transition: all 0.2s ease; cursor: pointer;" onclick="window.viewSample('${sample.id}')">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
+                    <div style="font-size: 11px; font-weight: 700; color: var(--gray-800); line-height: 1.3;">${sample.title}</div>
+                    <span style="font-size: 10px;">📖</span>
+                </div>
+                <div style="font-size: 9px; color: var(--gray-400); text-transform: uppercase;">View Full Essay →</div>
+            </div>
+        `).join('');
+    }
 
-    if (docs.length === 0 && samples.length === 0) {
-        list.innerHTML = '<p class="empty-state">No documents linked.</p>';
+    // 2. Render Linked Strategy Docs
+    const docs = await getEssayDocuments(essayId);
+
+    if (docs.length === 0) {
+        list.innerHTML = '<p class="empty-state">No strategy documents linked.</p>';
         return;
     }
 
-    let html = '';
-    if (samples.length > 0) {
-        html += `<div style="font-size: 10px; font-weight: 800; color: var(--accent-purple); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">✨ AI Sample Essays</div>`;
-        html += samples.map(sample => `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); padding: var(--space-xs); background: rgba(139, 123, 247, 0.05); border: 1px dashed var(--accent-purple); border-radius: var(--radius-sm);">
-                <div style="font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-weight: 600; color: var(--gray-700);">
-                    📖 ${sample.title}
-                </div>
-                <button class="btn btn-sm btn-ghost" onclick="window.viewSample('${sample.id}')" style="padding: 2px 4px;">👁️</button>
+    list.innerHTML = docs.map(doc => `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); padding: var(--space-xs) var(--space-sm); background: var(--gray-50); border-radius: var(--radius-sm); border-left: 3px solid var(--gray-200);">
+            <div style="font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; color: var(--gray-700);">
+                📄 ${doc.name || 'Unnamed Document'}
             </div>
-        `).join('');
-        html += `<hr style="border: 0; border-top: 1px solid var(--gray-100); margin: 12px 0;">`;
-    }
-
-    if (docs.length > 0) {
-        html += `<div style="font-size: 10px; font-weight: 800; color: var(--gray-400); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">📎 Your Documents</div>`;
-        html += docs.map(doc => `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); padding: var(--space-xs); background: var(--gray-50); border-radius: var(--radius-sm);">
-                <div style="font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
-                    📄 ${doc.name || 'Unnamed Document'}
-                </div>
-                <div style="display: flex; gap: 4px;">
-                    <button class="btn btn-sm btn-ghost" onclick="viewFile('${doc.file_path}')" style="padding: 2px 4px;">📂</button>
-                    <button class="btn btn-sm btn-ghost" onclick="unlinkDocument('${doc.id}')" style="padding: 2px 4px;">✕</button>
-                </div>
+            <div style="display: flex; gap: 4px;">
+                <button class="btn btn-xs btn-ghost" onclick="viewFile('${doc.file_path}')" style="padding: 2px 4px;">📂</button>
+                <button class="btn btn-xs btn-ghost" onclick="unlinkDocument('${doc.id}')" style="padding: 2px 4px; color: var(--error);">✕</button>
             </div>
-        `).join('');
-    }
-
-    list.innerHTML = html;
+        </div>
+    `).join('');
 }
+
 
 function getSampleEssays(essay) {
     if (!essay) return [];
     const allSamples = [
-        { id: 's1', title: 'Why Stanford: The Tech-Social Balance', keywords: ['Stanford', 'Why'] },
-        { id: 's2', title: 'Overcoming Failure: The Broken Violin', keywords: ['Common App', 'Personal'] },
-        { id: 's3', title: 'Community Impact: Local Coding Camp', keywords: ['Community', 'Contribution'] },
-        { id: 's4', title: 'The Roommate Letter: Espresso & Late Nights', keywords: ['Roommate'] },
-        { id: 's5', title: 'Modernizing Classical Music: Academic Why', keywords: ['Academic', 'Major'] }
+        { id: 's1', title: 'The Stanford Social Balance', keywords: ['Stanford', 'Why'] },
+        { id: 's2', title: 'Broken Violins: Growth Through Failure', keywords: ['Common App', 'Personal'] },
+        { id: 's3', title: 'Local Coding Camp: Community Impact', keywords: ['Community', 'Contribution', 'Activity'] },
+        { id: 's4', title: 'Espresso nights: A Letter to Roommate', keywords: ['Roommate'] },
+        { id: 's5', title: 'Modern Music: An Academic Journey', keywords: ['Academic', 'Major', 'CS'] },
+        { id: 's6', title: 'The Persistence of Curiosity', keywords: ['Personal'] }
     ];
+
+    const query = (essay.title + ' ' + (essay.prompt || '')).toLowerCase();
     return allSamples.filter(s => {
-        const title = essay.title.toLowerCase();
-        return s.keywords.some(k => title.includes(k.toLowerCase()));
+        return s.keywords.some(k => query.includes(k.toLowerCase())) || query.includes('personal');
     }).slice(0, 3);
 }
 
-window.viewSample = (id) => showNotification("Sample essay view coming soon!", "info");
+
+const MOCK_SAMPLES = {
+    's1': {
+        title: 'The Stanford Social Balance',
+        content: `I have always found myself at the intersection of contrasting worlds. In my high school's robotics lab, I was the girl who could debug C++ code with one hand while organizing a community fundraiser for local music programs with the other. Stanford's interdisciplinary spirit isn't just an academic preference for me; it's a way of being.\n\nAt Stanford, I hope to join the CS+Social Good community. I want to build tools that increase accessibility in public transit, using algorithms to optimize routes for underserved neighborhoods. My experience volunteering at the San Jose Transit Authority showed me that data without empathy is just numbers. I saw elderly passengers waiting hours for buses that were rerouted due to poor predictive modeling. At Stanford, I want to bridge that gap...\n\nBeyond the screen, I look forward to the "Stanford Marriage of Arts and Sciences." I want to continue my violin studies at the Bing Concert Hall while exploring Ethics in Technology. This balance is where I thrive—where the precision of code meets the nuance of human experience.`
+    },
+    's2': {
+        title: 'Broken Violins: Growth Through Failure',
+        content: `The sound of a snapping string is final. In the middle of my solo at the Regional Orchestra Competition, my A-string didn't just go out of tune—it gave up. For three seconds, the hall was silent. For those three seconds, I felt my entire identity as a "perfect" student athlete and musician dissolve.\n\nBut growth doesn't happen in the applause; it happens in the silence. I didn't leave the stage. I re-tuned my remaining strings in seconds and transposed the rest of the Vivaldi concerto on the fly. It wasn't the performance I had practiced for ten months, but it was the most honest piece of music I've ever played. This moment taught me that resilience isn't about never breaking—it's about knowing how to play with what's left. In my academic life, I've applied this "musical transposition" to my physics experiments and my leadership in the debate club...`
+    },
+    's3': {
+        title: 'Local Coding Camp: Community Impact',
+        content: `“Is it going to explode?” six-year-old Maya asked as we plugged in the first LED. I laughed, but I realized then that to a child in a neighborhood with limited tech resources, a simple breadboard looks like magic. My goal with 'CodeLocal' wasn't just to teach Python; it was to demystify that magic.\n\nGrowing up in a low-income district, I saw a persistent 'digital divide.' Students here weren't less capable; they were less exposed. Over ten weeks, I led a team of five volunteers to teach basic logic and web design to thirty middle-schoolers. We didn't have the latest MacBook Pros, but we had curiosity. By the end of the summer, Maya had built a website about her favorite planets. Seeing her face light up when her code worked was more rewarding than any grade I've received. This experience solidified my commitment to using technology as a lever for social equity.`
+    }
+};
+
+window.viewSample = (id) => {
+    const sample = MOCK_SAMPLES[id] || { title: 'Sample Essay', content: 'Sample essay content coming soon!' };
+    const modal = document.getElementById('sampleModal');
+    const titleEl = document.getElementById('sampleTitle');
+    const contentEl = document.getElementById('sampleContent');
+
+    if (modal && titleEl && contentEl) {
+        titleEl.textContent = sample.title;
+        contentEl.innerHTML = sample.content.replace(/\n\n/g, '<br><br>');
+        modal.classList.add('active');
+    }
+};
+
 
 async function linkDocument() {
     const docs = await getUserDocuments(currentUser.id);

@@ -237,8 +237,8 @@
     top: 0;
     z-index: 100;
     background: var(--white);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-bottom: 1px solid var(--gray-200);
     padding: var(--space-lg) 0;
 }
@@ -630,8 +630,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* backdrop-filter: blur(x); removed per user request to avoid haze on calendar */
     display: flex;
     align-items: center;
     justify-content: center;

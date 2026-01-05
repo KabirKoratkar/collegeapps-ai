@@ -93,27 +93,38 @@
                                 style="padding: 2px 8px; font-size: 10px; display: none;">✅ Finalize</button>
                         </div>
                         <div style="flex: 1;"></div>
+                        <button class="btn btn-sm btn-ghost" id="importGoogleBtn"
+                            style="gap: 6px; color: var(--gray-600);">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                style="width: 14px; height: 14px;">
+                            Import
+                        </button>
                         <button class="btn btn-sm btn-ghost" id="shareBtn" title="Share with counselor">📤
                             Share</button>
-                        <button class="btn btn-sm btn-primary" id="saveBtn">💾 Save</button>
+                        <button class="btn btn-sm btn-primary" id="saveBtn"
+                            style="border-radius: var(--radius-full);">💾 Save Draft</button>
+
                     </div>
                 </div>
 
-                <!-- Essay Content -->
+                <!-- Physical Verbatim Prompt Card -->
                 <div class="essay-prompt-container"
-                    style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg);">
+                    style="background: rgba(91, 141, 238, 0.03); border: 1px solid rgba(91, 141, 238, 0.15); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-xl); position: relative; overflow: hidden;">
                     <div
-                        style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs);">
-                        <span style="font-size: 1rem;">📋</span>
+                        style="position: absolute; top: 0; right: 0; padding: var(--space-md); font-size: 2rem; opacity: 0.05; pointer-events: none;">
+                        📝</div>
+                    <div
+                        style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
                         <h4
-                            style="margin: 0; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500);">
-                            Prompt</h4>
+                            style="margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-blue); font-weight: 800;">
+                            OFFICIAL PROMPT</h4>
                     </div>
                     <div id="currentPrompt"
-                        style="font-weight: 600; font-size: var(--text-base); color: var(--gray-800); line-height: 1.5;">
-                        Select an essay to begin writing.
+                        style="font-weight: 600; font-size: 1.1rem; color: var(--gray-800); line-height: 1.6; font-family: var(--font-primary);">
+                        Select an essay from the sidebar to begin.
                     </div>
                 </div>
+
 
                 <textarea class="essay-textarea" id="essayEditor"
                     placeholder="Start writing your masterpiece..."></textarea>
@@ -179,16 +190,30 @@
                     </div>
                 </div>
 
+                <!-- Premium Sample Essays -->
+                <div class="card mb-lg"
+                    style="background: var(--gradient-subtle); border-color: rgba(91, 141, 238, 0.2);">
+                    <div class="sidebar-header-flex">
+                        <h3 class="sidebar-title" style="color: var(--primary-blue);">✨ Sample Essays</h3>
+                        <span class="badge badge-primary" style="font-size: 8px;">PREMIUM</span>
+                    </div>
+                    <div id="sampleEssaysList" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                        <p class="empty-state" style="color: var(--gray-400);">Sample essays for this prompt will appear
+                            here.</p>
+                    </div>
+                </div>
+
                 <!-- Linked Documents -->
                 <div class="card">
                     <div class="sidebar-header-flex">
-                        <h3 class="sidebar-title">📎 Sources</h3>
+                        <h3 class="sidebar-title">📎 Strategy Sources</h3>
                         <button class="btn btn-xs btn-ghost" id="linkDocBtn">Link +</button>
                     </div>
                     <div id="linkedDocsList" class="linked-docs-list">
                         <p class="empty-state">No documents linked.</p>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -227,6 +252,33 @@
             </div>
         </div>
     </div>
+
+    <!-- Sample Preview Modal -->
+    <div id="sampleModal" class="modal" style="display: none;">
+        <div class="modal-content card" style="max-width: 800px; width: 90%;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-xl);">
+                <div>
+                    <h2 id="sampleTitle"
+                        style="font-size: var(--text-2xl); font-weight: 800; color: var(--gray-900); margin-bottom: 4px;">
+                        Sample Essay</h2>
+                    <span class="badge badge-primary">Premium Sample</span>
+                </div>
+                <button class="btn btn-sm btn-ghost" id="closeSampleModal">✕</button>
+            </div>
+
+            <div id="sampleContent"
+                style="max-height: 500px; overflow-y: auto; line-height: 1.8; color: var(--gray-800); font-family: var(--font-primary); padding-right: var(--space-md);">
+                <!-- Loaded by JS -->
+            </div>
+
+            <div
+                style="margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--gray-100); color: var(--gray-500); font-size: var(--text-xs); font-style: italic;">
+                This sample is for inspiration only. Do not copy or reuse content as it will be flagged for plagiarism.
+            </div>
+        </div>
+    </div>
+
 
     <footer class="footer"
         style="padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 1px solid var(--gray-200);">

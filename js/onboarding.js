@@ -268,9 +268,15 @@ async function generateAIPlan() {
     const planSummary = document.getElementById('planSummary');
     const tasksContainer = document.getElementById('tasksContainer');
 
+    const finishBtn = document.getElementById('finishBtn');
     if (!planLoading || !planDisplay) return;
 
     try {
+        if (finishBtn) {
+            finishBtn.disabled = true;
+            finishBtn.style.opacity = '0.5';
+            finishBtn.innerHTML = 'Generating your plan...';
+        }
         const gradYear = document.getElementById('gradYear').value;
         const major = document.getElementById('intendedMajor').value;
         const fullName = document.getElementById('fullName').value;
@@ -327,9 +333,23 @@ async function generateAIPlan() {
         planLoading.style.display = 'none';
         planDisplay.style.display = 'block';
 
+        if (finishBtn) {
+            finishBtn.disabled = false;
+            finishBtn.style.opacity = '1';
+            finishBtn.innerHTML = 'Finish Setup & Enter Dashboard →';
+        }
+
+
     } catch (error) {
         console.error('Plan Generation Error:', error);
         planLoading.innerHTML = `<p style="color: var(--error);">Failed to generate your plan. But don't worry, you can still finish setup!</p>`;
+
+        if (finishBtn) {
+            finishBtn.disabled = false;
+            finishBtn.style.opacity = '1';
+            finishBtn.innerHTML = 'Finish Setup Anyway →';
+        }
+
     }
 }
 
