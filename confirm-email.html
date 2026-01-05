@@ -49,10 +49,16 @@
 
             <div style="display: flex; flex-direction: column; gap: var(--space-md);">
                 <button id="loginRedirectBtn" class="btn btn-secondary"
-                    style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>
-                    <span style="margin-right: 8px;">🔒</span> Go to Log In (Verify First)
+                    style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled
+                    title="Please verify your email first">
+                    <span id="btnIcon">🔒</span> <span id="btnText">Go to Log In (Verify First)</span>
                 </button>
-                <button id="resendBtn" class="btn btn-outline" style="width: 100%;">Resend Email</button>
+                <div style="display: flex; gap: var(--space-sm);">
+                    <button id="resendBtn" class="btn btn-outline" style="flex: 1;">Resend Email</button>
+                    <button id="manualCheckBtn" class="btn btn-outline"
+                        style="flex: 1; border-color: var(--primary-blue); color: var(--primary-blue);">Manual
+                        Check</button>
+                </div>
             </div>
 
             <div id="statusArea"
@@ -61,6 +67,11 @@
                 <span id="statusText"
                     style="font-size: var(--text-sm); color: var(--gray-600); font-weight: 500;">Waiting for
                     verification...</span>
+            </div>
+
+            <div id="debugConsole"
+                style="display: none; margin-top: 15px; background: #1a1a1a; color: #00ff00; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 10px; text-align: left; max-height: 80px; overflow-y: auto;">
+                <div>[System] Diagnostics started...</div>
             </div>
 
             <p
@@ -80,50 +91,39 @@
             const email = urlParams.get('email');
             const emailDisplay = document.getElementById('userEmail');
             const resendBtn = document.getElementById('resendBtn');
-
+            const manualCheckBtn = document.getElementById('manualCheckBtn');
             const loginRedirectBtn = document.getElementById('loginRedirectBtn');
+            const debugConsole = document.getElementById('debugConsole');
 
-            // 1. Storage Signal Listener (Most Reliable Cross-Tab Sync)
-            // When ANY tab sets this key, this tab will react instantly
-            window.addEventListener('storage', (event) => {
-                if (event.key === 'verification_signal') {
-                    console.log('Verification signal received via storage!');
-                    handleSuccess();
+            // Diagnostic Logger
+            function log(msg) {
+                console.log(`[Verify] ${msg}`);
+                if (debugConsole) {
+                    const entry = document.createElement('div');
+                    entry.textContent = `> ${new Date().toLocaleTimeString()}: ${msg}`;
+                    debugConsole.appendChild(entry);
+                    debugConsole.scrollTop = debugConsole.scrollHeight;
                 }
-                // Also check if supabase token itself was updated
-                if (event.key && event.key.includes('supabase.auth.token')) {
-                    checkStatus();
-                }
-            });
+            }
 
-            // 2. BroadcastChannel (Backup Instant Sync)
-            const authChannel = new BroadcastChannel('auth_verification');
-            authChannel.onmessage = (event) => {
-                if (event.data.type === 'VERIFICATION_SUCCESS') {
-                    console.log('Verification signal received via BroadcastChannel!');
-                    handleSuccess();
-                }
-            };
-
-            // 3. Focus Check (When user switches back to this tab)
-            window.addEventListener('focus', () => {
-                console.log('Window focused, checking status...');
-                checkStatus();
-            });
+            // Enable debug console if URL has ?debug=true
+            if (urlParams.get('debug') === 'true') {
+                debugConsole.style.display = 'block';
+            }
 
             if (email) {
                 emailDisplay.textContent = email;
             }
 
-            // Success handler
             let verified = false;
+
+            // 1. SUCCESS HANDLER
             const handleSuccess = () => {
                 if (verified) return;
                 verified = true;
+                log('VERIFICATION SUCCESS DETECTED!');
 
-                console.log('Verification Confirmed! Transitioning UI...');
-
-                // Update Status Area
+                // Update Status UI
                 const statusArea = document.getElementById('statusArea');
                 const statusSpinner = document.getElementById('statusSpinner');
                 const statusText = document.getElementById('statusText');
@@ -141,48 +141,100 @@
                     loginRedirectBtn.style.cursor = 'pointer';
                     loginRedirectBtn.classList.remove('btn-secondary');
                     loginRedirectBtn.classList.add('btn-primary');
-                    loginRedirectBtn.innerHTML = 'Continue to Onboarding →';
-                    loginRedirectBtn.onclick = () => {
-                        window.location.assign('onboarding.html');
-                    };
+
+                    const btnIcon = document.getElementById('btnIcon');
+                    const btnText = document.getElementById('btnText');
+                    if (btnIcon) btnIcon.textContent = '✅';
+                    if (btnText) btnText.textContent = 'Continue to Onboarding →';
+
+                    loginRedirectBtn.onclick = () => window.location.assign('onboarding.html');
                 }
 
                 if (window.showNotification) showNotification('Email verified! Redirecting...', 'success');
 
                 setTimeout(() => {
+                    log('Redirecting to onboarding...');
                     window.location.assign('onboarding.html');
                 }, 1500);
             };
 
-            // 4. Polling (Safety Net)
-            const checkStatus = async () => {
+            // 2. CHECK STATUS FUNCTION (Deep Check)
+            const checkStatus = async (isManual = false) => {
                 if (verified) return true;
+                if (isManual) log('Manual check triggered...');
 
                 try {
-                    // Force refresh session
-                    const { data: { user } } = await supabase.auth.getUser();
+                    // Force a server check (don't rely on local session only)
+                    const { data: { user }, error } = await supabase.auth.getUser();
+
+                    if (error) {
+                        if (isManual) log(`Auth check error: ${error.message}`);
+                        return false;
+                    }
+
                     if (user && user.email_confirmed_at) {
+                        log('Server confirms email is verified.');
                         handleSuccess();
-                        // Signal other tabs that verification is complete
-                        localStorage.setItem('verification_signal', Date.now());
-                        authChannel.postMessage({ type: 'VERIFICATION_SUCCESS' });
                         return true;
+                    } else if (user) {
+                        if (isManual) log('User found, but email_confirmed_at is still null.');
+                    } else {
+                        if (isManual) log('No user session found yet.');
                     }
                 } catch (err) {
-                    // Ignore
+                    log(`Check failed: ${err.message}`);
                 }
                 return false;
             };
 
-            // Poll every 2.5 seconds
-            const intervalId = setInterval(checkStatus, 2500);
+            // 3. STORAGE LISTENERS (Cross-tab sync)
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'verification_signal') {
+                    log('Received verification signal from storage!');
+                    handleSuccess();
+                }
+                if (event.key && event.key.includes('supabase.auth.token')) {
+                    log('Supabase token updated in storage. Verifying...');
+                    checkStatus();
+                }
+            });
 
-            // Initial check
+            const authChannel = new BroadcastChannel('auth_verification');
+            authChannel.onmessage = (event) => {
+                if (event.data.type === 'VERIFICATION_SUCCESS') {
+                    log('Received BroadcastChannel signal!');
+                    handleSuccess();
+                }
+            };
+
+            // 4. PERIODIC POLLING (Hyper-aggressive backup)
+            log('Starting status polling (1.5s interval)...');
+            const intervalId = setInterval(async () => {
+                const confirmed = await checkStatus();
+                if (confirmed) {
+                    clearInterval(intervalId);
+                    authChannel.close();
+                }
+            }, 1500);
+
+            // 5. MANUAL TRIGGER
+            if (manualCheckBtn) {
+                manualCheckBtn.onclick = () => checkStatus(true);
+            }
+
+            // 6. VISIBILITY SYNC
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    log('Tab focused. Running sync check...');
+                    checkStatus();
+                }
+            });
+
+            // Initial immediate check
             checkStatus();
 
             if (resendBtn) {
                 resendBtn.addEventListener('click', async function () {
-                    // ... existing resend logic ...
                     if (!email) {
                         showNotification('Email address missing. Please try signing up again.', 'error');
                         return;

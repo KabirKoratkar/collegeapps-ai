@@ -71,19 +71,28 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('Verifying session...');
 
-            // 1. Wait for Supabase to parse URL hash
-            await new Promise(r => setTimeout(r, 1000));
+            // 1. Wait for Supabase to parse URL hash (tokens)
+            // Increased delay slightly for slower devices
+            await new Promise(r => setTimeout(r, 1200));
 
             const { data, error } = await supabase.auth.getSession();
 
             // 2. Set an explicit signal in localStorage that works across ALL tabs
-            // This is the most reliable way to sync tabs on the same domain
+            // This is the gold standard for cross-tab sync on same origin
             if (data.session) {
                 console.log('Session secured! Signaling original tab...');
                 localStorage.setItem('verification_signal', Date.now().toString());
 
                 // Also send via channel as secondary
                 authChannel.postMessage({ type: 'VERIFICATION_SUCCESS' });
+            } else {
+                console.log('No session found yet - searching manually in localStorage');
+                // Force a final check as sometimes getSession is slow
+                const token = Object.keys(localStorage).find(key => key.includes('supabase.auth.token'));
+                if (token) {
+                    localStorage.setItem('verification_signal', Date.now().toString());
+                    authChannel.postMessage({ type: 'VERIFICATION_SUCCESS' });
+                }
             }
         });
     </script>
