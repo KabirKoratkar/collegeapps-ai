@@ -9,12 +9,17 @@ This document is the single source of truth for the CollegeApps.ai project. It c
 CollegeApps.ai is a unified "Command Center" for high school students navigating the college application process. It organizes deadlines, essays, and tasks into a single platform, supported by an intelligent AI Counselor.
 
 ### Core Features
-- **Daily Task Dashboard**: Priority-based tasks, weekly goals, and deadline countdowns.
-- **AI Counselor (GPT-4)**: Automated college list management, requirement lookups, and essay brainstorming.
-- **Smart Calendar View**: Interactive monthly grid with color-coded events (Deadlines, Essays, Tasks).
-- **Essay Workspace**: Notion-like editor with real-time autosave, version control, and word counting.
-- **Analytics Dashboard**: Visual progress tracking via rings, status charts, and activity heatmaps.
-- **Document Vault**: Secure storage for transcripts, resumes, and recommendation letters.
+- **Daily Task Dashboard**: Priority-based tasks, weekly goals, and deadline countdowns with real-time success notifications.
+- **AI Counselor Command Center**: GPT-4 powered assistant integrated via Function Calling. Can add colleges, create task lists, and modify student profiles directly from chat.
+- **Autonomous Institutional Discovery**: Real-time AI research engine that populates the global college catalog when students add a school not previously in the database.
+- **Deep Intelligence Reports**: One-click "Intelligence Briefings" for colleges, providing ROI analysis, "Campus Soul" vibes, and admissions edge strategies.
+- **Smart Calendar View**: Interactive monthly grid with color-coded events (Deadlines, Essays, Tasks) and instant event creation.
+- **Professional Essay Workspace**: High-performance editor with **3-second autosave**, recursive version control, word counting, and sidebar draft management.
+- **Enhanced Analytics Hub**: Visual progress tracking using custom-built Canvas API rings, status distribution charts, and user activity heatmaps.
+- **Document Management Vault**: Secure Supabase Storage integration for transcripts, resumes, and recommendation letters.
+- **Advanced Global Search**: Intelligent shorthand/abbreviated searching (e.g., "MIT", "UCLA") for the master college catalog.
+- **Secure Auth Ecosystem**: Production-ready Sign Up/Login with **Password Recovery flow**, email verification, and a 3-step personalized onboarding experience.
+- **Performance Infrastructure**: Global rate-limiting, multi-tier node-caching for AI results, and request timeout safeties for high-concurrency scaling.
 
 ---
 
