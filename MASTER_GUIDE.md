@@ -110,4 +110,14 @@ The AI Counselor is not just a chatbot; it is integrated directly into the appli
 
 ---
 
+## 🛰️ Scalability & Production Readiness
+To handle high-concurrency (hundreds of simultaneous users), the following measures have been implemented in the AI Backend:
+
+*   **Global Rate Limiting**: Prevents API abuse and ensures stability during traffic spikes (100 requests per 15 minutes per IP).
+*   **Intelligence Caching**: Heavy AI research results (College Explorer data, Intelligence Reports) are cached for 4-12 hours, drastically reducing latency and OpenAI costs.
+*   **Request Timeout**: All AI operations have a 60-second safety timeout to prevent hanging the server event loop.
+*   **CORS Hardening**: Strict origin checks for production domains and Vercel deployments.
+
+---
+
 *Built with ❤️ for students navigating the college application journey.*

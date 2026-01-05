@@ -9,6 +9,8 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import rateLimit from 'express-rate-limit';
+import NodeCache from 'node-cache';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_CATALOG_PATH = path.join(__dirname, 'college_catalog.json');
@@ -29,17 +31,47 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_KEY
 );
 
+// Initialize Cache (expire after 4 hours, check for deletion every 1 hour)
+const apiCache = new NodeCache({ stdTTL: 14400, checkperiod: 3600 });
+
+// Rate Limiting
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    message: { error: 'Too many requests, please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const researchLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 20, // Limit research calls to 20 per hour per IP (expensive)
+    message: { error: 'Research limit reached. Please wait an hour.' }
+});
+
 // Middleware
 app.use(cors({
     origin: [
         'http://localhost:5500',
         'http://127.0.0.1:5500',
         'http://localhost:8000',
+        'https://collegeapps-ai.vercel.app',
         /\.vercel\.app$/  // Allow any Vercel deployment
     ],
     credentials: true
 }));
 app.use(express.json());
+app.use('/api/', globalLimiter);
+
+// Add Timeout Middleware
+app.use((req, res, next) => {
+    res.setTimeout(60000, () => {
+        if (!res.headersSent) {
+            res.status(408).json({ error: 'Request timed out' });
+        }
+    });
+    next();
+});
 
 // Health check
 app.get('/health', (req, res) => {
@@ -47,12 +79,19 @@ app.get('/health', (req, res) => {
 });
 
 // New endpoint for detailed college research
-app.get('/api/colleges/research', async (req, res) => {
+app.get('/api/colleges/research', researchLimiter, async (req, res) => {
     try {
         const { name } = req.query;
         if (!name) return res.status(400).json({ error: 'College name is required' });
 
+        const cacheKey = `research_${name.toLowerCase().trim()}`;
+        const cached = apiCache.get(cacheKey);
+        if (cached) {
+            return res.json(cached);
+        }
+
         const research = await handleResearchCollege(name);
+        apiCache.set(cacheKey, research);
         res.json(research);
     } catch (error) {
         console.error('Error researching college:', error);
@@ -606,12 +645,20 @@ app.post('/api/onboarding/plan', async (req, res) => {
 });
 
 // Comprehensive College Intelligence Engine
-app.post('/api/colleges/research-deep', async (req, res) => {
+app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
     try {
         const { userId, collegeName } = req.body;
 
         if (!userId || !collegeName) {
             return res.status(400).json({ error: 'userId and collegeName are required' });
+        }
+
+        // Check Cache
+        const cacheKey = `deep_research_${collegeName.toLowerCase().trim()}`;
+        const cached = apiCache.get(cacheKey);
+        if (cached) {
+            console.log(`Cache hit for deep research: ${collegeName}`);
+            return res.json({ success: true, findings: cached });
         }
 
         console.log(`Generating intelligence report for ${collegeName} for user ${userId}...`);
@@ -697,6 +744,9 @@ app.post('/api/colleges/research-deep', async (req, res) => {
         });
 
         const findings = JSON.parse(completion.choices[0].message.content);
+
+        // Cache deep research for 12 hours (it rarely changes)
+        apiCache.set(cacheKey, findings, 43200);
 
         res.json({
             success: true,
