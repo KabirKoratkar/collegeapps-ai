@@ -454,6 +454,32 @@ async function resendConfirmationEmail(email) {
     return true;
 }
 
+async function resetPasswordForEmail(email) {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password.html`,
+    });
+
+    if (error) {
+        console.error('Error sending reset email:', error);
+        throw new Error(`Reset error: ${error.message}`);
+    }
+
+    return data;
+}
+
+async function updateUserPassword(newPassword) {
+    const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+    });
+
+    if (error) {
+        console.error('Error updating password:', error);
+        throw new Error(`Update password error: ${error.message}`);
+    }
+
+    return data;
+}
+
 async function signOut() {
     const { error } = await supabase.auth.signOut();
 
@@ -668,7 +694,9 @@ export {
     getEssayComments,
     syncEssays,
     searchCollegeCatalog,
-    getCollegeFromCatalog
+    getCollegeFromCatalog,
+    resetPasswordForEmail,
+    updateUserPassword
 };
 
 async function searchCollegeCatalog(query) {
