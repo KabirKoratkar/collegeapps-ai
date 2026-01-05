@@ -602,8 +602,9 @@
 }
 
 .essay-nav-item {
-    padding: var(--space-md);
-    border-radius: var(--radius-lg);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+
     cursor: pointer;
     transition: all var(--transition-base);
     margin-bottom: var(--space-sm);
@@ -617,6 +618,23 @@
     background: var(--gradient-subtle);
     border-left: 3px solid var(--primary-blue);
     font-weight: 600;
+}
+
+.collapsible-header:hover {
+    background: var(--gray-50);
+}
+
+.collapsible-header.active .chevron {
+    transform: rotate(180deg);
+}
+
+.nav-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: var(--space-xl) 0 var(--space-sm) var(--space-sm);
 }
 
 

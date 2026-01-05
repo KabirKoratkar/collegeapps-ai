@@ -917,6 +917,7 @@ async function handleCreateEssays(userId, collegeName) {
     if (!collegeData) {
         collegeData = {
             name: collegeName,
+            application_platform: "Common App",
             essays_required: [
                 {
                     title: "Common App Personal Statement",
@@ -940,18 +941,46 @@ async function handleCreateEssays(userId, collegeName) {
         return { success: false, error: 'College not in user\'s list. Add college first.' };
     }
 
-    // Create essays
-    const essaysToCreate = collegeData.essays_required.map(essay => ({
-        user_id: userId,
-        college_id: college.id,
-        title: `${collegeData.name} - ${essay.title}`,
-        essay_type: essay.essay_type,
-        prompt: essay.prompt,
-        word_limit: essay.word_limit,
-        content: '',
-        word_count: 0,
-        is_completed: false
-    }));
+    // Check if user already has a Common App Personal Statement
+    const { data: existingEssays } = await supabase
+        .from('essays')
+        .select('id, title, essay_type')
+        .eq('user_id', userId);
+
+    const hasCommonAppPS = existingEssays?.some(e =>
+        e.essay_type === 'Common App' ||
+        e.title.toLowerCase().includes('common app personal statement')
+    );
+
+    // Filter and prepare essays
+    const essaysToCreate = [];
+    for (const essay of (collegeData.essays_required || [])) {
+        const isCommonAppPS = essay.essay_type === 'Common App' || essay.title.toLowerCase().includes('personal statement');
+
+        // Skip if it's a Common App PS and we already have one
+        if (isCommonAppPS && hasCommonAppPS && collegeData.application_platform === 'Common App') {
+            console.log(`Skipping duplicate Common App PS for ${collegeData.name}`);
+            continue;
+        }
+
+        essaysToCreate.push({
+            user_id: userId,
+            college_id: college.id,
+            title: isCommonAppPS && collegeData.application_platform === 'Common App'
+                ? "Common App Personal Statement"
+                : `${collegeData.name} - ${essay.title}`,
+            essay_type: essay.essay_type,
+            prompt: essay.prompt,
+            word_limit: essay.word_limit,
+            content: '',
+            word_count: 0,
+            is_completed: false
+        });
+    }
+
+    if (essaysToCreate.length === 0) {
+        return { success: true, message: 'No new essays needed (Common App PS already exists)', essays: [] };
+    }
 
     const { data, error } = await supabase
         .from('essays')
@@ -969,6 +998,7 @@ async function handleCreateEssays(userId, collegeName) {
         essays: data
     };
 }
+
 
 async function handleCreateTasks(userId, tasks) {
     const tasksToCreate = tasks.map(task => ({

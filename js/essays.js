@@ -395,120 +395,118 @@ async function loadEssays() {
     // Clear previous items
     navList.innerHTML = '';
 
-    // Portals we want to group by
-    const portalGroups = {
-        'Common App': [],
-        'UC App': [],
-        'Coalition App': [],
-        'Others': []
-    };
-
     // Filter for "One Common App Personal Statement"
-    // Keep only the first Common App Personal Statement we find
-    let commonAppPSAdded = false;
+    let commonAppPS = null;
+    const CA_PS_INDICATORS = ['common app', 'personal statement'];
 
-    const uniqueEssays = essays.filter(e => {
-        if (e.essay_type === 'Personal Statement' && (e.colleges?.application_platform === 'Common App' || e.title.includes('Common App'))) {
-            if (commonAppPSAdded) return false;
-            commonAppPSAdded = true;
-            return true;
-        }
-        return true;
-    });
+    const universityEssays = [];
+    const processedEssays = new Set();
 
-    uniqueEssays.forEach(essay => {
-        const platform = essay.colleges?.application_platform || 'Others';
-        if (portalGroups[platform]) {
-            portalGroups[platform].push(essay);
+    essays.forEach(e => {
+        const title = (e.title || '').toLowerCase();
+        const type = (e.essay_type || '').toLowerCase();
+        const isCommonAppSchool = e.colleges?.application_platform === 'Common App';
+
+        const isCAPS = (type === 'common app' || type === 'personal statement' || title.includes('common app personal statement')) && isCommonAppSchool;
+
+        if (isCAPS) {
+            if (!commonAppPS) commonAppPS = e;
         } else {
-            portalGroups['Others'].push(essay);
+            universityEssays.push(e);
         }
     });
 
-    // Render Portal Groups
-    Object.keys(portalGroups).forEach(portal => {
-        const groupEssays = portalGroups[portal];
-        if (groupEssays.length === 0) return;
+    // 1. Group by College
+    const collegeGroups = universityEssays.reduce((acc, e) => {
+        const name = e.colleges?.name || 'General';
+        if (!acc[name]) acc[name] = [];
+        acc[name].push(e);
+        return acc;
+    }, {});
 
+    // 2. Render Common App PS (Top Level)
+    if (commonAppPS) {
         const section = document.createElement('div');
-        section.style.marginBottom = 'var(--space-xl)';
+        section.style.marginBottom = 'var(--space-lg)';
         section.innerHTML = `
-            <h4 class="nav-section-title" style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 14px;">${portal === 'Common App' ? '🟦' : (portal === 'UC App' ? '🐻' : '📁')}</span>
-                ${portal}
-            </h4>
+            <div class="nav-section-title">Common App</div>
+        `;
+        section.appendChild(createNavItem(commonAppPS));
+        navList.appendChild(section);
+    }
+
+    // 3. Render University Groups
+    Object.keys(collegeGroups).sort().forEach(collegeName => {
+        const groupEssays = collegeGroups[collegeName];
+        const platform = groupEssays[0]?.colleges?.application_platform;
+
+        const collegeSection = document.createElement('div');
+        collegeSection.style.marginBottom = 'var(--space-xs)';
+
+        const emoji = collegeName === 'General' ? '📁' : (platform === 'UC App' ? '🐻' : '🏛️');
+
+        collegeSection.innerHTML = `
+            <div class="collapsible-header" style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;">
+                <div style="display: flex; align-items: center; gap: var(--space-sm); overflow: hidden;">
+                    <span style="font-size: 14px; flex-shrink: 0;">${emoji}</span>
+                    <span style="font-weight: 700; font-size: 13px; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${collegeName}</span>
+                </div>
+                <span class="chevron" style="font-size: 10px; color: var(--gray-400); transition: transform 0.3s;">▼</span>
+            </div>
+            <div class="group-content" style="margin-left: var(--space-md); display: none; padding-top: 4px;"></div>
         `;
 
-        // If it's Others, maybe group by college still
-        if (portal === 'Others') {
-            const othersGrouped = groupEssays.reduce((acc, e) => {
-                const collegeName = e.colleges?.name || 'General';
-                if (!acc[collegeName]) acc[collegeName] = [];
-                acc[collegeName].push(e);
-                return acc;
-            }, {});
+        const header = collegeSection.querySelector('.collapsible-header');
+        const content = collegeSection.querySelector('.group-content');
+        const chevron = collegeSection.querySelector('.chevron');
 
-            Object.keys(othersGrouped).forEach(college => {
-                const collegeSubTitle = document.createElement('div');
-                collegeSubTitle.style.fontSize = '10px';
-                collegeSubTitle.style.fontWeight = '700';
-                collegeSubTitle.style.color = 'var(--gray-400)';
-                collegeSubTitle.style.textTransform = 'uppercase';
-                collegeSubTitle.style.margin = 'var(--space-sm) 0 var(--space-xs) var(--space-sm)';
-                collegeSubTitle.textContent = college;
-                section.appendChild(collegeSubTitle);
+        header.onclick = () => {
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+            header.style.background = isHidden ? 'var(--gray-50)' : 'transparent';
+        };
 
-                othersGrouped[college].forEach(essay => {
-                    section.appendChild(createNavItem(essay));
-                });
-            });
-        } else {
-            groupEssays.forEach(essay => {
-                section.appendChild(createNavItem(essay));
-            });
+        // If this college has the current essay, auto-expand
+        if (currentEssay && groupEssays.some(e => e.id === currentEssay.id)) {
+            content.style.display = 'block';
+            chevron.style.transform = 'rotate(180deg)';
+            header.style.background = 'var(--gray-50)';
         }
 
-        navList.appendChild(section);
-    });
-
-    // Render shared essays
-    if (sharedEssays.length > 0) {
-        const sharedSection = document.createElement('div');
-        sharedSection.style.marginTop = 'var(--space-2xl)';
-        sharedSection.innerHTML = `
-            <h4 class="nav-section-title" style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 14px;">👥</span>
-                Shared With Me
-            </h4>
-        `;
-
-        sharedEssays.forEach(item => {
-            const essay = item.essays;
-            if (essay) {
-                const navItem = createNavItem(essay, true);
-                sharedSection.appendChild(navItem);
-            }
+        groupEssays.forEach(essay => {
+            content.appendChild(createNavItem(essay));
         });
 
+        navList.appendChild(collegeSection);
+    });
+
+    // 4. Render shared essays
+    if (sharedEssays.length > 0) {
+        const sharedSection = document.createElement('div');
+        sharedSection.style.marginTop = 'var(--space-xl)';
+        sharedSection.innerHTML = `<div class="nav-section-title">Shared With Me</div>`;
+
+        sharedEssays.forEach(item => {
+            if (item.essays) sharedSection.appendChild(createNavItem(item.essays, true));
+        });
         navList.appendChild(sharedSection);
     }
 
     if (essays.length === 0 && sharedEssays.length === 0) {
-        navList.innerHTML = '<p class="empty-state">No essays yet.</p>';
+        navList.innerHTML = '<p class="empty-state">No essays yet. Add colleges to see prompts.</p>';
         return;
     }
 
     // Load first available essay if none selected
     if (!currentEssay) {
-        if (essays.length > 0) {
-            await loadEssayContent(essays[0].id);
-            navList.querySelector('.essay-nav-item')?.classList.add('active');
-        } else if (sharedEssays.length > 0) {
-            await loadEssayContent(sharedEssays[0].essays.id, true);
-            navList.querySelector('.essay-nav-item')?.classList.add('active');
+        const firstEssay = commonAppPS || universityEssays[0] || (sharedEssays[0] ? sharedEssays[0].essays : null);
+        if (firstEssay) {
+            await loadEssayContent(firstEssay.id, !!sharedEssays.find(s => s.essays?.id === firstEssay.id));
         }
     }
 }
+
 
 function createNavItem(essay, isShared = false) {
     if (!essay) return document.createElement('div');
@@ -520,11 +518,12 @@ function createNavItem(essay, isShared = false) {
     const userName = isShared ? (essay.profiles?.full_name || essay.profiles?.email || 'Unknown') : '';
 
     navItem.innerHTML = `
-        <div style="font-weight: 600; margin-bottom: 0.25rem;">${essay.title || 'Untitled Essay'}</div>
-        <div style="font-size: var(--text-xs); color: var(--gray-500);">
-            ${isShared ? 'From: ' + userName : (essay.word_limit || 0) + ' words'}
+        <div style="font-weight: 500; font-size: 13px; color: var(--gray-800); margin-bottom: 2px;">${essay.title || 'Untitled Essay'}</div>
+        <div style="font-size: 10px; color: var(--gray-400); font-weight: 600;">
+            ${isShared ? 'Shared by: ' + userName : (essay.word_limit || 0) + ' words'}
         </div>
     `;
+
 
     navItem.addEventListener('click', async function () {
         if (currentEssay && !isShared && document.getElementById('essayEditor').value !== lastSavedContent) {
