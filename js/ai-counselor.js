@@ -162,31 +162,38 @@ async function sendMessage(message) {
         if (data.functionCalled) {
             const functionName = data.functionCalled;
             let notificationMessage = '';
+            const status = data.functionResult?.success;
 
-            if (functionName === 'addCollege' && data.functionResult.success) {
-                notificationMessage = `Added ${data.functionResult.college.name} to your college list!`;
+            if (status) {
+                switch (functionName) {
+                    case 'addCollege':
+                        notificationMessage = `Added ${data.functionResult.college?.name || 'College'} to your list! 🎓`;
+                        break;
+                    case 'updateProfile':
+                        notificationMessage = `Profile updated! I've logged your new preferences. ✅`;
+                        break;
+                    case 'modifyTask':
+                        const action = data.functionResult.message || 'Task updated';
+                        notificationMessage = `${action}! I've adjusted your schedule. ⏰`;
+                        break;
+                    case 'updateEssay':
+                        notificationMessage = `Essay draft updated! I've saved the changes for you. ✍️`;
+                        break;
+                    case 'updateCollege':
+                        notificationMessage = `College status updated! Strategy confirmed. 🎯`;
+                        break;
+                    case 'createEssays':
+                        notificationMessage = `Essays loaded! Head to the workspace to start writing. 📝`;
+                        break;
+                    case 'createTasks':
+                        notificationMessage = `Plan generated! Check your dashboard for the new milestones. 📊`;
+                        break;
+                }
+            }
+
+            if (notificationMessage) {
                 setTimeout(() => {
-                    showNotification(notificationMessage, 'success');
-                }, 500);
-            } else if (functionName === 'createEssays' && data.functionResult.success) {
-                notificationMessage = `Created ${data.functionResult.essays.length} essay tasks! Check your essay workspace.`;
-                setTimeout(() => {
-                    showNotification(notificationMessage, 'success');
-                }, 1000);
-            } else if (functionName === 'createTasks' && data.functionResult.success) {
-                notificationMessage = `Created ${data.functionResult.tasks.length} tasks! Check your dashboard.`;
-                setTimeout(() => {
-                    showNotification(notificationMessage, 'success');
-                }, 1500);
-            } else if (functionName === 'brainstormEssay') {
-                notificationMessage = 'Brainstorming ideas for you...';
-                setTimeout(() => {
-                    showNotification(notificationMessage, 'success');
-                }, 500);
-            } else if (functionName === 'reviewEssay') {
-                notificationMessage = 'Reviewing your essay...';
-                setTimeout(() => {
-                    showNotification(notificationMessage, 'success');
+                    showNotification(notificationMessage, status ? 'success' : 'warning');
                 }, 500);
             }
         }
