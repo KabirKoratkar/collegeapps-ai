@@ -21,36 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Inject Theme Toggle into Navbar
-    const navbarContainer = document.querySelector('.navbar-container');
-    if (navbarContainer) {
-        const themeToggle = document.createElement('button');
-        themeToggle.className = 'theme-toggle-btn';
-        themeToggle.id = 'themeToggle';
-        themeToggle.innerHTML = savedTheme === 'dark' ? '☀️' : '🌙';
-        themeToggle.title = 'Toggle Dark Mode';
-
-        // Find best spot in nav container (before mobile toggle)
-        if (mobileToggle) {
-            navbarContainer.insertBefore(themeToggle, mobileToggle);
-        } else {
-            navbarContainer.appendChild(themeToggle);
-        }
-
-        themeToggle.onclick = () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            themeToggle.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
-
-            if (window.showNotification) {
-                window.showNotification(`Switched to ${newTheme} mode`, 'info');
-            }
-        };
-    }
-
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -72,8 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('storage', (e) => {
         if (e.key === 'theme') {
             document.documentElement.setAttribute('data-theme', e.newValue);
-            const toggle = document.getElementById('themeToggle');
-            if (toggle) toggle.innerHTML = e.newValue === 'dark' ? '☀️' : '🌙';
         }
     });
 

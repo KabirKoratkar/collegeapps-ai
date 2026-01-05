@@ -125,7 +125,16 @@ function setupEventListeners() {
         localStorage.removeItem('dev_user');
         window.location.assign('index.html');
     });
+
+    // Theme Watcher (Sync with other tabs)
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'theme') {
+            const toggle = document.getElementById('darkModeToggle');
+            if (toggle) toggle.checked = (e.newValue === 'dark');
+        }
+    });
 }
+
 
 function showNotification(message, type = 'info') {
     if (window.showNotification) {
