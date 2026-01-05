@@ -130,29 +130,38 @@
 
             <!-- Right Sidebar - Activity & Feedback (Right) -->
             <div class="essay-sidebar-right">
-                <!-- AI Conceptual Review -->
+                <!-- Mini AI Counselor -->
                 <div class="card mb-lg">
-                    <h3 class="sidebar-title">🤖 AI Conceptual Review</h3>
+                    <h3 class="sidebar-title">🤖 Mini AI Counselor</h3>
                     <div id="aiReviewPanel" style="display: flex; flex-direction: column; gap: var(--space-md);">
                         <div id="selectionHint"
-                            style="font-size: var(--text-xs); color: var(--gray-500); padding: var(--space-sm); background: var(--gray-50); border-radius: var(--radius-sm); border-left: 3px solid var(--primary-blue);">
-                            Highlight any text in your essay and click below for deep conceptual feedback.
+                            style="font-size: var(--text-xs); color: var(--gray-500); padding: var(--space-sm); background: var(--gray-50); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-purple);">
+                            Ask questions about your essay or application strategy. Highlight text to focus the AI on a
+                            specific section.
                         </div>
-                        <button class="btn btn-primary" id="reviewSelectionBtn" style="width: 100%;">
-                            ✨ Review Selection
+
+                        <div class="input-group" style="margin-top: var(--space-xs); margin-bottom: 0;">
+                            <textarea id="aiCustomQuestion" class="input"
+                                style="font-size: var(--text-sm); min-height: 80px; padding: var(--space-md); border-color: var(--gray-200); background: var(--white);"
+                                placeholder="Ask the counselor... (e.g. 'How can I make this opening more personal?' or 'Does this fit my CS major?')"></textarea>
+                        </div>
+
+                        <button class="btn btn-primary" id="reviewSelectionBtn" style="width: 100%; gap: 8px;">
+                            🚀 Ask Counselor
                         </button>
 
-                        <div class="input-group" style="margin-top: var(--space-sm);">
-                            <label class="input-label" style="font-size: 10px;">Ask AI a specific question
-                                (Optional)</label>
-                            <textarea id="aiCustomQuestion" class="input"
-                                style="font-size: 12px; min-height: 60px; padding: var(--space-sm);"
-                                placeholder="e.g. Is this too formal? Does this focus enough on my growth?"></textarea>
+                        <div style="font-size: 10px; color: var(--gray-400); text-align: center; font-style: italic;">
+                            Note: AI provides strategic advice, not direct rewrites.
                         </div>
+
                         <hr style="border: 0; border-top: 1px solid var(--gray-100); margin: var(--space-xs) 0;">
+
+                        <div
+                            style="font-size: var(--text-xs); font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">
+                            Counseling History</div>
                         <div id="aiFeedbackContainer"
-                            style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-sm);">
-                            <p class="empty-state">No feedback generated yet.</p>
+                            style="max-height: 450px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-md); padding-right: 4px;">
+                            <p class="empty-state">Your insights will appear here.</p>
                         </div>
                     </div>
                 </div>

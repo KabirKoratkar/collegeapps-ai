@@ -667,19 +667,23 @@ async function handleConceptualReview(selection) {
 
     const feedbackContainer = document.getElementById('aiFeedbackContainer');
     const editor = document.getElementById('essayEditor');
-    const customQuestion = document.getElementById('aiCustomQuestion')?.value.trim();
+    const customQuestionField = document.getElementById('aiCustomQuestion');
+    const customQuestion = customQuestionField?.value.trim();
     const content = editor.value;
-    const prompt = currentEssay.prompt || currentEssay.title;
+    const promptTitle = currentEssay.prompt || currentEssay.title;
 
-    // Show loading state... (rest of the code)
+    if (!selection && !customQuestion) {
+        showNotification('Highlight text or ask a question first!', 'info');
+        return;
+    }
 
     // Show loading state in the container
     const loadingId = 'loading-' + Date.now();
     const loadingHtml = `
-        <div id="${loadingId}" class="card" style="padding: var(--space-md); background: var(--gray-50); border: 1px dashed var(--primary-blue); margin-bottom: var(--space-sm);">
+        <div id="${loadingId}" class="card" style="padding: var(--space-md); background: var(--gray-50); border: 1px dashed var(--accent-purple); margin-bottom: var(--space-sm);">
             <div style="display: flex; align-items: center; gap: var(--space-sm);">
                 <div class="loading-spinner" style="width: 14px; height: 14px;"></div>
-                <span style="font-size: var(--text-xs); color: var(--gray-500);">Analyzing selection...</span>
+                <span style="font-size: var(--text-xs); color: var(--gray-500);">Counselor is thinking...</span>
             </div>
         </div>
     `;
@@ -691,22 +695,25 @@ async function handleConceptualReview(selection) {
     feedbackContainer.insertAdjacentHTML('afterbegin', loadingHtml);
     feedbackContainer.scrollTop = 0;
 
+    // Clear question field for next use
+    if (customQuestionField) customQuestionField.value = '';
+
     try {
         const aiMessage = `
-            Task: Provide CONCEPTUAL and STRATEGIC feedback on the following selection from a college essay.
+            Task: Provide high-level ADMISSIONS COUNSELING and STRATEGIC feedback.
             
-            Essay Prompt: "${prompt}"
+            Essay Category/Prompt: "${promptTitle}"
             Full Essay Content: "${content}"
-            HIGHLIGHTED SELECTION: "${selection}"
-            ${customQuestion ? `SPECIFIC USER QUESTION: "${customQuestion}"` : ''}
+            ${selection ? `HIGHLIGHTED SELECTION FOR FOCUS: "${selection}"` : 'No specific text highlighted.'}
+            ${customQuestion ? `SPECIFIC STUDENT QUESTION: "${customQuestion}"` : ''}
             
-            STRICT RULES:
-            - Do NOT provide rewrites.
-            - Do NOT provide better sentences.
-            - Focus ONLY on conceptual growth: what's missing, what the theme is, how it connects to the prompt.
-            ${customQuestion ? '- Address the SPECIFIC USER QUESTION directly.' : ''}
-            - Be concise (2-3 bullet points maximum).
-            - Use a professional, counselor-like tone.
+            STRICT ADMISSIONS COACH RULES:
+            1. NEVER provide text that can be copied/pasted directly into the essay. 
+            2. NEVER rewrite sentences or provide "better" versions.
+            3. Focus on: Narrative impact, thematic consistency, and whether the student is addressing the prompt effectively.
+            4. If a specific question is asked, answer it as an expert counselor would, focusing on advice and perspective.
+            5. Keep the response concise and encouraging. 
+            6. Use a tone that feels like a mentor giving high-level guidance.
         `;
 
         const response = await fetch(`${config.apiUrl}/api/chat`, {
@@ -715,7 +722,7 @@ async function handleConceptualReview(selection) {
             body: JSON.stringify({
                 message: aiMessage,
                 userId: currentUser.id,
-                conversationHistory: []
+                conversationHistory: [] // Keep results independent for the sidebar history
             })
         });
 
@@ -728,28 +735,32 @@ async function handleConceptualReview(selection) {
         const loadingEl = document.getElementById(loadingId);
         if (loadingEl) {
             loadingEl.innerHTML = `
-                <div style="font-size: var(--text-xs); color: var(--primary-blue); font-weight: 700; margin-bottom: var(--space-xs); display: flex; justify-content: space-between; align-items: center;">
-                    <span style="display: flex; align-items: center; gap: 4px;">🎯 Insight</span>
+                <div style="font-size: var(--text-xs); color: var(--accent-purple); font-weight: 700; margin-bottom: var(--space-xs); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="display: flex; align-items: center; gap: 4px;">✨ Counselor Insight</span>
                     <span style="font-weight: 400; color: var(--gray-400);">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
-                <div style="font-size: 11px; color: var(--gray-500); font-style: italic; margin-bottom: var(--space-md); border-left: 2px solid var(--gray-200); padding-left: var(--space-sm); line-height: 1.4;">
-                    "${selection.length > 70 ? selection.substring(0, 70) + '...' : selection}"
-                </div>
+                ${customQuestion ? `<div style="font-size: 11px; font-weight: 600; color: var(--gray-600); margin-bottom: 4px;">Q: ${customQuestion}</div>` : ''}
+                ${selection ? `
+                    <div style="font-size: 10px; color: var(--gray-400); font-style: italic; margin-bottom: var(--space-md); border-left: 2px solid var(--gray-200); padding-left: var(--space-sm); line-height: 1.4;">
+                        Ref: "${selection.length > 50 ? selection.substring(0, 50) + '...' : selection}"
+                    </div>
+                ` : ''}
                 <div style="font-size: var(--text-sm); line-height: 1.5; color: var(--gray-800);">
                     ${feedback.replace(/\n/g, '<br>')}
                 </div>
             `;
             loadingEl.style.background = 'var(--white)';
             loadingEl.style.borderStyle = 'solid';
-            loadingEl.style.borderColor = 'var(--gray-200)';
-            loadingEl.style.animation = 'fadeIn 0.5s ease-out';
+            loadingEl.style.borderColor = 'var(--gray-100)';
+            loadingEl.style.boxShadow = 'var(--shadow-sm)';
         }
 
     } catch (error) {
-        console.error('AI Review Error:', error);
+        console.error('AI Counseling Error:', error);
         const loadingEl = document.getElementById(loadingId);
         if (loadingEl) {
-            loadingEl.innerHTML = `<p style="color: var(--error); font-size: var(--text-xs);">Failed to get AI feedback. Ensure backend is running.</p>`;
+            loadingEl.innerHTML = `<p style="color: var(--error); font-size: var(--text-xs); padding: var(--space-sm);">Error connecting to counselor. Please try again.</p>`;
         }
     }
 }
+
