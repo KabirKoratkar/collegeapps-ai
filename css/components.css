@@ -634,11 +634,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 10;
 }
 
 .modal-content {
     position: relative;
+    z-index: 20;
     background: var(--white);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-2xl);
