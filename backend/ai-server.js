@@ -82,41 +82,41 @@ app.post('/api/chat', async (req, res) => {
              Intended Major: ${profile.intended_major || 'Undecided'}
              Location: ${profile.location || 'Unknown'}` : '';
 
+        // Fetch user app state for deep context
+        const { data: colleges } = await supabase.from('colleges').select('*').eq('user_id', userId);
+        const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', userId).eq('completed', false);
+        const { data: essays } = await supabase.from('essays').select('id, title, college_id, word_count, is_completed').eq('user_id', userId);
+
+        const appStateContext = `
+            CURRENT COLLEGE LIST: ${colleges?.map(c => `${c.name} (${c.type})`).join(', ') || 'None'}
+            ACTIVE TASKS: ${tasks?.length || 0} tasks pending.
+            ESSAYS: ${essays?.map(e => `${e.title} (${e.word_count} words)`).join(', ') || 'None'}
+        `;
+
         // Build conversation messages for OpenAI
         const messages = [
             {
                 role: 'system',
-                content: `You are an expert college application counselor helping high school students with their college applications. You have access to detailed information about college requirements, deadlines, essays, and test policies.
+                content: `You are the central "Intelligence Command Center" for ${profile?.full_name || 'this student'}'s college application process. You have ABSOLUTE access to view and manipulate their entire application ecosystem.
+                
+                MISSION: Proactively manage their profile, schedule, and essays to ensure a top-tier application outcome.
 
-${profileContext}
+                ${profileContext}
+                ${appStateContext}
 
-When users mention they are applying to colleges, you should:
-1. Use the addCollege function to add the college to their list. Suggest if it should be a "Reach", "Target", or "Safety" based on their profile if possible.
-2. Use the createEssays function to create all required essay tasks
-3. Use the createTasks function to create important tasks and deadlines
-4. Provide helpful, encouraging guidance
+                YOUR POWERS:
+                1. PROFILE CONTROL: Use 'updateProfile' to refine their major, location, or graduation year as their strategy evolves.
+                2. SCHEDULE MANAGEMENT: Use 'modifyTask' to create, update, complete, or delete tasks. You are their time-manager.
+                3. ESSAY DRAFTING: Use 'updateEssay' to save content or mark essays as completed.
+                4. COLLEGE STRATEGY: Use 'updateCollege' to change categorization (Reach/Target/Safety) or 'addCollege' to expand their list.
+                5. DATA RESEARCH: Use 'researchCollege' to get SAT/GPA stats.
+                6. PLAN GENERATION: Use 'getAppStatus' to see everything at once if you need a refresh.
 
-When users ask for "How to Apply" or "Strategy" for a college:
-1. Provide a detailed, step-by-step application guide.
-2. Analyze what that specific college values (e.g., "Stanford values intellectual vitality", "UCLA values community service").
-3. Give specific advice on how to "Maximize Chances" (e.g., which supplemental prompt to pick, what ECs to highlight).
-4. Break it down into: "The Game Plan", "How to Stand Out", and "Critical Deadlines".
+                When users ask "What should I do today?", scan their tasks and colleges and provide a high-level strategic update. 
+                When they mention a change in their interests (e.g., "I think I want to do CS now"), update their profile instantly.
+                When they brainstorm, you can save those ideas directly to their essays.
 
-When users ask help with essays:
-1. Use the brainstormEssay function to generate creative ideas for specific prompts
-2. Use the reviewEssay function to provide constructive feedback on drafts
-3. Focus on unique personal stories, showing rather than telling, and authentic voice
-
-When recommending colleges or giving advice, consider their major (${profile ? profile.intended_major : 'undecided'}) and location (${profile ? profile.location : 'unknown'}).
-
-Be conversational, supportive, and specific. When you add colleges or create tasks, let the user know what you've done.
-
-Available colleges with detailed data: Stanford, Harvard, Yale, Princeton, MIT, Columbia, UPenn, Brown, Cornell, Dartmouth, NYU, UC Berkeley, UCLA, UMichigan, Duke, Northwestern, JHU, Caltech, Rice, Georgetown, USC, Northeastern, Boston University, Georgia Tech, UT Austin, UNC, UVA, CMU, ASU, and more.
-
-If a college is not in this specific list, you can still add it! The system will default to a standard Common App template, but you should still provide helpful guidance based on your general knowledge. When discussing essays, be specific about word limits and requirements.
-
-Use the researchCollege function to get detailed stats (SAT, GPA, acceptance rates) when users ask about a specific college's profile or if they should apply there based on their stats.
-When users ask questions, provide accurate, helpful information.`
+                Be elite, professional, and proactive. You don't just answer questions—you manage the process.`
             },
             ...conversationHistory.map(msg => ({
                 role: msg.role,
@@ -249,6 +249,77 @@ When users ask questions, provide accurate, helpful information.`
                     },
                     required: ['collegeName']
                 }
+            },
+            {
+                name: 'updateProfile',
+                description: 'Update the user\'s profile information (major, location, graduation_year, etc.)',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        intended_major: { type: 'string' },
+                        location: { type: 'string' },
+                        graduation_year: { type: 'string' },
+                        full_name: { type: 'string' }
+                    }
+                }
+            },
+            {
+                name: 'getAppStatus',
+                description: 'Get the full current status of the user\'s application: colleges, active tasks, and essays.',
+                parameters: { type: 'object', properties: {} }
+            },
+            {
+                name: 'modifyTask',
+                description: 'Create, update, complete, or delete an application task.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        action: { type: 'string', enum: ['create', 'update', 'delete', 'complete'] },
+                        taskId: { type: 'string', description: 'Required for update, delete, or complete' },
+                        taskData: {
+                            type: 'object',
+                            properties: {
+                                title: { type: 'string' },
+                                description: { type: 'string' },
+                                dueDate: { type: 'string' },
+                                category: { type: 'string' },
+                                priority: { type: 'string' }
+                            }
+                        }
+                    },
+                    required: ['action']
+                }
+            },
+            {
+                name: 'updateEssay',
+                description: 'Update the content or status of an essay.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        essayId: { type: 'string', description: 'The ID of the essay to update' },
+                        content: { type: 'string', description: 'New draft content for the essay' },
+                        isCompleted: { type: 'boolean' }
+                    },
+                    required: ['essayId']
+                }
+            },
+            {
+                name: 'updateCollege',
+                description: 'Update a college in the user\'s list (categorization or status).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        collegeId: { type: 'string' },
+                        type: { type: 'string', enum: ['Reach', 'Target', 'Safety'] },
+                        status: { type: 'string' }
+                    },
+                    required: ['collegeId']
+                }
+            },
+            {
+                name: 'listDocuments',
+                description: 'List all documents in the user\'s vault.',
+                parameters: { type: 'object', properties: {} }
             }
         ];
 
@@ -291,6 +362,24 @@ When users ask questions, provide accurate, helpful information.`
                     break;
                 case 'researchCollege':
                     functionResult = await handleResearchCollege(functionArgs.collegeName);
+                    break;
+                case 'updateProfile':
+                    functionResult = await handleUpdateProfile(userId, functionArgs);
+                    break;
+                case 'getAppStatus':
+                    functionResult = await handleGetAppStatus(userId);
+                    break;
+                case 'modifyTask':
+                    functionResult = await handleModifyTask(userId, functionArgs.action, functionArgs.taskId, functionArgs.taskData);
+                    break;
+                case 'updateEssay':
+                    functionResult = await handleUpdateEssayContent(userId, functionArgs.essayId, functionArgs.content, functionArgs.isCompleted);
+                    break;
+                case 'updateCollege':
+                    functionResult = await handleUpdateCollegeStatus(userId, functionArgs.collegeId, functionArgs.type, functionArgs.status);
+                    break;
+                case 'listDocuments':
+                    functionResult = await handleListDocuments(userId);
                     break;
                 default:
                     functionResult = { error: 'Unknown function' };
@@ -942,6 +1031,128 @@ async function handleResearchCollege(collegeName) {
         console.error('Research error:', error);
         return { success: false, error: 'Failed to research college' };
     }
+}
+
+// --- NEW COMMAND CENTER HANDLERS ---
+
+async function handleUpdateProfile(userId, profileData) {
+    const { intended_major, location, graduation_year, full_name } = profileData;
+    const update = {};
+    if (intended_major) update.intended_major = intended_major;
+    if (location) update.location = location;
+    if (graduation_year) update.graduation_year = graduation_year;
+    if (full_name) update.full_name = full_name;
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .update(update)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, message: 'Profile updated successfully', profile: data };
+}
+
+async function handleGetAppStatus(userId) {
+    const { data: colleges } = await supabase.from('colleges').select('*').eq('user_id', userId);
+    const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', userId);
+    const { data: essays } = await supabase.from('essays').select('*').eq('user_id', userId);
+
+    return {
+        success: true,
+        colleges: colleges || [],
+        tasks: tasks || [],
+        essays: essays || []
+    };
+}
+
+async function handleModifyTask(userId, action, taskId, taskData) {
+    try {
+        if (action === 'create') {
+            const { data, error } = await supabase.from('tasks').insert({
+                user_id: userId,
+                title: taskData.title,
+                description: taskData.description,
+                due_date: taskData.dueDate,
+                category: taskData.category || 'General',
+                priority: taskData.priority || 'Medium',
+                completed: false
+            }).select().single();
+            if (error) throw error;
+            return { success: true, task: data };
+        }
+
+        if (action === 'complete') {
+            const { error } = await supabase.from('tasks').update({ completed: true }).eq('id', taskId).eq('user_id', userId);
+            if (error) throw error;
+            return { success: true, message: 'Task completed' };
+        }
+
+        if (action === 'delete') {
+            const { error } = await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
+            if (error) throw error;
+            return { success: true, message: 'Task deleted' };
+        }
+
+        if (action === 'update') {
+            const { data, error } = await supabase.from('tasks').update({
+                title: taskData.title,
+                description: taskData.description,
+                due_date: taskData.dueDate,
+                category: taskData.category,
+                priority: taskData.priority
+            }).eq('id', taskId).eq('user_id', userId).select().single();
+            if (error) throw error;
+            return { success: true, task: data };
+        }
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+async function handleUpdateEssayContent(userId, essayId, content, isCompleted) {
+    const update = {};
+    if (content !== undefined) {
+        update.content = content;
+        update.word_count = content.split(/\s+/).filter(w => w.length > 0).length;
+        update.char_count = content.length;
+    }
+    if (isCompleted !== undefined) update.is_completed = isCompleted;
+
+    const { data, error } = await supabase
+        .from('essays')
+        .update(update)
+        .eq('id', essayId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, essay: data };
+}
+
+async function handleUpdateCollegeStatus(userId, collegeId, type, status) {
+    const update = {};
+    if (type) update.type = type;
+    if (status) update.status = status;
+
+    const { data, error } = await supabase
+        .from('colleges')
+        .update(update)
+        .eq('id', collegeId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, college: data };
+}
+
+async function handleListDocuments(userId) {
+    const { data, error } = await supabase.from('documents').select('*').eq('user_id', userId);
+    if (error) return { success: false, error: error.message };
+    return { success: true, documents: data || [] };
 }
 
 async function saveConversation(userId, userMessage, aiResponse, functionCall = null) {
