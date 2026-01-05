@@ -215,27 +215,79 @@ async function loadLinkedDocuments(essayId) {
     const list = document.getElementById('linkedDocsList');
     if (!list) return;
 
+    // 1. Get real linked documents from Supabase
     const docs = await getEssayDocuments(essayId);
-    if (docs.length === 0) {
+
+    // 2. Get AI-suggested sample essays based on current essay type/prompt
+    const samples = getSampleEssays(currentEssay);
+
+    if (docs.length === 0 && samples.length === 0) {
         list.innerHTML = '<p style="color: var(--gray-500); font-size: var(--text-sm);">No documents linked.</p>';
         return;
     }
 
-    list.innerHTML = docs.map(doc => {
-        if (!doc) return '';
-        return `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); padding: var(--space-xs); background: var(--gray-50); border-radius: var(--radius-sm);">
-                <div style="font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
-                    📄 ${doc.name || 'Unnamed Document'}
+    let html = '';
+
+    // Render Samples First
+    if (samples.length > 0) {
+        html += `<div style="font-size: 10px; font-weight: 800; color: var(--primary-purple); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">✨ AI Sample Essays</div>`;
+        html += samples.map(sample => `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); padding: var(--space-xs); background: rgba(139, 123, 247, 0.05); border: 1px dashed var(--primary-purple); border-radius: var(--radius-sm);">
+                <div style="font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-weight: 600; color: var(--gray-700);">
+                    📖 ${sample.title}
                 </div>
                 <div style="display: flex; gap: 4px;">
-                    <button class="btn btn-sm btn-ghost" onclick="viewFile('${doc.file_path}')" style="padding: 2px 4px;">📂</button>
-                    <button class="btn btn-sm btn-ghost" onclick="unlinkDocument('${doc.id}')" style="padding: 2px 4px;">✕</button>
+                    <button class="btn btn-sm btn-ghost" onclick="window.viewSample('${sample.id}')" style="padding: 2px 4px;" title="View Sample">👁️</button>
                 </div>
             </div>
-        `;
-    }).join('');
+        `).join('');
+        html += `<hr style="border: 0; border-top: 1px solid var(--gray-100); margin: 12px 0;">`;
+    }
+
+    // Render Real Docs
+    if (docs.length > 0) {
+        html += `<div style="font-size: 10px; font-weight: 800; color: var(--gray-400); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">📎 Your Documents</div>`;
+        html += docs.map(doc => {
+            if (!doc) return '';
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); padding: var(--space-xs); background: var(--gray-50); border-radius: var(--radius-sm);">
+                    <div style="font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                        📄 ${doc.name || 'Unnamed Document'}
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                        <button class="btn btn-sm btn-ghost" onclick="viewFile('${doc.file_path}')" style="padding: 2px 4px;">📂</button>
+                        <button class="btn btn-sm btn-ghost" onclick="unlinkDocument('${doc.id}')" style="padding: 2px 4px;">✕</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    list.innerHTML = html;
 }
+
+function getSampleEssays(essay) {
+    if (!essay) return [];
+
+    // Mock sample essays based on common themes
+    const allSamples = [
+        { id: 's1', title: 'Why Stanford: The Tech-Social Balance', type: 'Supplement', keywords: ['Stanford', 'Why'] },
+        { id: 's2', title: 'Overcoming Failure: The Broken Violin', type: 'Common App', keywords: ['Common App', 'Personal'] },
+        { id: 's3', title: 'Community Impact: Local Coding Camp', type: 'Supplement', keywords: ['Community', 'Contribution'] },
+        { id: 's4', title: 'The Roommate Letter: Espresso & Late Nights', type: 'Supplement', keywords: ['Roommate'] },
+        { id: 's5', title: 'Modernizing Classical Music: Academic Why', type: 'Supplement', keywords: ['Academic', 'Major'] }
+    ];
+
+    // Simple matching logic
+    return allSamples.filter(s => {
+        const title = essay.title.toLowerCase();
+        return s.keywords.some(k => title.includes(k.toLowerCase()));
+    }).slice(0, 3);
+}
+
+window.viewSample = function (id) {
+    showNotification("Sample essay view coming soon! This would open a read-only modal with high-scoring examples.", "info");
+};
 
 async function linkDocument() {
     const docs = await getUserDocuments(currentUser.id);
