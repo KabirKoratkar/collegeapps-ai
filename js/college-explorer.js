@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fetchAndRenderCollegeData(collegeName);
     } catch (error) {
         console.error('Error loading college data:', error);
-        alert('Could not lead college data. Please try again.');
+        if (window.showNotification) window.showNotification('Could not lead college data. Please try again.', 'error');
         window.location.href = 'colleges.html';
     } finally {
         document.getElementById('loadingOverlay').style.display = 'none';
@@ -106,7 +106,7 @@ async function generateIntelligenceReport(collegeName) {
         showIntelligenceModal(data.findings);
     } catch (error) {
         console.error('Intelligence Error:', error);
-        alert('Could not generate report. Is the AI server running?');
+        if (window.showNotification) window.showNotification('Could not generate report. Is the AI server running?', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -255,14 +255,14 @@ async function addCollege(name) {
 
         const result = await response.json();
         if (result.success) {
-            alert(`Successfully added ${name} to your list!`);
-            window.location.href = 'colleges.html';
+            if (window.showNotification) window.showNotification(`Successfully added ${name} to your list!`, 'success');
+            setTimeout(() => window.location.href = 'colleges.html', 1500);
         } else {
-            alert('Could not add college: ' + result.error);
+            if (window.showNotification) window.showNotification('Could not add college: ' + result.error, 'error');
         }
     } catch (error) {
         console.error('Error adding college:', error);
-        alert('An error occurred. Please try again.');
+        if (window.showNotification) window.showNotification('An error occurred. Please try again.', 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = '+ Add to List';

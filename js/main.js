@@ -45,16 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Check if user is logged in for landing page CTA update
-    if (currentPage === 'index.html' || currentPage === '') {
-        const navLinks = document.getElementById('navLinks');
-        const devUser = localStorage.getItem('dev_user');
-
-        // We can't use await here easily without making the whole thing async, 
-        // so we check localStorage or just let the page-specific scripts handle it.
-        // For index.html, we'll do a quick check.
-        if (devUser) {
-            updateLandingNav();
-        }
+    if (currentPage === 'index.html' || currentPage === '' || currentPage === '/') {
+        updateLandingNav();
     }
 });
 

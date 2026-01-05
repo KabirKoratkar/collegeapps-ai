@@ -133,7 +133,10 @@ function renderDashboard(tasks, essays, colleges) {
         }
     }
 
-    // 2. Render Progress Widgets
+    // 2. Render Deadlines
+    renderDeadlines(colleges);
+
+    // 3. Render Progress Widgets
     const widgets = document.querySelectorAll('.progress-widget');
     if (widgets.length >= 3) {
         // Essays
@@ -150,6 +153,111 @@ function renderDashboard(tasks, essays, colleges) {
             : 0;
         updateWidget(widgets[2], avgProgress, 100);
     }
+
+    // 4. Render Goals (Dynamic based on tasks)
+    renderGoals(tasks);
+}
+
+function renderDeadlines(colleges) {
+    const deadlineCardsContainer = document.querySelector('.deadline-card')?.parentElement;
+    if (!deadlineCardsContainer) return;
+
+    // Clear static cards
+    deadlineCardsContainer.innerHTML = '';
+
+    const today = new Date();
+
+    // Sort colleges by nearest deadline
+    const sortedColleges = colleges
+        .filter(c => c.deadline)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+    if (sortedColleges.length === 0) {
+        deadlineCardsContainer.innerHTML = `
+            <div class="deadline-card mb-xl">
+                <div class="deadline-days">0</div>
+                <div class="deadline-label">Add a college to see your next deadline!</div>
+            </div>
+        `;
+        return;
+    }
+
+    // Show top 2 nearest deadlines
+    sortedColleges.slice(0, 2).forEach((c, index) => {
+        const deadline = new Date(c.deadline);
+        const diffTime = deadline - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        const card = document.createElement('div');
+        card.className = 'deadline-card mb-xl';
+        if (index === 1) {
+            card.style.background = 'linear-gradient(135deg, #5B8DEE 0%, #8B7BF7 100%)';
+        } else if (diffDays <= 7) {
+            card.style.background = 'linear-gradient(135deg, var(--error) 0%, #ff6b6b 100%)';
+        }
+
+        card.innerHTML = `
+            <div class="deadline-days">${Math.max(0, diffDays)}</div>
+            <div class="deadline-label">Days Until ${c.name} ${c.deadline_type || 'Deadline'}</div>
+        `;
+        deadlineCardsContainer.appendChild(card);
+    });
+}
+
+function renderGoals(tasks) {
+    const goalsContainer = document.querySelector('.card h2[style*="Weekly Goals"]')?.parentElement;
+    if (!goalsContainer) return;
+
+    // Find incomplete tasks due this week
+    const now = new Date();
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const weeklyTasks = tasks.filter(t => {
+        if (!t.due_date) return false;
+        const d = new Date(t.due_date);
+        return d >= now && d <= nextWeek;
+    });
+
+    if (weeklyTasks.length === 0) {
+        // If no tasks this week, show high priority tasks or just general progress
+        const highPriority = tasks.filter(t => !t.completed && t.priority === 'High').slice(0, 3);
+        if (highPriority.length > 0) {
+            renderGoalItems(highPriority, goalsContainer);
+        } else {
+            const h2 = goalsContainer.querySelector('h2');
+            const p = document.createElement('p');
+            p.style.color = 'var(--gray-500)';
+            p.style.fontSize = 'var(--text-sm)';
+            p.textContent = "No urgent goals this week. Use the AI Counselor to strategize!";
+            goalsContainer.innerHTML = '';
+            goalsContainer.appendChild(h2);
+            goalsContainer.appendChild(p);
+        }
+    } else {
+        renderGoalItems(weeklyTasks.slice(0, 3), goalsContainer);
+    }
+}
+
+function renderGoalItems(items, container) {
+    const h2 = container.querySelector('h2');
+    container.innerHTML = '';
+    container.appendChild(h2);
+
+    items.forEach(item => {
+        const progress = item.completed ? 100 : 0;
+        const html = `
+            <div style="margin-bottom: var(--space-lg);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
+                    <span style="font-weight: 600;">${item.title}</span>
+                    <span style="color: var(--gray-500);">${item.completed ? 'DONE' : 'PENDING'}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%;"></div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    });
 }
 
 function updateWidget(widget, completed, total) {

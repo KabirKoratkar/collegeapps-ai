@@ -184,6 +184,40 @@ class AIChatWidget {
                     { role: 'user', content: message },
                     { role: 'assistant', content: data.response }
                 );
+
+                // Command Center Notifications Logic
+                if (data.functionCalled) {
+                    const functionName = data.functionCalled;
+                    let notificationMessage = '';
+                    const status = data.functionResult?.success;
+
+                    if (status) {
+                        switch (functionName) {
+                            case 'addCollege':
+                                notificationMessage = `Added ${data.functionResult.college?.name || 'College'} to your list! 🎓`;
+                                break;
+                            case 'updateProfile':
+                                notificationMessage = `Profile updated! I've logged your new preferences. ✅`;
+                                break;
+                            case 'modifyTask':
+                                const action = data.functionResult.action || 'updated';
+                                notificationMessage = `Task ${action} successfully! 📅`;
+                                break;
+                            case 'updateEssay':
+                                notificationMessage = `Essay draft saved! ✍️`;
+                                break;
+                            case 'updateCollege':
+                                notificationMessage = `College strategy updated! 🚀`;
+                                break;
+                        }
+                    }
+
+                    if (notificationMessage && window.showNotification) {
+                        setTimeout(() => {
+                            window.showNotification(notificationMessage, status ? 'success' : 'warning');
+                        }, 500);
+                    }
+                }
             }
         } catch (error) {
             console.error('Chat error:', error);
