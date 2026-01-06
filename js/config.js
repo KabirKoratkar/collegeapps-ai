@@ -10,11 +10,11 @@ const config = {
     get apiUrl() {
         if (this.isProduction) {
             // Priority: Check if a custom backend URL is set in localStorage (for quick testing)
-            const customUrl = localStorage.getItem('collegeapps_api_url');
+            const customUrl = localStorage.getItem('waypoint_api_url');
             if (customUrl) return customUrl;
 
             // Default production URL - Update this after your first deployment
-            return 'https://collegeapps-ai-production-28c4.up.railway.app';
+            return 'https://waypoint-api-production.up.railway.app';
         } else {
             return 'http://localhost:3001';
         }

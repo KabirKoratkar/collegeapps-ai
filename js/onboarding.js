@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                     await supabaseAddCollege(currentUser.id, name);
                 }
 
-                if (window.showNotification) window.showNotification('Setup complete! Welcome to CollegeApps.ai', 'success');
+                if (window.showNotification) window.showNotification('Setup complete! Welcome to Waypoint', 'success');
 
                 // 3. Verify profile exists before redirecting
                 console.log('Verifying profile...');

@@ -1,4 +1,4 @@
--- CollegeApps.ai Database Schema for Supabase
+-- Waypoint Database Schema for Supabase
 -- Run this in your Supabase SQL Editor
 
 -- Enable UUID extension

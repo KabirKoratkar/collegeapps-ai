@@ -1,8 +1,8 @@
-# CollegeApps.ai - Comprehensive Project Summary
-Generated on: 2025-12-23
+# Waypoint - Comprehensive Project Summary
+Generated on: 2026-01-05
 
 ## 1. Project Overview
-CollegeApps.ai is a unified "command center" for high school students to manage their college application process. It consolidates deadlines, essays, documents, and expert guidance into a single, premium visual dashboard.
+Waypoint is a unified "command center" for high school students to manage their college application process. It consolidates deadlines, essays, documents, and expert guidance into a single, premium visual dashboard.
 
 ## 2. Core Technology Stack
 - **Frontend**: Vanilla HTML5, CSS3, and JavaScript (ES6+ Modules).

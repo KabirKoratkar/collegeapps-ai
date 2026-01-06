@@ -1,12 +1,12 @@
-# CollegeApps.ai - The Master Guide
+# Waypoint - The Master Guide
 
-This document is the single source of truth for the CollegeApps.ai project. It contains the project overview, setup guides, technical architecture, and a complete history of every feature and fix implemented.
+This document is the single source of truth for the Waypoint project. It contains the project overview, setup guides, technical architecture, and a complete history of every feature and fix implemented.
 
 ---
 
-## 🎯 What is CollegeApps.ai?
+## 🎯 What is Waypoint?
 
-CollegeApps.ai is a unified "Command Center" for high school students navigating the college application process. It organizes deadlines, essays, and tasks into a single platform, supported by an intelligent AI Counselor.
+Waypoint is a unified "Command Center" for high school students navigating the college application process. It organizes deadlines, essays, and tasks into a single platform, supported by an intelligent AI Counselor.
 
 ### Core Features
 - **Daily Task Dashboard**: Priority-based tasks, weekly goals, and deadline countdowns with real-time success notifications.
@@ -23,7 +23,7 @@ CollegeApps.ai is a unified "Command Center" for high school students navigating
 
 ---
 
-## �️ Technical Stack
+## 🛠️ Technical Stack
 
 - **Frontend**: Vanilla HTML5, CSS3 (Custom Design System), and ES6+ JavaScript.
 - **Backend**: Node.js & Express.
@@ -81,7 +81,7 @@ The AI Counselor is not just a chatbot; it is integrated directly into the appli
 
 ---
 
-## � Complete Project History
+## 📜 Complete Project History
 
 ### Phase 1: Foundation & UI (Dec 2025)
 - **Design System**: Created a premium "Apple-style" UI with vibrant gradients and Inter/Outfit typography.
@@ -109,9 +109,9 @@ The AI Counselor is not just a chatbot; it is integrated directly into the appli
 
 ## 🌐 Deployment Links
 
-- **Frontend**: [collegeapps-ai.vercel.app](https://collegeapps-ai.vercel.app)
-- **Backend API**: `https://collegeapps-ai-production-28c4.up.railway.app`
-- **GitHub**: [github.com/KabirKoratkar/collegeapps-ai](https://github.com/KabirKoratkar/collegeapps-ai)
+- **Frontend**: [waypoint-app.vercel.app](https://waypoint-app.vercel.app)
+- **Backend API**: `https://waypoint-api-production.up.railway.app`
+- **GitHub**: [github.com/KabirKoratkar/waypoint](https://github.com/KabirKoratkar/waypoint)
 
 ---
 
