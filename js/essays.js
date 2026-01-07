@@ -14,7 +14,15 @@ import {
     linkDocumentToEssay,
     unlinkDocumentFromEssay,
     getEssayDocuments,
-    syncEssays
+    syncEssays,
+    getActivities,
+    getAwards,
+    addActivity,
+    addAward,
+    updateActivity,
+    updateAward,
+    deleteActivity,
+    deleteAward
 } from './supabase-config.js';
 import config from './config.js';
 import { updateNavbarUser } from './ui.js';
@@ -121,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Essay navigation (Static items)
     document.querySelectorAll('.essay-nav-item').forEach(item => {
-        if (!item.dataset.shared) { // Don't double bind if already handled in loadEssays
+        if (!item.dataset.shared && !item.dataset.module) {
             item.addEventListener('click', async function () {
                 if (currentEssay && essayEditor.value !== lastSavedContent) {
                     await saveCurrentEssay();
@@ -228,7 +236,97 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.getElementById('sampleModal').classList.remove('active');
         };
     }
+
+    // --- Activity & Award Handlers ---
+
+    // Sidebar Navigation
+    document.querySelectorAll('[data-module]').forEach(item => {
+        item.addEventListener('click', function () {
+            const moduleName = this.dataset.module;
+            switchView(moduleName);
+        });
+    });
+
+    // Add Item Button (Plus)
+    const addModuleItemBtn = document.getElementById('addModuleItemBtn');
+    if (addModuleItemBtn) {
+        addModuleItemBtn.onclick = () => {
+            const currentModule = document.getElementById('moduleContainer').dataset.activeModule;
+            if (currentModule === 'activities') {
+                openActivityModal();
+            } else {
+                openAwardModal();
+            }
+        };
+    }
+
+    // Activity Form Submit
+    const activityForm = document.getElementById('activityForm');
+    if (activityForm) {
+        activityForm.onsubmit = async (e) => {
+            e.preventDefault();
+            await saveActivity();
+        };
+    }
+
+    // Award Form Submit
+    const awardForm = document.getElementById('awardForm');
+    if (awardForm) {
+        awardForm.onsubmit = async (e) => {
+            e.preventDefault();
+            await saveAward();
+        };
+    }
+
+    // Description Counter
+    const actDesc = document.getElementById('actDesc');
+    const descCount = document.getElementById('descCharCount');
+    if (actDesc && descCount) {
+        actDesc.oninput = () => {
+            descCount.textContent = `${actDesc.value.length} / 150`;
+            descCount.style.color = actDesc.value.length >= 140 ? 'var(--error)' : 'var(--gray-400)';
+        };
+    }
+
+    // Close Modals
+    ['Activity', 'Award'].forEach(mod => {
+        const closeBtn = document.getElementById(`close${mod}Modal`);
+        const cancelBtn = document.getElementById(`cancel${mod}Btn`);
+        const modal = document.getElementById(`${mod.toLowerCase()}Modal`);
+        if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
+        if (cancelBtn) cancelBtn.onclick = () => modal.classList.remove('active');
+    });
+
 });
+
+// --- State Management ---
+
+async function switchView(view) {
+    const editorContainer = document.getElementById('essayEditorContainer');
+    const moduleContainer = document.getElementById('moduleContainer');
+    const navItems = document.querySelectorAll('.essay-nav-item');
+
+    // Remove active class from all
+    navItems.forEach(i => i.classList.remove('active'));
+
+    if (view === 'activities' || view === 'awards') {
+        editorContainer.style.display = 'none';
+        moduleContainer.style.display = 'block';
+        moduleContainer.dataset.activeModule = view;
+
+        const activeNav = document.getElementById(`nav-${view}`);
+        if (activeNav) activeNav.classList.add('active');
+
+        const title = view === 'activities' ? 'Activity List' : 'Awards & Honors';
+        document.getElementById('moduleTitle').textContent = title;
+
+        await loadModuleData(view);
+    } else {
+        // Essay view
+        editorContainer.style.display = 'block';
+        moduleContainer.style.display = 'none';
+    }
+}
 
 
 async function loadComments(essayId) {
@@ -538,6 +636,9 @@ function createNavItem(essay, isShared = false) {
 }
 
 async function loadEssayContent(essayId, isReadOnly = false) {
+    // Switch back to essay editor if we were in another module
+    await switchView('essays');
+
     const essay = await getEssay(essayId);
 
     if (!essay) {
@@ -800,7 +901,6 @@ async function handleConceptualReview(selection) {
             loadingEl.style.borderColor = 'var(--gray-100)';
             loadingEl.style.boxShadow = 'var(--shadow-sm)';
         }
-
     } catch (error) {
         console.error('AI Counseling Error:', error);
         const loadingEl = document.getElementById(loadingId);
@@ -809,4 +909,202 @@ async function handleConceptualReview(selection) {
         }
     }
 }
+
+// --- Activity & Award Module Logic ---
+
+async function loadModuleData(type) {
+    const list = document.getElementById('moduleItemsList');
+    list.innerHTML = '<div style="padding: 40px; text-align: center;"><div class="loading-spinner"></div></div>';
+
+    if (type === 'activities') {
+        const activities = await getActivities(currentUser.id);
+        renderActivities(activities);
+    } else {
+        const awards = await getAwards(currentUser.id);
+        renderAwards(awards);
+    }
+}
+
+function renderActivities(activities) {
+    const list = document.getElementById('moduleItemsList');
+    if (activities.length === 0) {
+        list.innerHTML = '<p class="empty-state">No activities added yet. Click "+ Add New" to start your list.</p>';
+        return;
+    }
+
+    list.innerHTML = activities.map(act => `
+        <div class="card" style="padding: var(--space-xl); border: 1px solid var(--gray-100); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-sm);">
+                <div>
+                    <h3 style="font-size: var(--text-lg); font-weight: 700; color: var(--gray-900);">${act.title}</h3>
+                    <p style="font-size: var(--text-sm); color: var(--gray-500);">${act.organization || ''}</p>
+                </div>
+                <div style="display: flex; gap: var(--space-sm);">
+                    <button class="btn btn-xs btn-ghost" onclick="editActivity('${act.id}')">✏️</button>
+                    <button class="btn btn-xs btn-ghost" onclick="removeActivity('${act.id}')">🗑️</button>
+                </div>
+            </div>
+            <p style="font-size: var(--text-sm); line-height: 1.5; color: var(--gray-700); margin-bottom: var(--space-md);">${act.description || ''}</p>
+            <div style="display: flex; gap: var(--space-md); align-items: center;">
+                <div class="badge badge-primary">${act.years_active ? act.years_active.map(y => y + 'th').join(', ') : ''}</div>
+                <span style="font-size: var(--text-xs); color: var(--gray-400);">${act.hours_per_week || 0} hrs/wk · ${act.weeks_per_year || 0} wks/yr</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderAwards(awards) {
+    const list = document.getElementById('moduleItemsList');
+    if (awards.length === 0) {
+        list.innerHTML = '<p class="empty-state">No awards added yet. Click "+ Add New" to highlight your achievements.</p>';
+        return;
+    }
+
+    list.innerHTML = awards.map(reward => `
+        <div class="card" style="padding: var(--space-xl); border: 1px solid var(--gray-100); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h3 style="font-size: var(--text-lg); font-weight: 700; color: var(--gray-900);">${reward.title}</h3>
+                    <div style="display: flex; gap: var(--space-sm); margin-top: 4px;">
+                        <div class="badge badge-success">${reward.level}</div>
+                        <div class="badge badge-outline">${reward.years_received ? reward.years_received.map(y => y + 'th').join(', ') : ''}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: var(--space-sm);">
+                    <button class="btn btn-xs btn-ghost" onclick="editAward('${reward.id}')">✏️</button>
+                    <button class="btn btn-xs btn-ghost" onclick="removeAward('${reward.id}')">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Activity Handlers
+function openActivityModal(act = null) {
+    const modal = document.getElementById('activityModal');
+    const form = document.getElementById('activityForm');
+    form.reset();
+
+    document.getElementById('activityId').value = act ? act.id : '';
+    document.getElementById('actTitle').value = act ? act.title : '';
+    document.getElementById('actOrg').value = act ? act.organization : '';
+    document.getElementById('actDesc').value = act ? act.description : '';
+    document.getElementById('actHours').value = act ? act.hours_per_week : '';
+    document.getElementById('actWeeks').value = act ? act.weeks_per_year : '';
+
+    // Set checkboxes
+    const years = act ? (act.years_active || []) : [];
+    document.querySelectorAll('[name="actYear"]').forEach(cb => {
+        cb.checked = years.includes(parseInt(cb.value));
+    });
+
+    document.getElementById('descCharCount').textContent = `${(act ? act.description.length : 0)} / 150`;
+    modal.classList.add('active');
+}
+
+async function saveActivity() {
+    const id = document.getElementById('activityId').value;
+    const years = Array.from(document.querySelectorAll('[name="actYear"]:checked')).map(cb => parseInt(cb.value));
+
+    const activityData = {
+        user_id: currentUser.id,
+        title: document.getElementById('actTitle').value,
+        organization: document.getElementById('actOrg').value,
+        description: document.getElementById('actDesc').value,
+        hours_per_week: parseInt(document.getElementById('actHours').value) || 0,
+        weeks_per_year: parseInt(document.getElementById('actWeeks').value) || 0,
+        years_active: years
+    };
+
+    let result;
+    if (id) {
+        result = await updateActivity(id, activityData);
+    } else {
+        result = await addActivity(activityData);
+    }
+
+    if (result) {
+        showNotification('Activity saved!', 'success');
+        document.getElementById('activityModal').classList.remove('active');
+        await loadModuleData('activities');
+    }
+}
+
+window.editActivity = async (id) => {
+    const activities = await getActivities(currentUser.id);
+    const act = activities.find(a => a.id === id);
+    if (act) openActivityModal(act);
+};
+
+window.removeActivity = async (id) => {
+    if (confirm('Delete this activity?')) {
+        const success = await deleteActivity(id);
+        if (success) {
+            showNotification('Activity deleted', 'info');
+            await loadModuleData('activities');
+        }
+    }
+};
+
+// Award Handlers
+function openAwardModal(award = null) {
+    const modal = document.getElementById('awardModal');
+    const form = document.getElementById('awardForm');
+    form.reset();
+
+    document.getElementById('awardId').value = award ? award.id : '';
+    document.getElementById('awardTitleInput').value = award ? award.title : '';
+    document.getElementById('awardLevel').value = award ? award.level : 'School';
+
+    const years = award ? (award.years_received || []) : [];
+    document.querySelectorAll('[name="awardYear"]').forEach(cb => {
+        cb.checked = years.includes(parseInt(cb.value));
+    });
+
+    modal.classList.add('active');
+}
+
+async function saveAward() {
+    const id = document.getElementById('awardId').value;
+    const years = Array.from(document.querySelectorAll('[name="awardYear"]:checked')).map(cb => parseInt(cb.value));
+
+    const awardData = {
+        user_id: currentUser.id,
+        title: document.getElementById('awardTitleInput').value,
+        level: document.getElementById('awardLevel').value,
+        years_received: years
+    };
+
+    let result;
+    if (id) {
+        result = await updateAward(id, awardData);
+    } else {
+        result = await addAward(awardData);
+    }
+
+    if (result) {
+        showNotification('Award saved!', 'success');
+        document.getElementById('awardModal').classList.remove('active');
+        await loadModuleData('awards');
+    }
+}
+
+window.editAward = async (id) => {
+    const awards = await getAwards(currentUser.id);
+    const award = awards.find(a => a.id === id);
+    if (award) openAwardModal(award);
+};
+
+window.removeAward = async (id) => {
+    if (confirm('Delete this award?')) {
+        const success = await deleteAward(id);
+        if (success) {
+            showNotification('Award deleted', 'info');
+            await loadModuleData('awards');
+        }
+    }
+};
+
+window.switchView = switchView;
+window.loadModuleData = loadModuleData;
 

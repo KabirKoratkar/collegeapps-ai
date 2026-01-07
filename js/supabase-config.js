@@ -701,7 +701,15 @@ export {
     searchCollegeCatalog,
     getCollegeFromCatalog,
     resetPasswordForEmail,
-    updateUserPassword
+    updateUserPassword,
+    getActivities,
+    addActivity,
+    updateActivity,
+    deleteActivity,
+    getAwards,
+    addAward,
+    updateAward,
+    deleteAward
 };
 
 async function searchCollegeCatalog(query) {
@@ -775,4 +783,62 @@ async function syncEssays(userId) {
         console.error('Error syncing essays:', e);
     }
     return null;
+}
+
+// Activities
+async function getActivities(userId) {
+    const { data, error } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('user_id', userId)
+        .order('position', { ascending: true });
+    if (error) { console.error('Error fetching activities:', error); return []; }
+    return data;
+}
+
+async function addActivity(activity) {
+    const { data, error } = await supabase.from('activities').insert(activity).select().single();
+    if (error) { console.error('Error adding activity:', error); return null; }
+    return data;
+}
+
+async function updateActivity(id, updates) {
+    const { data, error } = await supabase.from('activities').update(updates).eq('id', id).select().single();
+    if (error) { console.error('Error updating activity:', error); return null; }
+    return data;
+}
+
+async function deleteActivity(id) {
+    const { error } = await supabase.from('activities').delete().eq('id', id);
+    if (error) { console.error('Error deleting activity:', error); return false; }
+    return true;
+}
+
+// Awards
+async function getAwards(userId) {
+    const { data, error } = await supabase
+        .from('awards')
+        .select('*')
+        .eq('user_id', userId)
+        .order('position', { ascending: true });
+    if (error) { console.error('Error fetching awards:', error); return []; }
+    return data;
+}
+
+async function addAward(award) {
+    const { data, error } = await supabase.from('awards').insert(award).select().single();
+    if (error) { console.error('Error adding award:', error); return null; }
+    return data;
+}
+
+async function updateAward(id, updates) {
+    const { data, error } = await supabase.from('awards').update(updates).eq('id', id).select().single();
+    if (error) { console.error('Error updating award:', error); return null; }
+    return data;
+}
+
+async function deleteAward(id) {
+    const { error } = await supabase.from('awards').delete().eq('id', id);
+    if (error) { console.error('Error deleting award:', error); return false; }
+    return true;
 }

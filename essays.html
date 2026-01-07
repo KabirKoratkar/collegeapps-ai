@@ -59,6 +59,20 @@
             <div class="essay-sidebar-left">
                 <div class="card"
                     style="position: sticky; top: 100px; max-height: calc(100vh - 120px); overflow-y: auto;">
+
+                    <!-- App Components Section -->
+                    <div style="margin-bottom: var(--space-xl);">
+                        <h4 class="nav-section-title">Application Components</h4>
+                        <div class="essay-nav-item" id="nav-activities" data-module="activities">
+                            <div style="font-weight: 600; margin-bottom: 2px;">🏃 Activity List</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">10 items max</div>
+                        </div>
+                        <div class="essay-nav-item" id="nav-awards" data-module="awards">
+                            <div style="font-weight: 600; margin-bottom: 2px;">🏆 Awards & Honors</div>
+                            <div style="font-size: var(--text-xs); color: var(--gray-500);">5 items max</div>
+                        </div>
+                    </div>
+
                     <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">My Essays
                     </h3>
 
@@ -80,8 +94,25 @@
                 </div>
             </div>
 
-            <!-- Main Editor (Middle) -->
-            <div class="essay-editor-container">
+            <!-- Module Container (Activities/Awards) - Hidden by default -->
+            <div id="moduleContainer" style="display: none;">
+                <div class="card mb-xl" style="padding: var(--space-2xl);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
+                        <h2 id="moduleTitle" style="font-size: var(--text-3xl); font-weight: 800;">Activity List</h2>
+                        <button class="btn btn-primary" id="addModuleItemBtn"
+                            style="border-radius: var(--radius-full); gap: 8px;">
+                            <span>+</span> Add New
+                        </button>
+                    </div>
+                    <div id="moduleItemsList" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                        <!-- Dynamic items will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor Container (Essays) -->
+            <div id="essayEditorContainer">
                 <div class="essay-editor-card card">
                     <!-- Toolbar -->
                     <div class="essay-toolbar"
@@ -287,6 +318,111 @@
                 reserved.</p>
         </div>
     </footer>
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="modal" style="display: none;">
+        <div class="modal-content card" style="max-width: 600px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
+                <h2 style="font-size: var(--text-2xl); font-weight: 800;">Add Activity</h2>
+                <button class="btn btn-sm btn-ghost" id="closeActivityModal">✕</button>
+            </div>
+            <form id="activityForm">
+                <input type="hidden" id="activityId">
+                <div class="input-group">
+                    <label class="label">Activity Title</label>
+                    <input type="text" id="actTitle" class="input" placeholder="e.g. Robotics Club President" required>
+                </div>
+                <div class="input-group">
+                    <label class="label">Organization</label>
+                    <input type="text" id="actOrg" class="input" placeholder="e.g. Lincoln High School">
+                </div>
+                <div class="input-group">
+                    <label class="label">Description (Max 150 chars)</label>
+                    <textarea id="actDesc" class="input" style="min-height: 100px;" maxlength="150"
+                        placeholder="Describe your responsibilities and achievements..."></textarea>
+                    <div id="descCharCount"
+                        style="text-align: right; font-size: 10px; color: var(--gray-400); margin-top: 4px;">0 / 150
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md);">
+                    <div class="input-group">
+                        <label class="label">Hours/Week</label>
+                        <input type="number" id="actHours" class="input" min="1" max="168">
+                    </div>
+                    <div class="input-group">
+                        <label class="label">Weeks/Year</label>
+                        <input type="number" id="actWeeks" class="input" min="1" max="52">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="label">Years Active</label>
+                    <div style="display: flex; gap: var(--space-lg); margin-top: var(--space-xs);">
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="actYear" value="9"> 9th</label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="actYear" value="10"> 10th</label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="actYear" value="11"> 11th</label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="actYear" value="12"> 12th</label>
+                    </div>
+                </div>
+                <div
+                    style="display: flex; gap: var(--space-md); justify-content: flex-end; margin-top: var(--space-xl);">
+                    <button type="button" class="btn btn-ghost" id="cancelActBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveActBtn">Save Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Award Modal -->
+    <div id="awardModal" class="modal" style="display: none;">
+        <div class="modal-content card" style="max-width: 500px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
+                <h2 style="font-size: var(--text-2xl); font-weight: 800;">Add Award</h2>
+                <button class="btn btn-sm btn-ghost" id="closeAwardModal">✕</button>
+            </div>
+            <form id="awardForm">
+                <input type="hidden" id="awardId">
+                <div class="input-group">
+                    <label class="label">Award Title</label>
+                    <input type="text" id="awardTitleInput" class="input" placeholder="e.g. National Merit Finalist"
+                        required>
+                </div>
+                <div class="input-group">
+                    <label class="label">Level of Recognition</label>
+                    <select id="awardLevel" class="input">
+                        <option value="School">School</option>
+                        <option value="Regional">Regional</option>
+                        <option value="State">State</option>
+                        <option value="National">National</option>
+                        <option value="International">International</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="label">Years Received</label>
+                    <div style="display: flex; gap: var(--space-lg); margin-top: var(--space-xs);">
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="awardYear" value="9"> 9th</label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="awardYear" value="10"> 10th</label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="awardYear" value="11"> 11th</label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: var(--text-sm);"><input
+                                type="checkbox" name="awardYear" value="12"> 12th</label>
+                    </div>
+                </div>
+                <div
+                    style="display: flex; gap: var(--space-md); justify-content: flex-end; margin-top: var(--space-xl);">
+                    <button type="button" class="btn btn-ghost" id="cancelAwardBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveAwardBtn">Save Award</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="js/main.js"></script>
     <script type="module" src="js/essays.js"></script>
