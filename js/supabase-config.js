@@ -59,6 +59,21 @@ async function upsertProfile(profile) {
     return data;
 }
 
+async function updateProfile(userId, updates) {
+    const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating profile:', error);
+        return null;
+    }
+    return data;
+}
+
 // Colleges
 
 async function getUserColleges(userId) {
@@ -666,6 +681,7 @@ export {
     getCurrentUser,
     getUserProfile,
     upsertProfile,
+    updateProfile,
     getUserColleges,
     addCollege,
     updateCollege,

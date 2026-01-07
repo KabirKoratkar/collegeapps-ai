@@ -5,6 +5,8 @@ import {
     getUserEssays,
     getEssay,
     updateEssay,
+    updateProfile,
+    getUserProfile,
     saveEssayVersion,
     shareEssay,
     getSharedEssays,
@@ -72,6 +74,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Load essays
     await loadEssays();
+
+    // Load Profile Context
+    await loadProfileContext();
 
     // Share button
     const shareBtn = document.getElementById('shareBtn');
@@ -188,6 +193,49 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             await handleConceptualReview(selection, isModuleReview);
         });
+    }
+
+    // Profile Context Handlers
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const profileSummary = document.getElementById('profileSummary');
+    const profileEditForm = document.getElementById('profileEditForm');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+    if (editProfileBtn) {
+        editProfileBtn.onclick = () => {
+            const isEditing = profileEditForm.style.display === 'flex';
+            profileEditForm.style.display = isEditing ? 'none' : 'flex';
+            profileSummary.style.display = isEditing ? 'block' : 'none';
+        };
+    }
+
+    if (saveProfileBtn) {
+        saveProfileBtn.onclick = async () => {
+            const major = document.getElementById('editMajor').value;
+            const gpa = document.getElementById('editGPA').value;
+            const test = document.getElementById('editSAT').value;
+
+            // Simple update via config API (requires minor backend extension or direct supabase call)
+            // For efficiency, we use fetch to our backend's updateProfile tool
+            try {
+                // Update major, GPA, and test scores
+                const success = await updateProfile(currentUser.id, {
+                    intended_major: major,
+                    unweighted_gpa: parseFloat(gpa) || null,
+                    sat_score: parseInt(test) || null
+                });
+
+                if (success) {
+                    showNotification('Strategy context updated!', 'success');
+                    await loadProfileContext();
+                    profileEditForm.style.display = 'none';
+                    profileSummary.style.display = 'block';
+                }
+            } catch (e) {
+                console.error(e);
+                showNotification('Error updating context', 'error');
+            }
+        };
     }
 
     // Save on page unload
@@ -1254,4 +1302,20 @@ window.removeAward = async (id) => {
 
 window.switchView = switchView;
 window.loadModuleData = loadModuleData;
+
+async function loadProfileContext() {
+    if (!currentUser) return;
+    const profile = await getUserProfile(currentUser.id);
+    if (!profile) return;
+
+    // Update Display
+    document.getElementById('displayMajor').textContent = profile.intended_major || 'N/A';
+    document.getElementById('displayGPA').textContent = profile.unweighted_gpa ? `${profile.unweighted_gpa} (UW)` : 'N/A';
+    document.getElementById('displayTest').textContent = profile.sat_score || 'N/A';
+
+    // Update Form Fields
+    document.getElementById('editMajor').value = profile.intended_major || '';
+    document.getElementById('editGPA').value = profile.unweighted_gpa || '';
+    document.getElementById('editSAT').value = profile.sat_score || '';
+}
 

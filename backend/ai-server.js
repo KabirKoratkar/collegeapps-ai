@@ -198,17 +198,22 @@ app.post('/api/chat', async (req, res) => {
             `You are talking to ${profile.full_name || 'a student'}. 
              Graduation Year: ${profile.graduation_year || 'Unknown'}
              Intended Major: ${profile.intended_major || 'Undecided'}
+             Academic Stats: GPA: ${profile.unweighted_gpa || 'N/A'} (UW) / ${profile.weighted_gpa || 'N/A'} (W). SAT: ${profile.sat_score || 'N/A'}. ACT: ${profile.act_score || 'N/A'}.
              Location: ${profile.location || 'Unknown'}` : '';
 
         // Fetch user app state for deep context
         const { data: colleges } = await supabase.from('colleges').select('*').eq('user_id', userId);
         const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', userId).eq('completed', false);
         const { data: essays } = await supabase.from('essays').select('id, title, college_id, word_count, is_completed').eq('user_id', userId);
+        const { data: activities } = await supabase.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
+        const { data: awards } = await supabase.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
 
         const appStateContext = `
             CURRENT COLLEGE LIST: ${colleges?.map(c => `${c.name} (${c.type})`).join(', ') || 'None'}
             ACTIVE TASKS: ${tasks?.length || 0} tasks pending.
             ESSAYS: ${essays?.map(e => `${e.title} (${e.word_count} words)`).join(', ') || 'None'}
+            ACTIVITIES (ECs): ${activities?.map(a => `${a.title} @ ${a.organization}`).join(', ') || 'None'}
+            AWARDS/HONORS: ${awards?.map(aw => `${aw.title} (${aw.level})`).join(', ') || 'None'}
         `;
 
         // Build conversation messages for OpenAI
@@ -369,16 +374,26 @@ app.post('/api/chat', async (req, res) => {
             },
             {
                 name: 'updateProfile',
-                description: 'Update the user\'s profile information (major, location, graduation_year, etc.)',
+                description: 'Update the user\'s profile information (major, location, graduation_year, GPA, test scores, etc.)',
                 parameters: {
                     type: 'object',
                     properties: {
                         intended_major: { type: 'string' },
                         location: { type: 'string' },
                         graduation_year: { type: 'string' },
-                        full_name: { type: 'string' }
+                        full_name: { type: 'string' },
+                        unweighted_gpa: { type: 'number' },
+                        weighted_gpa: { type: 'number' },
+                        sat_score: { type: 'number' },
+                        act_score: { type: 'number' },
+                        profile_bio: { type: 'string' }
                     }
                 }
+            },
+            {
+                name: 'getActivitiesAndAwards',
+                description: 'Get the user\'s full list of extracurricular activities, leadership, and honors/awards.',
+                parameters: { type: 'object', properties: {} }
             },
             {
                 name: 'getAppStatus',
@@ -493,6 +508,9 @@ app.post('/api/chat', async (req, res) => {
                     break;
                 case 'updateProfile':
                     functionResult = await handleUpdateProfile(userId, functionArgs);
+                    break;
+                case 'getActivitiesAndAwards':
+                    functionResult = await handleGetActivitiesAndAwards(userId);
                     break;
                 case 'getAppStatus':
                     functionResult = await handleGetAppStatus(userId);
@@ -1220,12 +1238,17 @@ async function handleResearchCollege(collegeName) {
 // --- NEW COMMAND CENTER HANDLERS ---
 
 async function handleUpdateProfile(userId, profileData) {
-    const { intended_major, location, graduation_year, full_name } = profileData;
+    const { intended_major, location, graduation_year, full_name, unweighted_gpa, weighted_gpa, sat_score, act_score, profile_bio } = profileData;
     const update = {};
     if (intended_major) update.intended_major = intended_major;
     if (location) update.location = location;
     if (graduation_year) update.graduation_year = graduation_year;
     if (full_name) update.full_name = full_name;
+    if (unweighted_gpa !== undefined) update.unweighted_gpa = unweighted_gpa;
+    if (weighted_gpa !== undefined) update.weighted_gpa = weighted_gpa;
+    if (sat_score !== undefined) update.sat_score = sat_score;
+    if (act_score !== undefined) update.act_score = act_score;
+    if (profile_bio) update.profile_bio = profile_bio;
 
     const { data, error } = await supabase
         .from('profiles')
@@ -1238,16 +1261,32 @@ async function handleUpdateProfile(userId, profileData) {
     return { success: true, message: 'Profile updated successfully', profile: data };
 }
 
+async function handleGetActivitiesAndAwards(userId) {
+    try {
+        const { data: activities } = await supabase.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
+        const { data: awards } = await supabase.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
+        return { success: true, activities: activities || [], awards: awards || [] };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 async function handleGetAppStatus(userId) {
     const { data: colleges } = await supabase.from('colleges').select('*').eq('user_id', userId);
     const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', userId);
     const { data: essays } = await supabase.from('essays').select('*').eq('user_id', userId);
+    const { data: activities } = await supabase.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
+    const { data: awards } = await supabase.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
     return {
         success: true,
+        profile: profile || {},
         colleges: colleges || [],
         tasks: tasks || [],
-        essays: essays || []
+        essays: essays || [],
+        activities: activities || [],
+        awards: awards || []
     };
 }
 
