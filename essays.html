@@ -106,8 +106,27 @@
 
             <!-- Module Container (Activities/Awards) - Hidden by default -->
             <div id="moduleContainer" style="display: none;">
-                <div style="display: grid; grid-template-columns: 1fr 300px; gap: var(--space-xl);">
-                    <!-- Main List Column -->
+                <div style="display: flex; flex-direction: column; gap: var(--space-xl);">
+                    <!-- Guidance Section (Top) -->
+                    <div id="moduleGuidance" class="card"
+                        style="padding: var(--space-xl); background: rgba(91, 141, 238, 0.03); border: 1px solid rgba(91, 141, 238, 0.1);">
+                        <div style="display: flex; align-items: flex-start; gap: var(--space-xl);">
+                            <div style="flex: 1;">
+                                <h4 id="guideTitle"
+                                    style="font-size: var(--text-sm); font-weight: 800; color: var(--primary-blue); margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.05em;">
+                                    GUIDE</h4>
+                                <p id="guideContent"
+                                    style="font-size: var(--text-base); line-height: 1.6; color: var(--gray-600); margin: 0;">
+                                    Loading guide...</p>
+                            </div>
+                            <div id="guideTips"
+                                style="display: flex; flex: 1; flex-direction: column; gap: 8px; padding-left: var(--space-xl); border-left: 1px dashed rgba(91, 141, 238, 0.2);">
+                                <!-- Tips injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main List Card (Bottom) -->
                     <div class="card mb-xl" style="padding: var(--space-2xl);">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
@@ -120,20 +139,6 @@
                         </div>
                         <div id="moduleItemsList" style="display: flex; flex-direction: column; gap: var(--space-lg);">
                             <!-- Dynamic items will be injected here -->
-                        </div>
-                    </div>
-
-                    <!-- Guidance Sidebar Column -->
-                    <div id="moduleGuidance" class="card"
-                        style="padding: var(--space-xl); background: rgba(91, 141, 238, 0.03); border: 1px solid rgba(91, 141, 238, 0.1); align-self: start; position: sticky; top: 100px;">
-                        <h4 id="guideTitle"
-                            style="font-size: var(--text-sm); font-weight: 800; color: var(--primary-blue); margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.05em;">
-                            GUIDE</h4>
-                        <p id="guideContent"
-                            style="font-size: var(--text-sm); line-height: 1.6; color: var(--gray-600); margin-bottom: var(--space-md);">
-                            Loading guide...</p>
-                        <div id="guideTips" style="display: flex; flex-direction: column; gap: 8px;">
-                            <!-- Tips injected here -->
                         </div>
                     </div>
                 </div>
