@@ -32,6 +32,29 @@ let currentEssay = null;
 let autosaveTimer = null;
 let lastSavedContent = '';
 
+const OFFICIAL_DIRECTIONS = {
+    activities: {
+        title: "Common App Activities Guide",
+        content: "List up to 10 activities. Focus on leadership, impact, and measurable results. Use strong action verbs. You have 50 chars for position/org and 150 chars for the description.",
+        tips: ["Quantify your impact (numbers, dates)", "Start with most important", "Show progression over years"]
+    },
+    awards: {
+        title: "Awards & Honors Guide",
+        content: "List up to 5 academic honors. Focus on the most prestigious regional, state, or national awards first.",
+        tips: ["Explain cryptic acronyms", "Higher level recognition (National/Intl) carries more weight"]
+    },
+    commonapp: {
+        title: "Personal Statement Directions",
+        content: "The essay helps you distinguish yourself in your own voice. Focus on a story only you can tell. (250-650 words)",
+        tips: ["Show, don't tell", "Focus on your growth/reflection", "The 'Hook' is crucial"]
+    },
+    ucpiq: {
+        title: "UC Personal Insight Questions",
+        content: "Select 4 out of 8 questions. Each response is max 350 words. Be direct, use 'I' statements, and focus on your specific contributions.",
+        tips: ["Treat it as an interview on paper", "Don't be poetic; be clear and factual", "Focus on what you did and the outcome"]
+    }
+};
+
 document.addEventListener('DOMContentLoaded', async function () {
     // Get current user
     currentUser = await getCurrentUser();
@@ -310,6 +333,11 @@ async function switchView(view) {
     navItems.forEach(i => i.classList.remove('active'));
 
     if (view === 'activities' || view === 'awards') {
+        // Auto-save current essay if switching to modules
+        if (currentEssay && document.getElementById('essayEditor').value !== lastSavedContent) {
+            await saveCurrentEssay();
+        }
+
         editorContainer.style.display = 'none';
         moduleContainer.style.display = 'block';
         moduleContainer.dataset.activeModule = view;
@@ -488,52 +516,48 @@ async function loadEssays() {
     const sharedEssays = await getSharedEssays(currentUser.email);
 
     const navList = document.getElementById('essayNavList');
-    if (!navList) return;
+    const componentList = document.getElementById('dynamic-components');
+    if (!navList || !componentList) return;
 
     // Clear previous items
     navList.innerHTML = '';
+    componentList.innerHTML = '';
 
-    // Filter for "One Common App Personal Statement"
-    let commonAppPS = null;
-    const CA_PS_INDICATORS = ['common app', 'personal statement'];
-
-    const universityEssays = [];
-    const processedEssays = new Set();
+    const globalEssays = [];
+    const collegeEssays = [];
 
     essays.forEach(e => {
         const title = (e.title || '').toLowerCase();
         const type = (e.essay_type || '').toLowerCase();
-        const isCommonAppSchool = e.colleges?.application_platform === 'Common App';
+        const platform = e.colleges?.application_platform;
 
-        const isCAPS = (type === 'common app' || type === 'personal statement' || title.includes('common app personal statement')) && isCommonAppSchool;
+        // Is it a Personal Statement/Common App main?
+        const isPS = (type === 'common app' || type === 'personal statement' || title.includes('common app personal statement'));
+        // Is it a UC PIQ?
+        const isUCPIQ = (platform === 'UC App' && (type === 'uc piq' || title.includes('piq')));
 
-        if (isCAPS) {
-            if (!commonAppPS) commonAppPS = e;
+        if (isPS || isUCPIQ) {
+            globalEssays.push(e);
         } else {
-            universityEssays.push(e);
+            collegeEssays.push(e);
         }
     });
 
-    // 1. Group by College
-    const collegeGroups = universityEssays.reduce((acc, e) => {
+    // 1. Render Global Components (PS, PIQs)
+    globalEssays.forEach(e => {
+        const item = createNavItem(e);
+        item.style.marginBottom = 'var(--space-xs)';
+        componentList.appendChild(item);
+    });
+
+    // 2. Group College Supplements by College
+    const collegeGroups = collegeEssays.reduce((acc, e) => {
         const name = e.colleges?.name || 'General';
         if (!acc[name]) acc[name] = [];
         acc[name].push(e);
         return acc;
     }, {});
 
-    // 2. Render Common App PS (Top Level)
-    if (commonAppPS) {
-        const section = document.createElement('div');
-        section.style.marginBottom = 'var(--space-lg)';
-        section.innerHTML = `
-            <div class="nav-section-title">Common App</div>
-        `;
-        section.appendChild(createNavItem(commonAppPS));
-        navList.appendChild(section);
-    }
-
-    // 3. Render University Groups
     Object.keys(collegeGroups).sort().forEach(collegeName => {
         const groupEssays = collegeGroups[collegeName];
         const platform = groupEssays[0]?.colleges?.application_platform;
@@ -565,7 +589,6 @@ async function loadEssays() {
             header.style.background = isHidden ? 'var(--gray-50)' : 'transparent';
         };
 
-        // If this college has the current essay, auto-expand
         if (currentEssay && groupEssays.some(e => e.id === currentEssay.id)) {
             content.style.display = 'block';
             chevron.style.transform = 'rotate(180deg)';
@@ -579,7 +602,7 @@ async function loadEssays() {
         navList.appendChild(collegeSection);
     });
 
-    // 4. Render shared essays
+    // 3. Render shared essays
     if (sharedEssays.length > 0) {
         const sharedSection = document.createElement('div');
         sharedSection.style.marginTop = 'var(--space-xl)';
@@ -598,9 +621,9 @@ async function loadEssays() {
 
     // Load first available essay if none selected
     if (!currentEssay) {
-        const firstEssay = commonAppPS || universityEssays[0] || (sharedEssays[0] ? sharedEssays[0].essays : null);
+        const firstEssay = globalEssays[0] || collegeEssays[0] || (sharedEssays[0] ? sharedEssays[0].essays : null);
         if (firstEssay) {
-            await loadEssayContent(firstEssay.id, !!sharedEssays.find(s => s.essays?.id === firstEssay.id));
+            loadEssayContent(firstEssay.id);
         }
     }
 }
@@ -665,6 +688,34 @@ async function loadEssayContent(essayId, isReadOnly = false) {
 
     if (essayTypeBadge) {
         essayTypeBadge.textContent = essay.essay_type || 'Common App';
+    }
+    document.getElementById('save-status').textContent = 'Last saved: ' + (essay.last_saved ? new Date(essay.last_saved).toLocaleTimeString() : 'Just now');
+
+    // Show Guidance if applicable
+    const guidanceSlot = document.getElementById('essayGuidanceSlot');
+    const guidanceText = document.getElementById('essayGuidanceText');
+    const guidanceTips = document.getElementById('essayGuidanceTips');
+
+    const title = (essay.title || '').toLowerCase();
+    const type = (essay.essay_type || '').toLowerCase();
+    const platform = essay.colleges?.application_platform;
+
+    let guideKey = null;
+    if (type === 'common app' || type === 'personal statement' || title.includes('personal statement')) {
+        guideKey = 'commonapp';
+    } else if (platform === 'UC App' && (type === 'uc piq' || title.includes('piq'))) {
+        guideKey = 'ucpiq';
+    }
+
+    if (guideKey && OFFICIAL_DIRECTIONS[guideKey]) {
+        const guide = OFFICIAL_DIRECTIONS[guideKey];
+        guidanceSlot.style.display = 'block';
+        guidanceText.textContent = guide.content;
+        guidanceTips.innerHTML = guide.tips.map(tip => `
+            <span class="badge badge-outline" style="font-size: 10px; border-color: rgba(91, 141, 238, 0.3); color: var(--gray-500);">💡 ${tip}</span>
+        `).join('');
+    } else {
+        guidanceSlot.style.display = 'none';
     }
 
     // Load comments
@@ -916,6 +967,20 @@ async function loadModuleData(type) {
     const list = document.getElementById('moduleItemsList');
     list.innerHTML = '<div style="padding: 40px; text-align: center;"><div class="loading-spinner"></div></div>';
 
+    // Update Guidance UI
+    const guide = OFFICIAL_DIRECTIONS[type];
+    if (guide) {
+        document.getElementById('guideTitle').textContent = guide.title;
+        document.getElementById('guideContent').textContent = guide.content;
+        const tipsContainer = document.getElementById('guideTips');
+        tipsContainer.innerHTML = guide.tips.map(tip => `
+            <div style="display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--gray-500);">
+                <span style="color: var(--primary-blue);">•</span>
+                <span>${tip}</span>
+            </div>
+        `).join('');
+    }
+
     if (type === 'activities') {
         const activities = await getActivities(currentUser.id);
         renderActivities(activities);
@@ -1045,6 +1110,11 @@ window.removeActivity = async (id) => {
         }
     }
 };
+
+window.openActivityModal = openActivityModal;
+window.openAwardModal = openAwardModal;
+window.saveActivity = saveActivity;
+window.saveAward = saveAward;
 
 // Award Handlers
 function openAwardModal(award = null) {

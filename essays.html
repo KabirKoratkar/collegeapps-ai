@@ -4,6 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .modal.active {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
     <title>Essay Workspace - Waypoint</title>
 
     <!-- Fonts -->
@@ -63,6 +70,9 @@
                     <!-- App Components Section -->
                     <div style="margin-bottom: var(--space-xl);">
                         <h4 class="nav-section-title">Application Components</h4>
+                        <div id="dynamic-components">
+                            <!-- Injected by JS (Personal Statement, UC PIQs) -->
+                        </div>
                         <div class="essay-nav-item" id="nav-activities" data-module="activities">
                             <div style="font-weight: 600; margin-bottom: 2px;">🏃 Activity List</div>
                             <div style="font-size: var(--text-xs); color: var(--gray-500);">10 items max</div>
@@ -96,17 +106,35 @@
 
             <!-- Module Container (Activities/Awards) - Hidden by default -->
             <div id="moduleContainer" style="display: none;">
-                <div class="card mb-xl" style="padding: var(--space-2xl);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
-                        <h2 id="moduleTitle" style="font-size: var(--text-3xl); font-weight: 800;">Activity List</h2>
-                        <button class="btn btn-primary" id="addModuleItemBtn"
-                            style="border-radius: var(--radius-full); gap: 8px;">
-                            <span>+</span> Add New
-                        </button>
+                <div style="display: grid; grid-template-columns: 1fr 300px; gap: var(--space-xl);">
+                    <!-- Main List Column -->
+                    <div class="card mb-xl" style="padding: var(--space-2xl);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
+                            <h2 id="moduleTitle" style="font-size: var(--text-3xl); font-weight: 800;">Activity List
+                            </h2>
+                            <button class="btn btn-primary" id="addModuleItemBtn"
+                                style="border-radius: var(--radius-full); gap: 8px;">
+                                <span>+</span> Add New
+                            </button>
+                        </div>
+                        <div id="moduleItemsList" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                            <!-- Dynamic items will be injected here -->
+                        </div>
                     </div>
-                    <div id="moduleItemsList" style="display: flex; flex-direction: column; gap: var(--space-lg);">
-                        <!-- Dynamic items will be injected here -->
+
+                    <!-- Guidance Sidebar Column -->
+                    <div id="moduleGuidance" class="card"
+                        style="padding: var(--space-xl); background: rgba(91, 141, 238, 0.03); border: 1px solid rgba(91, 141, 238, 0.1); align-self: start; position: sticky; top: 100px;">
+                        <h4 id="guideTitle"
+                            style="font-size: var(--text-sm); font-weight: 800; color: var(--primary-blue); margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.05em;">
+                            GUIDE</h4>
+                        <p id="guideContent"
+                            style="font-size: var(--text-sm); line-height: 1.6; color: var(--gray-600); margin-bottom: var(--space-md);">
+                            Loading guide...</p>
+                        <div id="guideTips" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Tips injected here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,6 +181,17 @@
                     <div id="currentPrompt"
                         style="font-weight: 600; font-size: 1.1rem; color: var(--gray-800); line-height: 1.6; font-family: var(--font-primary);">
                         Select an essay from the sidebar to begin.
+                    </div>
+
+                    <!-- Official Guidance Slot -->
+                    <div id="essayGuidanceSlot"
+                        style="margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px dashed rgba(91, 141, 238, 0.2); display: none;">
+                        <h5
+                            style="font-size: 10px; font-weight: 800; color: var(--gray-400); text-transform: uppercase; margin-bottom: 8px;">
+                            Official Directions & Tips</h5>
+                        <p id="essayGuidanceText"
+                            style="font-size: 13px; color: var(--gray-600); line-height: 1.5; margin-bottom: 8px;"></p>
+                        <div id="essayGuidanceTips" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                     </div>
                 </div>
 
