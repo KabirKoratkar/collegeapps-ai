@@ -433,8 +433,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             const gradYear = document.getElementById('gradYear').value;
             const major = document.getElementById('intendedMajor').value;
             const fullName = document.getElementById('fullName').value;
-            const location = document.getElementById('location').value;
-            const birthDate = document.getElementById('birthDate').value;
+            const schoolName = document.getElementById('schoolName').value;
+            const uwGPA = document.getElementById('uwGPA').value;
+            const satScore = document.getElementById('satScore').value;
+            const actScore = document.getElementById('actScore').value;
 
             // Collect deadlines
             const selectedDeadlines = Array.from(document.querySelectorAll('input[name="deadline"]:checked'))
@@ -444,19 +446,19 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             try {
                 // 1. Create/Update Profile
-                // Note: Ensure your database has 'location', 'birth_date', and 'planned_deadlines' columns
                 const profileData = {
                     id: currentUser.id,
                     email: currentUser.email,
                     graduation_year: parseInt(gradYear),
                     intended_major: major,
                     full_name: fullName,
+                    school_name: schoolName,
+                    unweighted_gpa: uwGPA ? parseFloat(uwGPA) : null,
+                    sat_score: satScore ? parseInt(satScore) : null,
+                    act_score: actScore ? parseInt(actScore) : null,
                     planned_deadlines: selectedDeadlines,
                     submission_leeway: parseInt(document.getElementById('submissionLeeway').value)
                 };
-
-                if (location) profileData.location = location;
-                if (birthDate) profileData.birth_date = birthDate;
 
                 console.log('Creating profile...', profileData);
                 await upsertProfile(profileData);

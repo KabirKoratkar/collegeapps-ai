@@ -48,16 +48,9 @@
 
                     <div class="grid grid-2 gap-md">
                         <div class="input-group">
-                            <label class="input-label" for="birthDate">Date of Birth</label>
-                            <input type="date" id="birthDate" class="input">
+                            <label class="input-label" for="schoolName">High School</label>
+                            <input type="text" id="schoolName" class="input" placeholder="e.g. Lowell High School">
                         </div>
-                        <div class="input-group">
-                            <label class="input-label" for="location">Location (City, State)</label>
-                            <input type="text" id="location" class="input" placeholder="e.g. San Francisco, CA">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-2 gap-md">
                         <div class="input-group">
                             <label class="input-label" for="gradYear">Graduation Year</label>
                             <select id="gradYear" class="input" required>
@@ -69,14 +62,36 @@
                                 <option value="2029">2029</option>
                             </select>
                         </div>
-                        <div class="input-group">
-                            <label class="input-label" for="intendedMajor">Intended Major</label>
-                            <div style="position: relative;">
-                                <input type="text" id="intendedMajor" class="input" placeholder="e.g., Computer Science"
-                                    autocomplete="off">
-                                <div id="majorSearchResults" class="card"
-                                    style="position: absolute; top: calc(100% + 4px); left: 0; width: 100%; z-index: 100; display: none; padding: var(--space-xs); max-height: 200px; overflow-y: auto; box-shadow: var(--shadow-lg); border: 1px solid var(--gray-200); background: var(--white); border-radius: var(--radius-lg);">
-                                </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="intendedMajor">Intended Major</label>
+                        <div style="position: relative;">
+                            <input type="text" id="intendedMajor" class="input" placeholder="e.g., Computer Science"
+                                autocomplete="off">
+                            <div id="majorSearchResults" class="card"
+                                style="position: absolute; top: calc(100% + 4px); left: 0; width: 100%; z-index: 100; display: none; padding: var(--space-xs); max-height: 200px; overflow-y: auto; box-shadow: var(--shadow-lg); border: 1px solid var(--gray-200); background: var(--white); border-radius: var(--radius-lg);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--gray-100);">
+                        <p
+                            style="font-size: var(--text-sm); font-weight: 700; color: var(--gray-800); margin-bottom: var(--space-sm);">
+                            Academic Stats (Optional but Recommended)</p>
+                        <div class="grid grid-3 gap-md">
+                            <div class="input-group">
+                                <label class="input-label" for="uwGPA">UW GPA</label>
+                                <input type="number" id="uwGPA" class="input" step="0.01" placeholder="4.00">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label" for="satScore">SAT Score</label>
+                                <input type="number" id="satScore" class="input" placeholder="1600">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label" for="actScore">ACT Score</label>
+                                <input type="number" id="actScore" class="input" placeholder="36">
                             </div>
                         </div>
                     </div>

@@ -231,44 +231,6 @@
 
             <!-- Right Sidebar - Activity & Feedback (Right) -->
             <div class="essay-sidebar-right">
-                <!-- Strategic Context Card -->
-                <div class="card mb-lg" style="border-top: 4px solid var(--primary-blue);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
-                        <h3 class="sidebar-title" style="margin: 0;">🎯 Strategic Context</h3>
-                        <button class="btn btn-xs btn-ghost" id="editProfileBtn">✏️</button>
-                    </div>
-                    <div id="profileSummary" style="font-size: var(--text-sm); color: var(--gray-600);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-weight: 600;">Major:</span>
-                            <span id="displayMajor">N/A</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-weight: 600;">GPA:</span>
-                            <span id="displayGPA">N/A</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="font-weight: 600;">Test Scores:</span>
-                            <span id="displayTest">N/A</span>
-                        </div>
-                    </div>
-
-                    <!-- Hidden Edit Form -->
-                    <div id="profileEditForm"
-                        style="display: none; margin-top: var(--space-md); flex-direction: column; gap: var(--space-sm);">
-                        <input type="text" id="editMajor" class="input input-sm" placeholder="Intended Major">
-                        <div style="display: flex; gap: var(--space-sm);">
-                            <input type="number" id="editGPA" class="input input-sm" step="0.01" placeholder="UW GPA">
-                            <input type="number" id="editSAT" class="input input-sm" placeholder="SAT/ACT">
-                        </div>
-                        <button class="btn btn-sm btn-primary" id="saveProfileBtn">Save Context</button>
-                    </div>
-
-                    <div
-                        style="margin-top: var(--space-sm); font-size: 9px; color: var(--gray-400); font-style: italic;">
-                        This info helps the AI tailor its advice to your specific profile.
-                    </div>
-                </div>
                 <!-- Mini AI Counselor -->
                 <div class="card mb-lg">
                     <h3 class="sidebar-title">🤖 Mini AI Counselor</h3>
@@ -304,46 +266,10 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Collaborative Comments -->
-                <div class="card mb-lg">
-                    <h3 class="sidebar-title">💬 Feedback</h3>
-                    <div id="commentList" class="comment-list">
-                        <p class="empty-state">No comments yet.</p>
-                    </div>
-
-                    <div class="comment-input-group">
-                        <input type="text" class="input input-sm" id="commentInput" placeholder="Add a note...">
-                        <button class="btn btn-sm btn-primary" id="addCommentBtn">Post</button>
-                    </div>
-                </div>
-
-                <!-- Premium Sample Essays -->
-                <div id="sampleEssaysCard" class="card mb-lg"
-                    style="background: var(--gradient-subtle); border-color: rgba(91, 141, 238, 0.2);">
-                    <div class="sidebar-header-flex">
-                        <h3 class="sidebar-title" style="color: var(--primary-blue);">✨ Sample Essays</h3>
-                        <span class="badge badge-primary" style="font-size: 8px;">PREMIUM</span>
-                    </div>
-                    <div id="sampleEssaysList" style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                        <p class="empty-state" style="color: var(--gray-400);">Sample essays for this prompt will appear
-                            here.</p>
-                    </div>
-                </div>
-
-                <!-- Linked Documents -->
-                <div id="strategySourcesCard" class="card">
-                    <div class="sidebar-header-flex">
-                        <h3 class="sidebar-title">📎 Strategy Sources</h3>
-                        <button class="btn btn-xs btn-ghost" id="linkDocBtn">Link +</button>
-                    </div>
-                    <div id="linkedDocsList" class="linked-docs-list">
-                        <p class="empty-state">No documents linked.</p>
-                    </div>
-                </div>
-
             </div>
+
         </div>
+    </div>
     </div>
 
 

@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Load essays
     await loadEssays();
 
-    // Load Profile Context
-    await loadProfileContext();
+    // Load essays
+    await loadEssays();
 
     // Share button
     const shareBtn = document.getElementById('shareBtn');
@@ -195,49 +195,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    // Profile Context Handlers
-    const editProfileBtn = document.getElementById('editProfileBtn');
-    const profileSummary = document.getElementById('profileSummary');
-    const profileEditForm = document.getElementById('profileEditForm');
-    const saveProfileBtn = document.getElementById('saveProfileBtn');
-
-    if (editProfileBtn) {
-        editProfileBtn.onclick = () => {
-            const isEditing = profileEditForm.style.display === 'flex';
-            profileEditForm.style.display = isEditing ? 'none' : 'flex';
-            profileSummary.style.display = isEditing ? 'block' : 'none';
-        };
-    }
-
-    if (saveProfileBtn) {
-        saveProfileBtn.onclick = async () => {
-            const major = document.getElementById('editMajor').value;
-            const gpa = document.getElementById('editGPA').value;
-            const test = document.getElementById('editSAT').value;
-
-            // Simple update via config API (requires minor backend extension or direct supabase call)
-            // For efficiency, we use fetch to our backend's updateProfile tool
-            try {
-                // Update major, GPA, and test scores
-                const success = await updateProfile(currentUser.id, {
-                    intended_major: major,
-                    unweighted_gpa: parseFloat(gpa) || null,
-                    sat_score: parseInt(test) || null
-                });
-
-                if (success) {
-                    showNotification('Strategy context updated!', 'success');
-                    await loadProfileContext();
-                    profileEditForm.style.display = 'none';
-                    profileSummary.style.display = 'block';
-                }
-            } catch (e) {
-                console.error(e);
-                showNotification('Error updating context', 'error');
-            }
-        };
-    }
-
     // Save on page unload
     window.addEventListener('beforeunload', async function (e) {
         if (currentEssay && !essayEditor.readOnly && essayEditor.value !== lastSavedContent) {
@@ -245,37 +202,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     });
 
-    // Link Document listener
-    const linkDocBtn = document.getElementById('linkDocBtn');
-    if (linkDocBtn) {
-        linkDocBtn.addEventListener('click', async () => {
-            if (!currentEssay) {
-                showNotification('Select an essay first!', 'warning');
-                return;
-            }
-            await linkDocument();
-        });
-    }
-
-    // Comment listener
-    const addCommentBtn = document.getElementById('addCommentBtn');
-    const commentInput = document.getElementById('commentInput');
-    if (addCommentBtn && commentInput) {
-        addCommentBtn.addEventListener('click', async () => {
-            const content = commentInput.value.trim();
-            if (!content || !currentEssay) return;
-
-            const comment = await addComment(currentEssay.id, currentUser.id, content);
-            if (comment) {
-                commentInput.value = '';
-                await loadComments(currentEssay.id);
-            }
-        });
-
-        commentInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addCommentBtn.click();
-        });
-    }
+    // Essay Search
 
     // Essay Search
     const essaySearch = document.getElementById('essaySearch');
@@ -306,8 +233,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Export global functions
-    window.loadLinkedDocuments = loadLinkedDocuments;
-    window.unlinkDocument = unlinkDocument;
+    window.switchView = switchView;
 
     // Sample Modal Close
     const closeSampleModal = document.getElementById('closeSampleModal');
@@ -419,12 +345,9 @@ async function switchView(view) {
         document.getElementById('moduleTitle').textContent = title;
 
         await loadModuleData(view);
-    } else {
         // Essay view
         editorContainer.style.display = 'block';
         moduleContainer.style.display = 'none';
-        if (sampleCard) sampleCard.style.display = 'block';
-        if (strategyCard) strategyCard.style.display = 'block';
     }
 }
 
@@ -790,11 +713,7 @@ async function loadEssayContent(essayId, isReadOnly = false) {
         guidanceSlot.style.display = 'none';
     }
 
-    // Load comments
-    await loadComments(essayId);
-
-    // Load linked documents
-    await loadLinkedDocuments(essayId);
+    // Disable AI buttons and Save if read only
 
     // Disable AI buttons and Save if read only
     const aiButtons = document.querySelectorAll('.ai-action-btn');
@@ -1173,6 +1092,7 @@ function renderAwards(awards) {
 function openActivityModal(act = null) {
     const modal = document.getElementById('activityModal');
     const form = document.getElementById('activityForm');
+    if (!modal || !form) return;
     form.reset();
 
     document.getElementById('activityId').value = act ? act.id : '';
@@ -1245,6 +1165,7 @@ window.saveAward = saveAward;
 function openAwardModal(award = null) {
     const modal = document.getElementById('awardModal');
     const form = document.getElementById('awardForm');
+    if (!modal || !form) return;
     form.reset();
 
     document.getElementById('awardId').value = award ? award.id : '';
@@ -1302,20 +1223,4 @@ window.removeAward = async (id) => {
 
 window.switchView = switchView;
 window.loadModuleData = loadModuleData;
-
-async function loadProfileContext() {
-    if (!currentUser) return;
-    const profile = await getUserProfile(currentUser.id);
-    if (!profile) return;
-
-    // Update Display
-    document.getElementById('displayMajor').textContent = profile.intended_major || 'N/A';
-    document.getElementById('displayGPA').textContent = profile.unweighted_gpa ? `${profile.unweighted_gpa} (UW)` : 'N/A';
-    document.getElementById('displayTest').textContent = profile.sat_score || 'N/A';
-
-    // Update Form Fields
-    document.getElementById('editMajor').value = profile.intended_major || '';
-    document.getElementById('editGPA').value = profile.unweighted_gpa || '';
-    document.getElementById('editSAT').value = profile.sat_score || '';
-}
 

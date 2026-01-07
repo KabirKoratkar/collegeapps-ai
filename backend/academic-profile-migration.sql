@@ -1,5 +1,6 @@
 -- Add Academic and Supplemental Profile Fields
 ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS school_name TEXT,
 ADD COLUMN IF NOT EXISTS unweighted_gpa NUMERIC(3,2),
 ADD COLUMN IF NOT EXISTS weighted_gpa NUMERIC(3,2),
 ADD COLUMN IF NOT EXISTS sat_score INTEGER,
