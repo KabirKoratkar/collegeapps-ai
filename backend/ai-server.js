@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
+import { Resend } from 'resend';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_CATALOG_PATH = path.join(__dirname, 'college_catalog.json');
@@ -30,6 +31,9 @@ const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
 );
+
+// Initialize Resend
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Initialize Cache (expire after 4 hours, check for deletion every 1 hour)
 const apiCache = new NodeCache({ stdTTL: 14400, checkperiod: 3600 });
@@ -51,16 +55,7 @@ const researchLimiter = rateLimit({
 
 // Middleware
 app.use(cors({
-    origin: [
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',
-        'http://localhost:8000',
-        'https://waypoint-app.vercel.app',
-        'https://waypointedu.org',
-        'https://www.waypointedu.org',
-        /\.vercel\.app$/  // Allow any Vercel deployment
-    ],
-    credentials: true
+    origin: '*'
 }));
 app.use(express.json());
 app.use('/api/', globalLimiter);
@@ -75,9 +70,91 @@ app.use((req, res, next) => {
     next();
 });
 
-// Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', message: 'AI server is running' });
+});
+
+// Logging Middleware
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+
+// Feedback and Tickets Endpoint
+app.post('/api/feedback', async (req, res) => {
+    try {
+        const { userId, email, subject, message, type } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        console.log(`Received ${type || 'feedback'} from ${email || 'anonymous'}`);
+
+        // 1. Save to Supabase
+        const { data, error } = await supabase
+            .from('tickets')
+            .insert([{
+                user_id: userId || null,
+                user_email: email,
+                subject: subject || `New ${type || 'Feedback'}`,
+                message: message,
+                type: type || 'Feedback',
+                status: 'Open'
+            }])
+            .select();
+
+        if (error) {
+            console.error('Error saving ticket to Supabase:', error);
+            // Continue anyway to try sending email
+        }
+
+        // 2. Send email via Resend if configured
+        let emailSent = false;
+        if (resend) {
+            try {
+                const { error: emailError } = await resend.emails.send({
+                    from: 'Waypoint <onboarding@resend.dev>',
+                    to: ['kabirvideo@gmail.com'],
+                    subject: `[Waypoint Beta] ${type || 'Feedback'}: ${subject || 'No Subject'}`,
+                    html: `
+                        <h2>New Feedback Received</h2>
+                        <p><strong>Type:</strong> ${type || 'Feedback'}</p>
+                        <p><strong>From:</strong> ${email || 'Anonymous'} (User ID: ${userId || 'N/A'})</p>
+                        <p><strong>Subject:</strong> ${subject || 'No Subject'}</p>
+                        <hr>
+                        <p><strong>Message:</strong></p>
+                        <p style="white-space: pre-wrap;">${message}</p>
+                        <hr>
+                        <p><small>Sent from Waypoint Beta Test System</small></p>
+                    `
+                });
+
+                if (emailError) {
+                    console.error('Resend Error:', emailError);
+                } else {
+                    emailSent = true;
+                    console.log('Feedback email sent successfully');
+                }
+            } catch (err) {
+                console.error('Failed to send email:', err);
+            }
+        } else {
+            console.log('Resend not configured (RESEND_API_KEY missing). Ticket saved to DB only.');
+        }
+
+        res.json({
+            success: true,
+            message: 'Feedback submitted successfully.',
+            ticketId: data?.[0]?.id,
+            emailSent: emailSent
+        });
+
+    } catch (error) {
+        console.error('Error in feedback endpoint:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // New endpoint for detailed college research
@@ -1421,15 +1498,7 @@ async function handleGetEssay(userId, essayId) {
     return { success: true, essay: data };
 }
 
-async function handleListDocuments(userId) {
-    const { data, error } = await supabase
-        .from('documents')
-        .select('id, name, category, file_type, uploaded_at')
-        .eq('user_id', userId);
 
-    if (error) return { success: false, error: error.message };
-    return { success: true, documents: data };
-}
 
 // Start server
 app.listen(PORT, () => {

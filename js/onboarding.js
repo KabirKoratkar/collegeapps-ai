@@ -342,7 +342,8 @@ async function generateAIPlan() {
 
     } catch (error) {
         console.error('Plan Generation Error:', error);
-        planLoading.innerHTML = `<p style="color: var(--error);">Failed to generate your plan. But don't worry, you can still finish setup!</p>`;
+        planLoading.innerHTML = `<p style="color: var(--error);">Failed to generate your plan: ${error.message}. But don't worry, you can still finish setup!</p>`;
+
 
         if (finishBtn) {
             finishBtn.disabled = false;

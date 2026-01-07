@@ -3,21 +3,32 @@
 // and sets the appropriate backend URL
 
 const config = {
-    // Detect if we're on localhost or production
-    isProduction: !['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(window.location.hostname) && !window.location.hostname.startsWith('192.168.') && !window.location.hostname.startsWith('10.'),
+    // Detect if we're on a production domain
+    get isProduction() {
+        const prodDomains = [
+            'waypoint-app.vercel.app',
+            'waypointedu.org',
+            'www.waypointedu.org',
+            'waypoint-ai.vercel.app'
+        ];
+        // If we are on a production domain or a vercel preview, it's production
+        return prodDomains.includes(window.location.hostname) ||
+            (window.location.hostname.endsWith('.vercel.app') && !window.location.hostname.includes('localhost'));
+    },
 
     // Backend API URL
     get apiUrl() {
-        if (this.isProduction) {
-            // Priority: Check if a custom backend URL is set in localStorage (for quick testing)
-            const customUrl = localStorage.getItem('waypoint_api_url');
-            if (customUrl) return customUrl;
+        // Priority 1: Manual override via localStorage (for debugging)
+        const customUrl = localStorage.getItem('waypoint_api_url');
+        if (customUrl) return customUrl;
 
-            // Default production URL - Update this after your first deployment
+        // Priority 2: Production URL
+        if (this.isProduction) {
             return 'https://waypoint-api-production.up.railway.app';
-        } else {
-            return 'http://localhost:3001';
         }
+
+        // Priority 3: Localhost (Default for development/file protocol)
+        return 'http://localhost:3001';
     },
 
     // Supabase Config (Public credentials)

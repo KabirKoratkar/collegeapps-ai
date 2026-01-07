@@ -213,8 +213,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 widgetScript.src = 'js/chat-widget.js';
                 document.body.appendChild(widgetScript);
             }
+
+            // Always load feedback widget for logged-in users
+            if (user) {
+                const feedbackScript = document.createElement('script');
+                feedbackScript.type = 'module';
+                feedbackScript.src = 'js/feedback.js';
+                document.body.appendChild(feedbackScript);
+            }
         } catch (e) {
-            console.error('Failed to load chat widget:', e);
+            console.error('Failed to load global widgets:', e);
         }
     }
 });
