@@ -511,12 +511,10 @@ async function loadEssays() {
     const sharedEssays = await getSharedEssays(currentUser.email);
 
     const navList = document.getElementById('essayNavList');
-    const componentList = document.getElementById('dynamic-components');
-    if (!navList || !componentList) return;
+    if (!navList) return;
 
     // Clear previous items
     navList.innerHTML = '';
-    componentList.innerHTML = '';
 
     const globalEssays = [];
     const collegeEssays = [];
@@ -538,12 +536,17 @@ async function loadEssays() {
         }
     });
 
-    // 1. Render Global Components (PS, PIQs)
-    globalEssays.forEach(e => {
-        const item = createNavItem(e);
-        item.style.marginBottom = 'var(--space-xs)';
-        componentList.appendChild(item);
-    });
+    // 1. Render Main Application Components (PS, PIQs)
+    if (globalEssays.length > 0) {
+        const mainSection = document.createElement('div');
+        mainSection.style.marginBottom = 'var(--space-xl)';
+        mainSection.innerHTML = `<h4 class="nav-section-title">Main Application</h4>`;
+
+        globalEssays.forEach(e => {
+            mainSection.appendChild(createNavItem(e));
+        });
+        navList.appendChild(mainSection);
+    }
 
     // 2. Group College Supplements by College
     const collegeGroups = collegeEssays.reduce((acc, e) => {
