@@ -313,6 +313,14 @@
     transition: all var(--transition-base);
 }
 
+.dashboard-header h1,
+.dashboard-header h2,
+.dashboard-header h3,
+.dashboard-header p,
+.dashboard-header span {
+    color: var(--fixed-white) !important;
+}
+
 @media (max-width: 768px) {
     .dashboard-header {
         padding: var(--space-xl);
@@ -324,11 +332,13 @@
     font-size: var(--text-3xl);
     font-weight: 700;
     margin-bottom: var(--space-sm);
+    color: var(--fixed-white) !important;
 }
 
 .dashboard-date {
     font-size: var(--text-lg);
     opacity: 0.9;
+    color: var(--fixed-white) !important;
 }
 
 .dashboard-grid {
@@ -501,6 +511,7 @@
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     padding-right: 4px;
+    z-index: 5;
 }
 
 .essay-sidebar-right::-webkit-scrollbar {
@@ -542,7 +553,7 @@
     min-height: 550px;
     border: none;
     outline: none;
-    padding: var(--space-2xl);
+    padding: var(--space-4xl) var(--space-2xl) var(--space-2xl);
     font-size: var(--text-lg);
     line-height: 1.8;
     color: var(--gray-800);
@@ -1073,6 +1084,7 @@
         font-size: var(--text-2xl);
     }
 }
+
 /* AI PLAN CARD SPECIAL STYLES */
 .ai-plan-card {
     position: relative;
@@ -1099,4 +1111,46 @@
 .ai-plan-card:hover {
     transform: scale(1.01);
     border-color: var(--primary-blue);
+}
+
+/* ANALYTICS PAGE STYLES */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+    margin-top: var(--space-2xl);
+    transition: all var(--transition-base);
+}
+
+@media (max-width: 1024px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-container {
+    position: relative;
+    height: 350px;
+    width: 100%;
+    padding: var(--space-md);
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-2xl);
+    transition: all var(--transition-base);
+}
+
+@media (max-width: 992px) {
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-summary {
+        grid-template-columns: 1fr;
+    }
 }

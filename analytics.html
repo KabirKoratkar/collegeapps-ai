@@ -31,39 +31,6 @@
         })();
     </script>
 
-    <style>
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--space-xl);
-            margin-top: var(--space-2xl);
-        }
-
-        @media (max-width: 1024px) {
-            .analytics-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-lg);
-            margin-bottom: var(--space-2xl);
-        }
-
-        @media (max-width: 768px) {
-            .stats-summary {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -88,10 +55,10 @@
 
     <!-- Main Content -->
     <div class="container py-2xl">
-        <div class="dashboard-header" style="margin-bottom: var(--space-2xl);">
-            <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-sm);">Application
-                Analytics</h1>
-            <p style="color: var(--gray-600);">Visualizing your journey to college.</p>
+        <div class="dashboard-header">
+            <h1 style="color: var(--fixed-white); margin-bottom: var(--space-xs);">Application Analytics</h1>
+            <p style="color: var(--fixed-white); opacity: 0.9; margin-bottom: 0;">Visualizing your journey to college.
+            </p>
         </div>
 
         <!-- Metric Cards -->
