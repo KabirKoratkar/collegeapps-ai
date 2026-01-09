@@ -74,6 +74,18 @@ async function updateProfile(userId, updates) {
     return data;
 }
 
+/**
+ * Check if a user has premium access.
+ * Returns true if the user is a paid subscriber OR a beta tester.
+ * @param {Object} profile The user profile object from Supabase
+ * @returns {Boolean}
+ */
+function isPremiumUser(profile) {
+    if (!profile) return false;
+    // Beta testers bypass the premium check
+    return !!(profile.is_premium || profile.is_beta);
+}
+
 // Colleges
 
 async function getUserColleges(userId) {
@@ -718,14 +730,11 @@ export {
     getCollegeFromCatalog,
     resetPasswordForEmail,
     updateUserPassword,
-    getActivities,
-    addActivity,
-    updateActivity,
-    deleteActivity,
     getAwards,
     addAward,
     updateAward,
-    deleteAward
+    deleteAward,
+    isPremiumUser
 };
 
 async function searchCollegeCatalog(query) {

@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // UI Updates
-    updateNavbarUser(currentUser);
+    updateNavbarUser(currentUser, window.currentUserProfile);
     updateHeader(window.currentUserProfile);
 
     // Load Data

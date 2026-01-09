@@ -1,5 +1,5 @@
 import config from './config.js';
-import { getCurrentUser } from './supabase-config.js';
+import { getCurrentUser, getUserProfile } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 
 let enrollmentChart = null;
@@ -13,13 +13,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const user = await getCurrentUser();
-    if (!user) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    updateNavbarUser(user);
+    const profile = await getUserProfile(user.id);
+    updateNavbarUser(user, profile);
 
     try {
         await fetchAndRenderCollegeData(collegeName);

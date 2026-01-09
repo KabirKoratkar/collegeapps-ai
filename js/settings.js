@@ -10,13 +10,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
-    updateNavbarUser(currentUser);
-    await loadSettings();
+    const profile = await getUserProfile(currentUser.id);
+    updateNavbarUser(currentUser, profile);
+    await loadSettings(profile);
     setupEventListeners();
 });
 
-async function loadSettings() {
-    const profile = await getUserProfile(currentUser.id);
+async function loadSettings(profile = null) {
+    if (!profile) profile = await getUserProfile(currentUser.id);
     if (!profile) return;
 
     // Planner Settings
@@ -37,6 +38,32 @@ async function loadSettings() {
     // Profile Settings
     document.getElementById('profName').value = profile.full_name || '';
     document.getElementById('profMajor').value = profile.intended_major || '';
+
+    // Membership Status
+    const membershipTier = document.getElementById('membershipTier');
+    const membershipDesc = document.getElementById('membershipDescription');
+    const membershipIcon = document.getElementById('membershipIcon');
+    const upgradeBtn = document.getElementById('upgradeBtn');
+
+    if (profile.is_beta) {
+        membershipTier.textContent = 'Beta Tester (VIP)';
+        membershipDesc.textContent = 'Early access enabled. All premium features are free.';
+        membershipIcon.textContent = '🚀';
+        membershipIcon.style.background = 'var(--accent-purple)';
+        membershipIcon.style.color = 'white';
+        upgradeBtn.style.display = 'none';
+        document.getElementById('subscriptionStatus').style.border = '1px solid var(--accent-purple)';
+    } else if (profile.is_premium) {
+        membershipTier.textContent = 'Pro Member';
+        membershipDesc.textContent = 'Next-gen tools unlocked. Good luck with apps!';
+        membershipIcon.textContent = '💎';
+        membershipIcon.style.background = 'var(--warning)';
+        upgradeBtn.textContent = 'Manage Plan';
+    } else {
+        membershipTier.textContent = 'Free Account';
+        membershipDesc.textContent = 'Limited access to AI features';
+        membershipIcon.textContent = '👤';
+    }
 }
 
 function setupEventListeners() {

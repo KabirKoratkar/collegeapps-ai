@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
+    <link rel="icon" type="image/png" href="assets/logo.png">
 
     <!-- Theme Initialization -->
     <script>
@@ -35,7 +36,10 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container navbar-container">
-            <div class="navbar-logo">Waypoint</div>
+            <a href="index.html" class="navbar-logo">
+                <img src="assets/logo.png" alt="Waypoint Logo">
+                <span class="brand-text">Waypoint</span>
+            </a>
             <ul class="navbar-links" id="navLinks">
                 <li><a href="#features" class="navbar-link">Features</a></li>
                 <li><a href="#how-it-works" class="navbar-link">How It Works</a></li>
@@ -49,14 +53,26 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="container hero-content">
-            <h1 class="hero-title">Your College Application Command Center</h1>
-            <p class="hero-subtitle">One place for deadlines, essays, tasks, documents, and AI guidance. Stop juggling
-                portals—start focusing on what matters.</p>
-            <div class="hero-cta">
-                <a href="signup.html" class="btn btn-primary btn-lg">Start Your Application Plan</a>
-                <a href="#features" class="btn btn-secondary btn-lg">See How It Works</a>
+    <section class="hero" style="text-align: left; padding: var(--space-4xl) 0;">
+        <div class="container hero-grid"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4xl); align-items: center;">
+            <div class="hero-content">
+                <h1 class="hero-title" style="text-align: left; margin-left: 0;">Your College Application Command Center
+                </h1>
+                <p class="hero-subtitle" style="text-align: left; margin-left: 0;">One place for deadlines, essays,
+                    tasks, documents, and AI guidance. Stop juggling
+                    portals—start focusing on what matters.</p>
+                <div class="hero-cta" style="justify-content: flex-start;">
+                    <a href="signup.html" class="btn btn-primary btn-lg">Start Your Application Plan</a>
+                    <a href="#features" class="btn btn-secondary btn-lg">See How It Works</a>
+                </div>
+            </div>
+            <div class="hero-image" style="position: relative;">
+                <img src="assets/splash.jpg" alt="Waypoint App Preview"
+                    style="width: 100%; border-radius: var(--radius-2xl); box-shadow: var(--shadow-2xl); transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);">
+                <div
+                    style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--gradient-primary); filter: blur(60px); opacity: 0.3; z-index: -1;">
+                </div>
             </div>
         </div>
     </section>

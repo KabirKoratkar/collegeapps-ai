@@ -13,16 +13,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    updateNavbarUser(user);
+    const profile = await getUserProfile(user.id);
+    updateNavbarUser(user, profile);
 
-    await loadLeeway(user.id);
+    await loadLeeway(user.id, profile);
     await loadEvents();
     renderCalendar();
     setupEventListeners();
 });
 
-async function loadLeeway(userId) {
-    const profile = await getUserProfile(userId);
+async function loadLeeway(userId, profile = null) {
+    if (!profile) profile = await getUserProfile(userId);
     if (profile && profile.submission_leeway !== undefined) {
         const leewaySelect = document.getElementById('leewaySetting');
         if (leewaySelect) {

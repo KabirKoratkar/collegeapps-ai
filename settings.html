@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
+    <link rel="icon" type="image/png" href="assets/logo.png">
 
     <!-- Theme Initialization (Head script to prevent flash) -->
     <script>
@@ -33,7 +34,10 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container navbar-container">
-            <div class="navbar-logo">Waypoint</div>
+            <a href="dashboard.html" class="navbar-logo">
+                <img src="assets/logo.png" alt="Waypoint Logo">
+                <span class="brand-text">Waypoint</span>
+            </a>
             <ul class="navbar-links">
                 <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
                 <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
@@ -189,9 +193,27 @@
                         <button id="saveProfile" class="btn btn-primary">Save Profile</button>
                     </div>
                 </div>
-
                 <!-- Account Tab -->
                 <div id="accountTab" class="tab-pane">
+                    <div class="card mb-xl" style="padding: var(--space-xl);">
+                        <h3 class="mb-lg">Membership & Status</h3>
+                        <div id="subscriptionStatus"
+                            style="padding: var(--space-lg); background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: var(--space-md);">
+                                <div id="membershipIcon"
+                                    style="width: 48px; height: 48px; background: var(--gray-200); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                    👤</div>
+                                <div>
+                                    <div style="font-size: var(--text-sm); font-weight: 700; color: var(--gray-900);"
+                                        id="membershipTier">Free Account</div>
+                                    <div style="font-size: var(--text-xs); color: var(--gray-500);"
+                                        id="membershipDescription">Limited access to AI features</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline" id="upgradeBtn">Upgrade to Pro</button>
+                        </div>
+                    </div>
+
                     <div class="card mb-xl" style="padding: var(--space-xl);">
                         <h3 class="mb-lg">Legal & Policies</h3>
                         <div style="display: flex; flex-direction: column; gap: var(--space-md);">

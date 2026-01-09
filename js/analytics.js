@@ -3,7 +3,7 @@
  * Handles data fetching and chart rendering for the analytics page.
  */
 
-import { getCurrentUser, getUserColleges, getUserEssays, getUserTasks, getUserConversations, getEssayComments, supabase } from './supabase-config.js';
+import { getCurrentUser, getUserProfile, getUserColleges, getUserEssays, getUserTasks, getUserConversations, getEssayComments, supabase } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -16,14 +16,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         let tasks = [];
 
         if (user) {
+            const profile = await getUserProfile(user.id);
+            updateNavbarUser(user, profile);
+
             colleges = await getUserColleges(user.id);
             essays = await getUserEssays(user.id);
             tasks = await getUserTasks(user.id);
 
             // Get activity data
             const activityData = await fetchActivityData(user.id);
-
-            updateNavbarUser(user);
             console.log(`Found ${colleges.length} colleges, ${essays.length} essays, ${tasks.length} tasks`);
 
             updateSummaryStats(colleges, essays, tasks);

@@ -250,8 +250,22 @@
 }
 
 .navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
     font-size: var(--text-2xl);
     font-weight: 800;
+    color: var(--gray-900);
+    text-decoration: none;
+}
+
+.navbar-logo img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
+.brand-text {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

@@ -1,4 +1,4 @@
-import { getCurrentUser, getUserColleges, addCollege, updateCollege, searchCollegeCatalog, getUserEssays, getUserTasks } from './supabase-config.js';
+import { getCurrentUser, getUserProfile, getUserColleges, addCollege, updateCollege, searchCollegeCatalog, getUserEssays, getUserTasks } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 import config from './config.js';
 
@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
-    updateNavbarUser(currentUser);
+    const profile = await getUserProfile(currentUser.id);
+    updateNavbarUser(currentUser, profile);
     await loadAndRenderColleges();
 
     // Search logic for main header

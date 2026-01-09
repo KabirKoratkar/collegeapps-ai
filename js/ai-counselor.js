@@ -4,7 +4,9 @@
 import {
     getCurrentUser,
     getUserConversations,
-    saveMessage
+    saveMessage,
+    getUserProfile,
+    isPremiumUser
 } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 import config from './config.js';
@@ -23,11 +25,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
-    // Update UI
-    updateNavbarUser(currentUser);
+    const profile = await getUserProfile(currentUser.id);
+    updateNavbarUser(currentUser, profile);
 
     // Load conversation history
-    await loadConversationHistory();
+    await loadConversationHistory(profile);
 
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
@@ -68,15 +70,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-async function loadConversationHistory() {
+async function loadConversationHistory(profile = null) {
     if (!currentUser) return;
 
     const history = await getUserConversations(currentUser.id, 20);
     conversationHistory = history;
 
-    // Get profile for personalization
-    const { getUserProfile } = await import('./supabase-config.js');
-    const profile = await getUserProfile(currentUser.id);
+    // Get profile for personalization if not provided
+    if (!profile) {
+        profile = await getUserProfile(currentUser.id);
+    }
     const firstName = profile?.full_name ? profile.full_name.split(' ')[0] : (currentUser.user_metadata?.full_name?.split(' ')[0] || 'there');
 
     // Clear current messages except welcome
@@ -122,6 +125,25 @@ async function sendMessage(message) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     try {
+        // Limit check for free users
+        const profile = await getUserProfile(currentUser.id);
+        const hasPremium = isPremiumUser(profile);
+
+        if (!hasPremium && conversationHistory.length >= 10) { // 10 messages = 5 exchanges
+            typingIndicator.remove();
+            const limitMsg = createMessageElement("You've reached the free message limit for this conversation. Join our Pro plan or Beta program for unlimited guidance!", false);
+            chatMessages.appendChild(limitMsg);
+
+            // Add an upgrade button
+            const upgradeDiv = document.createElement('div');
+            upgradeDiv.style.cssText = 'margin-top: 10px; text-align: center;';
+            upgradeDiv.innerHTML = '<a href="settings.html" class="btn btn-primary btn-sm">Upgrade to Pro</a>';
+            chatMessages.appendChild(upgradeDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return;
+        }
+
         // Send to AI server
         const response = await fetch(`${AI_SERVER_URL}/api/chat`, {
             method: 'POST',

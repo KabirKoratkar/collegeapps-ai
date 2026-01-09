@@ -63,6 +63,26 @@
     align-items: center;
 }
 
+@media (max-width: 992px) {
+    .hero-grid {
+        grid-template-columns: 1fr !important;
+        text-align: center !important;
+    }
+
+    .hero-title,
+    .hero-subtitle,
+    .hero-cta {
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        justify-content: center !important;
+    }
+
+    .hero-image {
+        margin-top: var(--space-2xl);
+    }
+}
+
 /* FEATURES GRID */
 .features-section {
     padding: var(--space-4xl) 0;

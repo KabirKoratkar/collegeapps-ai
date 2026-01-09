@@ -24,7 +24,8 @@ import {
     updateActivity,
     updateAward,
     deleteActivity,
-    deleteAward
+    deleteAward,
+    isPremiumUser
 } from './supabase-config.js';
 import config from './config.js';
 import { updateNavbarUser } from './ui.js';
@@ -66,7 +67,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
-    updateNavbarUser(currentUser);
+    const profile = await getUserProfile(currentUser.id);
+    updateNavbarUser(currentUser, profile);
 
     // Sync missing essays for existing colleges
     if (window.showNotification) window.showNotification('Checking for missing essays...', 'info');
@@ -454,7 +456,11 @@ const MOCK_SAMPLES = {
     }
 };
 
-window.viewSample = (id) => {
+window.viewSample = async (id) => {
+    // Check premium status
+    const profile = await getUserProfile(currentUser.id);
+    const hasPremium = isPremiumUser(profile);
+
     const sample = MOCK_SAMPLES[id] || { title: 'Sample Essay', content: 'Sample essay content coming soon!' };
     const modal = document.getElementById('sampleModal');
     const titleEl = document.getElementById('sampleTitle');
@@ -462,7 +468,28 @@ window.viewSample = (id) => {
 
     if (modal && titleEl && contentEl) {
         titleEl.textContent = sample.title;
-        contentEl.innerHTML = sample.content.replace(/\n\n/g, '<br><br>');
+
+        if (!hasPremium && id !== 's1') { // Let them see one sample for free
+            contentEl.innerHTML = `
+                <div style="background: var(--gray-50); padding: var(--space-2xl); border-radius: var(--radius-xl); text-align: center; border: 1px dashed var(--gray-300);">
+                    <div style="font-size: 3rem; margin-bottom: var(--space-md);">🔒</div>
+                    <h3 style="margin-bottom: var(--space-sm);">Premium Sample</h3>
+                    <p style="color: var(--gray-600); margin-bottom: var(--space-xl); max-width: 400px; margin-left: auto; margin-right: auto;">
+                        This high-scoring sample is reserved for Pro members. Upgrade your account or join the beta to unlock our full library of successful essays.
+                    </p>
+                    <div style="display: flex; gap: var(--space-md); justify-content: center;">
+                        <a href="settings.html" class="btn btn-primary">Upgrade to Pro</a>
+                        <button class="btn btn-ghost" onclick="document.getElementById('sampleModal').classList.remove('active')">Maybe Later</button>
+                    </div>
+                </div>
+                <div style="margin-top: var(--space-xl); filter: blur(4px); opacity: 0.3; pointer-events: none; user-select: none;">
+                    ${sample.content.substring(0, 200)}...
+                </div>
+            `;
+        } else {
+            contentEl.innerHTML = sample.content.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+        }
+
         modal.classList.add('active');
     }
 };
