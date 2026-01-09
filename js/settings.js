@@ -1,5 +1,6 @@
 import { getCurrentUser, getUserProfile, upsertProfile, supabase } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
+import config from './config.js';
 
 let currentUser = null;
 
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateNavbarUser(currentUser, profile);
     await loadSettings(profile);
     setupEventListeners();
+    checkPaymentStatus();
 });
 
 async function loadSettings(profile = null) {
@@ -63,6 +65,12 @@ async function loadSettings(profile = null) {
         membershipTier.textContent = 'Free Account';
         membershipDesc.textContent = 'Limited access to AI features';
         membershipIcon.textContent = '👤';
+    }
+
+    // Toggle Pro Hero Banner
+    const proHero = document.getElementById('proHero');
+    if (proHero) {
+        proHero.style.display = (profile.is_premium || profile.is_beta) ? 'none' : 'block';
     }
 }
 
@@ -153,6 +161,17 @@ function setupEventListeners() {
         window.location.assign('index.html');
     });
 
+    // Upgrade to Pro
+    const upgradeBtn = document.getElementById('upgradeBtn');
+    if (upgradeBtn) {
+        upgradeBtn.addEventListener('click', handleUpgrade);
+    }
+
+    const mainUpgradeBtn = document.getElementById('mainUpgradeBtn');
+    if (mainUpgradeBtn) {
+        mainUpgradeBtn.addEventListener('click', handleUpgrade);
+    }
+
     // Theme Watcher (Sync with other tabs)
     window.addEventListener('storage', (e) => {
         if (e.key === 'theme') {
@@ -161,6 +180,58 @@ function setupEventListeners() {
         }
     });
 }
+
+async function handleUpgrade() {
+    const upgradeBtn = document.getElementById('upgradeBtn');
+    const originalText = upgradeBtn.textContent;
+    const isPremium = upgradeBtn.textContent === 'Manage Plan';
+
+    try {
+        upgradeBtn.disabled = true;
+        upgradeBtn.innerHTML = `<span class="loading-spinner"></span> ${isPremium ? 'Opening portal...' : 'Securely connecting...'}`;
+
+        const endpoint = isPremium ? 'create-portal-session' : 'create-checkout-session';
+
+        const response = await fetch(`${config.apiUrl}/api/payments/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: currentUser.id,
+                email: currentUser.email
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            throw new Error(data.error || 'Failed to connect to billing provider');
+        }
+    } catch (error) {
+        console.error('Upgrade/Portal error:', error);
+        showNotification('Billing error: ' + error.message, 'error');
+        upgradeBtn.disabled = false;
+        upgradeBtn.textContent = originalText;
+    }
+}
+
+function checkPaymentStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+
+    if (paymentStatus === 'success') {
+        showNotification('🎉 Welcome to Waypoint Pro! Your account has been upgraded.', 'success');
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'cancel') {
+        showNotification('Payment cancelled. Let us know if you had any trouble!', 'info');
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
 
 
 function showNotification(message, type = 'info') {

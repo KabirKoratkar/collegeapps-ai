@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { Resend } from 'resend';
+import paymentsRouter from './payments.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_CATALOG_PATH = path.join(__dirname, 'college_catalog.json');
@@ -53,11 +54,21 @@ const researchLimiter = rateLimit({
     message: { error: 'Research limit reached. Please wait an hour.' }
 });
 
-// Middleware
+// Middleware (Order is important for Stripe Webhook)
 app.use(cors({
     origin: '*'
 }));
-app.use(express.json());
+
+// Use express.json() globally EXCEPT for the webhook route
+app.use((req, res, next) => {
+    if (req.originalUrl === '/api/payments/webhook') {
+        next();
+    } else {
+        express.json()(req, res, next);
+    }
+});
+
+app.use('/api/payments', paymentsRouter);
 app.use('/api/', globalLimiter);
 
 // Add Timeout Middleware
