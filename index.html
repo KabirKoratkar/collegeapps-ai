@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
-    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="icon" type="image/png" href="assets/logo.svg">
 
     <!-- Theme Initialization -->
     <script>
@@ -37,7 +37,7 @@
     <nav class="navbar">
         <div class="container navbar-container">
             <a href="index.html" class="navbar-logo">
-                <img src="assets/logo.png" alt="Waypoint Logo">
+                <img src="assets/logo.svg" alt="Waypoint Logo">
                 <span class="brand-text">Waypoint</span>
             </a>
             <ul class="navbar-links" id="navLinks">
@@ -130,36 +130,82 @@
         </div>
     </section>
 
-    <!-- How It Works -->
-    <section id="how-it-works" class="py-3xl" style="background: var(--gradient-subtle);">
+    <!-- Interactive Waypoint Map -->
+    <section class="map-section">
         <div class="container">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Get organized in three simple steps</p>
+            <h2 class="section-title">Your Journey to Acceptance</h2>
+            <p class="section-subtitle">Hover over each waypoint to reveal your path.</p>
 
-            <div class="steps-container">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3 class="step-title">Add Your Colleges</h3>
-                    <p class="step-description">Enter your college list and we'll automatically load all requirements,
-                        deadlines, and essay prompts.</p>
+            <div class="map-container" id="interactiveMap">
+                <div class="cursor-reveal" id="cursorReveal"></div>
+                <div class="map-path"></div>
+
+                <!-- Point 1 -->
+                <div class="map-wrapper wrapper-1">
+                    <div class="map-point"></div>
+                    <div class="map-content">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">1. Discovery</h4>
+                        <p style="margin: 0;">Search thousands of colleges and find your perfect match with AI research.
+                        </p>
+                    </div>
                 </div>
 
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3 class="step-title">Follow Your Plan</h3>
-                    <p class="step-description">Check your dashboard daily to see what tasks to complete. We organize
-                        everything by priority and deadline.</p>
+                <!-- Point 2 -->
+                <div class="map-wrapper wrapper-2">
+                    <div class="map-point"></div>
+                    <div class="map-content">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">2. Strategy</h4>
+                        <p style="margin: 0;">Generate a custom tactical plan based on your background and goals.</p>
+                    </div>
                 </div>
 
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3 class="step-title">Track Progress</h3>
-                    <p class="step-description">Watch your progress bars fill up as you complete essays, tasks, and
-                        upload documents. Stay motivated!</p>
+                <!-- Point 3 -->
+                <div class="map-wrapper wrapper-3">
+                    <div class="map-point"></div>
+                    <div class="map-content">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">3. Narration</h4>
+                        <p style="margin: 0;">Draft compelling essays with conceptual AI feedback in your dedicated
+                            workspace.</p>
+                    </div>
+                </div>
+
+                <!-- Point 4 -->
+                <div class="map-wrapper wrapper-4">
+                    <div class="map-point"></div>
+                    <div class="map-content">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">4. Execution</h4>
+                        <p style="margin: 0;">Track every deadline and task with precision. Never miss a single
+                            document.</p>
+                    </div>
+                </div>
+
+                <!-- Point 5 -->
+                <div class="map-wrapper wrapper-5">
+                    <div class="map-point"></div>
+                    <div class="map-content">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">5. Acceptance</h4>
+                        <p style="margin: 0;">Submit with confidence, knowing every detail has been verified and
+                            planned.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <script>
+        const map = document.getElementById('interactiveMap');
+        const reveal = document.getElementById('cursorReveal');
+
+        if (map && reveal) {
+            map.addEventListener('mousemove', (e) => {
+                const rect = map.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                reveal.style.left = `${x}px`;
+                reveal.style.top = `${y}px`;
+            });
+        }
+    </script>
 
     <!-- Testimonials -->
     <section class="py-3xl">

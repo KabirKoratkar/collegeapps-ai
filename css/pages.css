@@ -340,18 +340,24 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(91, 141, 238, 0.4) 0%, rgba(139, 123, 247, 0.4) 100%),
-        url('../assets/splash.jpg');
-    background-size: cover;
-    background-position: center;
-    filter: blur(2px) brightness(0.7);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 1) 100%);
     z-index: 0;
     transition: all var(--transition-slow);
 }
 
+.dashboard-hero-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 70% 30%, rgba(91, 141, 238, 0.15) 0%, transparent 60%);
+    pointer-events: none;
+}
+
 .dashboard-hero-container:hover .dashboard-hero-bg {
-    transform: scale(1.05);
-    filter: blur(0px) brightness(0.8);
+    background: linear-gradient(135deg, rgba(40, 50, 70, 0.9) 0%, rgba(15, 23, 42, 1) 100%);
 }
 
 .dashboard-hero-content {
@@ -401,12 +407,13 @@
     position: relative;
     width: 60px;
     height: 60px;
-    background: var(--fixed-white);
+    background: transparent;
+    border: 2px solid var(--glass-border);
     border-radius: var(--radius-xl);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 20px rgba(91, 141, 238, 0.5);
+    box-shadow: 0 0 20px rgba(91, 141, 238, 0.2);
 }
 
 .ai-logo-glow img {
@@ -1397,4 +1404,147 @@
     .stats-summary {
         grid-template-columns: 1fr;
     }
+}
+
+/* WAYPOINT MAP LANDING COMPONENT */
+.map-section {
+    padding: var(--space-4xl) 0;
+    overflow: hidden;
+    background: var(--surface-soft);
+}
+
+.map-container {
+    position: relative;
+    height: 400px;
+    max-width: 1000px;
+    margin: var(--space-2xl) auto;
+    background: var(--glass-background);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-2xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-xl);
+}
+
+.map-path {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 6px;
+    background: var(--gray-200);
+    transform: translateY(-50%);
+    border-radius: var(--radius-full);
+    z-index: 1;
+    overflow: hidden;
+}
+
+.map-path::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--gradient-primary);
+    box-shadow: 0 0 15px var(--primary-blue);
+    transition: width 1s ease;
+}
+
+.map-container:hover .map-path::after {
+    width: 100%;
+}
+
+.map-point {
+    position: absolute;
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    background: var(--white);
+    border: 6px solid var(--gray-300);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.map-point:hover {
+    border-color: var(--primary-blue);
+    transform: translate(-50%, -50%) scale(1.8);
+    box-shadow: var(--shadow-glow);
+}
+
+.map-point.revealed {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue);
+}
+
+.map-wrapper {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.map-content {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    transform: translateX(-50%) translateY(20px);
+    width: 280px;
+    text-align: center;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    background: var(--surface);
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+}
+
+.map-point:hover~.map-content {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Positioning wrappers */
+.wrapper-1 {
+    left: 15%;
+}
+
+.wrapper-2 {
+    left: 32%;
+}
+
+.wrapper-3 {
+    left: 50%;
+}
+
+.wrapper-4 {
+    left: 68%;
+}
+
+.wrapper-5 {
+    left: 85%;
+}
+
+.cursor-reveal {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(91, 141, 238, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.map-container:hover .cursor-reveal {
+    opacity: 1;
 }
