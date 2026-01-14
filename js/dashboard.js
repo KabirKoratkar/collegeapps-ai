@@ -194,20 +194,19 @@ function renderDeadlines(colleges) {
         let count = Math.max(0, diffDays);
 
         if (diffDays < 0) {
-            card.style.background = 'var(--gray-400)';
+            card.style.opacity = '0.6';
             label = `${c.name} Deadline Passed`;
             count = 'PASSED';
         } else if (diffDays === 0) {
-            card.style.background = 'var(--error)';
+            card.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.4)';
             label = `${c.name} Deadline is TODAY!`;
             count = 'TODAY';
         } else if (diffDays <= 7) {
-            card.style.background = 'linear-gradient(135deg, var(--error) 0%, #ff6b6b 100%)';
-        } else if (index === 0) {
-            card.style.background = 'var(--gradient-primary)';
-        } else {
-            card.style.background = 'var(--surface-soft)';
+            card.style.background = 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)';
+        } else if (index !== 0) {
+            card.style.background = 'var(--surface)';
             card.style.color = 'var(--gray-800)';
+            card.style.borderColor = 'var(--border)';
         }
 
 
@@ -290,17 +289,17 @@ async function generateAIActionPlan(tasks, essays, colleges) {
     const upcomingDeadlines = colleges.filter(c => c.deadline && new Date(c.deadline) > new Date());
 
     breakdownEl.innerHTML = `
-        <div style="text-align: center; padding: 0 var(--space-md);">
-            <div style="font-size: var(--text-lg); font-weight: 800; color: var(--primary-blue);">${pendingTasks.length}</div>
-            <div style="font-size: 10px; color: var(--gray-500); text-transform: uppercase; font-weight: 700;">Tasks</div>
+        <div class="hero-stat-item">
+            <div class="stat-val">${pendingTasks.length}</div>
+            <div class="stat-lbl">Tasks</div>
         </div>
-        <div style="text-align: center; padding: 0 var(--space-md);">
-            <div style="font-size: var(--text-lg); font-weight: 800; color: var(--accent-purple);">${pendingEssays.length}</div>
-            <div style="font-size: 10px; color: var(--gray-500); text-transform: uppercase; font-weight: 700;">Essays</div>
+        <div class="hero-stat-item">
+            <div class="stat-val stat-purple">${pendingEssays.length}</div>
+            <div class="stat-lbl">Essays</div>
         </div>
-        <div style="text-align: center; padding: 0 var(--space-md);">
-            <div style="font-size: var(--text-lg); font-weight: 800; color: var(--success);">${upcomingDeadlines.length}</div>
-            <div style="font-size: 10px; color: var(--gray-500); text-transform: uppercase; font-weight: 700;">Deadlines</div>
+        <div class="hero-stat-item">
+            <div class="stat-val stat-green">${upcomingDeadlines.length}</div>
+            <div class="stat-lbl">Goals</div>
         </div>
     `;
 

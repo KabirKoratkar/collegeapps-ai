@@ -59,52 +59,41 @@
     <!-- Main Content -->
     <div class="container py-2xl">
         <!-- Header -->
-        <div class="dashboard-header">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <h1 class="dashboard-greeting" id="greeting" style="margin-bottom: 4px;">Good morning! 🌟</h1>
-                    <p class="dashboard-date" id="currentDate" style="opacity: 0.8; margin-bottom: 0;">Loading date...
-                    </p>
+        <div class="dashboard-hero-container mb-2xl">
+            <div class="dashboard-hero-bg"></div>
+            <div class="dashboard-hero-content">
+                <div class="flex-between flex-wrap gap-lg">
+                    <div>
+                        <h1 class="dashboard-greeting" id="greeting">Good morning! 🌟</h1>
+                        <p class="dashboard-date" id="currentDate">Loading date...</p>
+                    </div>
+                    <div id="aiStatsBreakdown" class="hero-stats-badge">
+                        <!-- Injected by JS -->
+                    </div>
                 </div>
-            </div>
 
-            <div id="aiPlanContainer" style="width: 100%; cursor: pointer;">
-                <div class="card ai-plan-card"
-                    style="background: var(--surface); border: 1px solid var(--border); padding: var(--space-xl); transition: all 0.3s ease; box-shadow: var(--shadow-xl); border-radius: var(--radius-2xl);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
-                        <div style="display: flex; align-items: center; gap: var(--space-md);">
-                            <span style="font-size: 2rem;">🤖</span>
-                            <div>
-                                <h3
-                                    style="font-size: var(--text-xl); font-weight: 800; color: var(--primary-blue); margin: 0;">
-                                    Today's Strategic Plan</h3>
-                                <p
-                                    style="font-size: 11px; color: var(--gray-500); margin: 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
-                                    Curated tactical advice</p>
-                            </div>
+                <div id="aiPlanContainer" class="glass-card ai-strategic-plan mt-xl">
+                    <div class="ai-plan-header">
+                        <div class="ai-logo-glow">
+                            <img src="assets/logo.png" alt="Logo">
                         </div>
-                        <div id="aiStatsBreakdown"
-                            style="display: flex; gap: var(--space-2xl); padding: var(--space-sm) var(--space-xl); background: var(--surface-soft); border-radius: var(--radius-xl); border: 1px solid var(--border);">
-                            <!-- Injected by JS -->
+                        <div class="ai-plan-info">
+                            <h3>Strategic Command</h3>
+                            <p>AI-DRIVEN TACTICAL ANALYSIS</p>
                         </div>
                     </div>
 
-                    <div
-                        style="display: grid; grid-template-columns: 1fr auto; gap: var(--space-xl); align-items: center;">
-                        <div id="aiActionPlan"
-                            style="font-size: 1.1rem; line-height: 1.6; color: var(--gray-800); font-weight: 500;">
-                            <div class="loading-spinner-small"></div> Analyzing your application state...
+                    <div class="ai-plan-body">
+                        <div id="aiActionPlan" class="ai-text-glow">
+                            <div class="loading-spinner-small"></div> Synchronizing with application systems...
                         </div>
-                        <div
-                            style="font-size: var(--text-xs); color: var(--primary-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(91, 141, 238, 0.1); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-full); white-space: nowrap;">
-                            Discuss with Counselor →
+                        <div class="ai-cta">
+                            <span>Open Neural Link</span>
+                            <div class="cta-arrow">→</div>
                         </div>
                     </div>
                 </div>
             </div>
-
-
         </div>
 
         <!-- Dashboard Grid -->
@@ -198,20 +187,28 @@
                 </div>
 
                 <!-- Quick Links -->
-                <div class="card mt-xl">
-                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">Quick Links
+                <div class="card glass-card mt-xl" style="background: var(--surface); padding: var(--space-xl);">
+                    <h3
+                        style="font-size: var(--text-xl); font-weight: 800; margin-bottom: var(--space-xl); display: flex; align-items: center; gap: 8px;">
+                        <span style="color: var(--primary-blue);">⚡</span> Quick Navigation
                     </h3>
-                    <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                        <a href="analytics.html" class="btn btn-ghost" style="justify-content: flex-start;">📊 View My
-                            Analytics</a>
-                        <a href="essays.html" class="btn btn-ghost" style="justify-content: flex-start;">✍️ Go to Essay
-                            Workspace</a>
-                        <a href="documents.html" class="btn btn-ghost" style="justify-content: flex-start;">📁 Upload
-                            Documents</a>
-                        <a href="ai-counselor.html" class="btn btn-ghost" style="justify-content: flex-start;">🤖 Ask AI
-                            Counselor</a>
-                        <a href="colleges.html" class="btn btn-ghost" style="justify-content: flex-start;">🎓 Manage
-                            College List</a>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-sm);">
+                        <a href="analytics.html" class="nav-btn-premium">
+                            <span class="btn-icon">📊</span>
+                            <span class="btn-text">Analytics Intelligence</span>
+                        </a>
+                        <a href="essays.html" class="nav-btn-premium">
+                            <span class="btn-icon">✍️</span>
+                            <span class="btn-text">Essay Workspace</span>
+                        </a>
+                        <a href="documents.html" class="nav-btn-premium">
+                            <span class="btn-icon">📁</span>
+                            <span class="btn-text">Document Vault</span>
+                        </a>
+                        <a href="ai-counselor.html" class="nav-btn-premium">
+                            <span class="btn-icon">🤖</span>
+                            <span class="btn-text">Ask AI Counselor</span>
+                        </a>
                     </div>
                 </div>
             </div>

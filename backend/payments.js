@@ -125,28 +125,55 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     }
 
     // Handle the event
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object;
-        const userId = session.client_reference_id;
-        const customerId = session.customer;
+    switch (event.type) {
+        case 'checkout.session.completed':
+            const session = event.data.object;
+            const userId = session.client_reference_id;
+            const customerId = session.customer;
 
-        console.log(`Payment successful for user: ${userId}, Customer: ${customerId}`);
+            console.log(`Payment successful for user: ${userId}, Customer: ${customerId}`);
 
-        // Update user's premium status in Supabase
-        const { error } = await supabase
-            .from('profiles')
-            .update({
-                is_premium: true,
-                premium_since: new Date().toISOString(),
-                stripe_customer_id: customerId
-            })
-            .eq('id', userId);
+            // Update user's premium status in Supabase
+            const { error: upgradeError } = await supabase
+                .from('profiles')
+                .update({
+                    is_premium: true,
+                    premium_since: new Date().toISOString(),
+                    stripe_customer_id: customerId
+                })
+                .eq('id', userId);
 
-        if (error) {
-            console.error('Error updating profile after payment:', error);
-        } else {
-            console.log(`User ${userId} upgraded to Premium!`);
-        }
+            if (upgradeError) {
+                console.error('Error updating profile after payment:', upgradeError);
+            } else {
+                console.log(`User ${userId} upgraded to Premium!`);
+            }
+            break;
+
+        case 'customer.subscription.deleted':
+            const subscription = event.data.object;
+            const stripeCustId = subscription.customer;
+
+            console.log(`Subscription deleted for customer: ${stripeCustId}`);
+
+            // Revoke premium status in Supabase
+            const { error: revokeError } = await supabase
+                .from('profiles')
+                .update({
+                    is_premium: false,
+                    premium_since: null
+                })
+                .eq('stripe_customer_id', stripeCustId);
+
+            if (revokeError) {
+                console.error('Error revoking premium status:', revokeError);
+            } else {
+                console.log(`Customer ${stripeCustId} premium status revoked.`);
+            }
+            break;
+
+        default:
+            console.log(`Unhandled event type ${event.type}`);
     }
 
     res.json({ received: true });

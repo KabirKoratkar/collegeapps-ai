@@ -774,6 +774,20 @@ app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
             return res.status(400).json({ error: 'userId and collegeName are required' });
         }
 
+        // 1. Verify User is Premium
+        const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('is_premium, is_beta')
+            .eq('id', userId)
+            .single();
+
+        if (!userProfile?.is_premium && !userProfile?.is_beta) {
+            return res.status(403).json({
+                error: 'Premium feature restricted',
+                message: 'Deep Intelligence Reports are exclusive to Waypoint Pro members. Please upgrade in Settings.'
+            });
+        }
+
         // Check Cache
         const cacheKey = `deep_research_${collegeName.toLowerCase().trim()}`;
         const cached = apiCache.get(cacheKey);

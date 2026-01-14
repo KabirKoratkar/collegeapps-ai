@@ -184,7 +184,10 @@ function setupEventListeners() {
 async function handleUpgrade() {
     const upgradeBtn = document.getElementById('upgradeBtn');
     const originalText = upgradeBtn.textContent;
-    const isPremium = upgradeBtn.textContent === 'Manage Plan';
+
+    // Fetch latest profile to be sure
+    const profile = await getUserProfile(currentUser.id);
+    const isPremium = profile?.is_premium;
 
     try {
         upgradeBtn.disabled = true;
@@ -218,12 +221,20 @@ async function handleUpgrade() {
     }
 }
 
-function checkPaymentStatus() {
+async function checkPaymentStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
 
     if (paymentStatus === 'success') {
         showNotification('🎉 Welcome to Waypoint Pro! Your account has been upgraded.', 'success');
+
+        // Wait a bit for the webhook to potentially finish and then refresh data
+        setTimeout(async () => {
+            const profile = await getUserProfile(currentUser.id);
+            await loadSettings(profile);
+            updateNavbarUser(currentUser, profile);
+        }, 1500);
+
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
     } else if (paymentStatus === 'cancel') {
