@@ -52,6 +52,77 @@
         </div>
     </nav>
 
+    <!-- Interactive Waypoint Map -->
+    <section class="map-section" style="padding-top: var(--space-xl); padding-bottom: 0;">
+        <div class="container">
+            <div class="map-container" id="interactiveMap" style="margin-top: 0; height: 320px;">
+                <div class="cursor-reveal" id="cursorReveal"></div>
+                <div class="map-path"></div>
+
+                <!-- Point 1 -->
+                <div class="map-wrapper wrapper-1">
+                    <div class="map-point"></div>
+                    <div class="map-content" style="bottom: 40px;">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">1. Discovery</h4>
+                        <p style="margin: 0; font-size: 11px;">Search thousands of colleges and find your perfect match.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Point 2 -->
+                <div class="map-wrapper wrapper-2">
+                    <div class="map-point"></div>
+                    <div class="map-content" style="bottom: 40px;">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">2. Strategy</h4>
+                        <p style="margin: 0; font-size: 11px;">Generate a custom tactical plan for your goals.</p>
+                    </div>
+                </div>
+
+                <!-- Point 3 -->
+                <div class="map-wrapper wrapper-3">
+                    <div class="map-point"></div>
+                    <div class="map-content" style="bottom: 40px;">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">3. Narration</h4>
+                        <p style="margin: 0; font-size: 11px;">Draft compelling essays with conceptual AI feedback.</p>
+                    </div>
+                </div>
+
+                <!-- Point 4 -->
+                <div class="map-wrapper wrapper-4">
+                    <div class="map-point"></div>
+                    <div class="map-content" style="bottom: 40px;">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">4. Execution</h4>
+                        <p style="margin: 0; font-size: 11px;">Track every deadline and task with precision.</p>
+                    </div>
+                </div>
+
+                <!-- Point 5 -->
+                <div class="map-wrapper wrapper-5">
+                    <div class="map-point"></div>
+                    <div class="map-content" style="bottom: 40px;">
+                        <h4 style="color: var(--primary-blue); font-weight: 800;">5. Acceptance</h4>
+                        <p style="margin: 0; font-size: 11px;">Submit with confidence and get accepted.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const map = document.getElementById('interactiveMap');
+        const reveal = document.getElementById('cursorReveal');
+
+        if (map && reveal) {
+            map.addEventListener('mousemove', (e) => {
+                const rect = map.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                reveal.style.left = `${x}px`;
+                reveal.style.top = `${y}px`;
+            });
+        }
+    </script>
+
     <!-- Hero Section -->
     <section class="hero" style="text-align: left; padding: var(--space-4xl) 0;">
         <div class="container hero-grid"
@@ -130,82 +201,7 @@
         </div>
     </section>
 
-    <!-- Interactive Waypoint Map -->
-    <section class="map-section">
-        <div class="container">
-            <h2 class="section-title">Your Journey to Acceptance</h2>
-            <p class="section-subtitle">Hover over each waypoint to reveal your path.</p>
 
-            <div class="map-container" id="interactiveMap">
-                <div class="cursor-reveal" id="cursorReveal"></div>
-                <div class="map-path"></div>
-
-                <!-- Point 1 -->
-                <div class="map-wrapper wrapper-1">
-                    <div class="map-point"></div>
-                    <div class="map-content">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">1. Discovery</h4>
-                        <p style="margin: 0;">Search thousands of colleges and find your perfect match with AI research.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Point 2 -->
-                <div class="map-wrapper wrapper-2">
-                    <div class="map-point"></div>
-                    <div class="map-content">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">2. Strategy</h4>
-                        <p style="margin: 0;">Generate a custom tactical plan based on your background and goals.</p>
-                    </div>
-                </div>
-
-                <!-- Point 3 -->
-                <div class="map-wrapper wrapper-3">
-                    <div class="map-point"></div>
-                    <div class="map-content">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">3. Narration</h4>
-                        <p style="margin: 0;">Draft compelling essays with conceptual AI feedback in your dedicated
-                            workspace.</p>
-                    </div>
-                </div>
-
-                <!-- Point 4 -->
-                <div class="map-wrapper wrapper-4">
-                    <div class="map-point"></div>
-                    <div class="map-content">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">4. Execution</h4>
-                        <p style="margin: 0;">Track every deadline and task with precision. Never miss a single
-                            document.</p>
-                    </div>
-                </div>
-
-                <!-- Point 5 -->
-                <div class="map-wrapper wrapper-5">
-                    <div class="map-point"></div>
-                    <div class="map-content">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">5. Acceptance</h4>
-                        <p style="margin: 0;">Submit with confidence, knowing every detail has been verified and
-                            planned.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <script>
-        const map = document.getElementById('interactiveMap');
-        const reveal = document.getElementById('cursorReveal');
-
-        if (map && reveal) {
-            map.addEventListener('mousemove', (e) => {
-                const rect = map.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                reveal.style.left = `${x}px`;
-                reveal.style.top = `${y}px`;
-            });
-        }
-    </script>
 
     <!-- Testimonials -->
     <section class="py-3xl">
