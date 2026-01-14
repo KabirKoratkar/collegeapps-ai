@@ -68,70 +68,63 @@
                 </div>
             </div>
             <div class="hero-image reveal-right">
-                <img src="assets/logo.png" alt="Waypoint 3D Icon"
-                    style="width: 80%; max-width: 400px; display: block; margin: 0 auto; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1));">
-                <div
-                    style="position: absolute; top: 10%; left: 10%; width: 100px; height: 100px; background: var(--gradient-primary); filter: blur(60px); opacity: 0.2; z-index: -1;">
-                </div>
-            </div>
-        </div>
-    </section>
+                <div class="map-container hero-map" id="interactiveMap"
+                    style="height: 320px; width: 100%; border: none; background: transparent; box-shadow: none; backdrop-filter: none;">
+                    <div class="cursor-reveal" id="cursorReveal"></div>
+                    <div class="map-path"></div>
 
-    <!-- Interactive Waypoint Map -->
-    <section class="map-section reveal" style="padding: var(--space-2xl) 0;">
-        <div class="container">
-            <div class="map-container" id="interactiveMap" style="margin-top: 0; height: 320px;">
-                <div class="cursor-reveal" id="cursorReveal"></div>
-                <div class="map-path"></div>
-
-                <!-- Point 1 -->
-                <div class="map-wrapper wrapper-1">
-                    <div class="map-point"></div>
-                    <div class="map-content" style="bottom: 40px;">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">1. Discovery</h4>
-                        <p style="margin: 0; font-size: 11px;">Search thousands of colleges and find your perfect match.
-                        </p>
+                    <!-- Point 1 -->
+                    <div class="map-wrapper wrapper-1">
+                        <div class="map-point"></div>
+                        <div class="map-content" style="bottom: 40px;">
+                            <h4 style="color: var(--primary-blue); font-weight: 800;">1. Discovery</h4>
+                            <p style="margin: 0; font-size: 11px;">Search thousands of colleges and find your perfect
+                                match.
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Point 2 -->
-                <div class="map-wrapper wrapper-2">
-                    <div class="map-point"></div>
-                    <div class="map-content" style="bottom: 40px;">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">2. Strategy</h4>
-                        <p style="margin: 0; font-size: 11px;">Generate a custom tactical plan for your goals.</p>
+                    <!-- Point 2 -->
+                    <div class="map-wrapper wrapper-2">
+                        <div class="map-point"></div>
+                        <div class="map-content" style="bottom: 40px;">
+                            <h4 style="color: var(--primary-blue); font-weight: 800;">2. Strategy</h4>
+                            <p style="margin: 0; font-size: 11px;">Generate a custom tactical plan for your goals.</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Point 3 -->
-                <div class="map-wrapper wrapper-3">
-                    <div class="map-point"></div>
-                    <div class="map-content" style="bottom: 40px;">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">3. Narration</h4>
-                        <p style="margin: 0; font-size: 11px;">Draft compelling essays with conceptual AI feedback.</p>
+                    <!-- Point 3 -->
+                    <div class="map-wrapper wrapper-3">
+                        <div class="map-point"></div>
+                        <div class="map-content" style="bottom: 40px;">
+                            <h4 style="color: var(--primary-blue); font-weight: 800;">3. Narration</h4>
+                            <p style="margin: 0; font-size: 11px;">Draft compelling essays with conceptual AI feedback.
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Point 4 -->
-                <div class="map-wrapper wrapper-4">
-                    <div class="map-point"></div>
-                    <div class="map-content" style="bottom: 40px;">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">4. Execution</h4>
-                        <p style="margin: 0; font-size: 11px;">Track every deadline and task with precision.</p>
+                    <!-- Point 4 -->
+                    <div class="map-wrapper wrapper-4">
+                        <div class="map-point"></div>
+                        <div class="map-content" style="bottom: 40px;">
+                            <h4 style="color: var(--primary-blue); font-weight: 800;">4. Execution</h4>
+                            <p style="margin: 0; font-size: 11px;">Track every deadline and task with precision.</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Point 5 -->
-                <div class="map-wrapper wrapper-5">
-                    <div class="map-point"></div>
-                    <div class="map-content" style="bottom: 40px;">
-                        <h4 style="color: var(--primary-blue); font-weight: 800;">5. Acceptance</h4>
-                        <p style="margin: 0; font-size: 11px;">Submit with confidence and get accepted.</p>
+                    <!-- Point 5 -->
+                    <div class="map-wrapper wrapper-5">
+                        <div class="map-point"></div>
+                        <div class="map-content" style="bottom: 40px;">
+                            <h4 style="color: var(--primary-blue); font-weight: 800;">5. Acceptance</h4>
+                            <p style="margin: 0; font-size: 11px;">Submit with confidence and get accepted.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
 
     <script>
         const map = document.getElementById('interactiveMap');
