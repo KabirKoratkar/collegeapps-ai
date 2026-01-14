@@ -498,3 +498,59 @@ a:hover {
 .animate-slide-in {
     animation: slideInRight 0.5s ease-out forwards;
 }
+
+/* SCROLL REVEAL ANIMATIONS */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+    will-change: transform, opacity;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal-left.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-right {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal-right.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Delay Helpers for Staggered Animations */
+.delay-100 {
+    transition-delay: 100ms !important;
+}
+
+.delay-200 {
+    transition-delay: 200ms !important;
+}
+
+.delay-300 {
+    transition-delay: 300ms !important;
+}
+
+.delay-400 {
+    transition-delay: 400ms !important;
+}
+
+.delay-500 {
+    transition-delay: 500ms !important;
+}

@@ -58,7 +58,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (currentPage === 'index.html' || currentPage === '' || currentPage === '/') {
         updateLandingNav();
     }
+
+    // Scroll Reveal Animation
+    initScrollReveal();
 });
+
+function initScrollReveal() {
+    const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                // Optional: Stop observing after it has revealed
+                // observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1, // Trigger when 10% of element is visible
+        rootMargin: '0px 0px -50px 0px' // Offset to trigger slightly before/after
+    });
+
+    revealElements.forEach(el => observer.observe(el));
+}
+
 
 
 async function updateLandingNav() {
