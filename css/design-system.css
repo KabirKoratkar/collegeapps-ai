@@ -502,15 +502,16 @@ a:hover {
 /* SCROLL REVEAL ANIMATIONS */
 .reveal {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(30px) scale(0.98);
     transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
     will-change: transform, opacity;
 }
 
 .reveal.active {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
+
 
 .reveal-left {
     opacity: 0;
