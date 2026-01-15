@@ -2,15 +2,24 @@
 
 // Immediate Theme Initialization (to prevent FLASH)
 (function () {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+        // Auto-detect system settings
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', systemTheme);
+    }
 })();
 
 // Mobile Menu Toggle
 document.addEventListener('DOMContentLoaded', function () {
-    // Theme consistency check
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    // Theme consistency check (ensure system preference changes update live if no manual override)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem('theme')) {
+            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        }
+    });
 
     const mobileToggle = document.getElementById('mobileToggle');
     const navLinks = document.querySelector('.navbar-links');
@@ -20,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function () {
             navLinks.classList.toggle('active');
         });
     }
+
+    // Interactive Hero Map Logic
+    initHeroMapInteraction();
 
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -61,15 +73,58 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Scroll Reveal Animation
     initScrollReveal();
-
-    // Trigger SVG animation after a short delay or on reveal
-    const drawingPath = document.getElementById('drawingPath');
-    if (drawingPath) {
-        setTimeout(() => {
-            drawingPath.classList.add('animate');
-        }, 800);
-    }
 });
+
+/**
+ * Interactive Hero Map Scaling and Coloring
+ */
+function initHeroMapInteraction() {
+    const map = document.getElementById('interactiveMap');
+    const drawingPath = document.getElementById('drawingPath');
+    const container = document.querySelector('.hero-map');
+
+    if (!map || !drawingPath) return;
+
+    // Initial Path Measurement
+    const pathLength = 2000; // Static estimate for 400x600 curve
+    drawingPath.style.strokeDasharray = pathLength;
+    drawingPath.style.strokeDashoffset = pathLength;
+
+    // Drawing Animation on Load
+    setTimeout(() => {
+        drawingPath.style.transition = 'stroke-dashoffset 2.5s cubic-bezier(0.19, 1, 0.22, 1)';
+        drawingPath.style.strokeDashoffset = '0';
+    }, 800);
+
+    // Mouse Interaction
+    map.addEventListener('mousemove', (e) => {
+        const rect = map.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const scrollFactor = Math.min(Math.max(y / rect.height, 0), 1);
+
+        // Update Cursor Reveal
+        const reveal = document.getElementById('cursorReveal');
+        if (reveal) {
+            reveal.style.left = `${x}px`;
+            reveal.style.top = `${y}px`;
+        }
+
+        // Remove transitions for immediate tracking
+        drawingPath.style.transition = 'none';
+
+        // Color the line as we drag
+        // Note: 0 is fully drawn, pathLength is empty
+        const offset = pathLength * (1 - scrollFactor);
+        drawingPath.style.strokeDashoffset = offset;
+    });
+
+    // Reset or leave? Let's leave it drawn for "completion" feel
+    map.addEventListener('mouseleave', () => {
+        drawingPath.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(0.19, 1, 0.22, 1)';
+        drawingPath.style.strokeDashoffset = '0';
+    });
+}
 
 function initScrollReveal() {
     const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');

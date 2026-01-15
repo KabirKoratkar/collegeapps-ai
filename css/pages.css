@@ -1525,9 +1525,6 @@
     transition: stroke-dashoffset 3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animated-path.animate {
-    stroke-dashoffset: 0;
-}
 
 .map-wrapper {
     position: absolute;

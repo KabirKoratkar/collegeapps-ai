@@ -93,6 +93,7 @@
                     <div class="map-wrapper" style="left: 50px; top: 151px;">
                         <div class="map-point"></div>
                         <div class="map-content" style="left: 45px; top: 0;">
+                            <span class="node-icon">🔍</span>
                             <h4>1. Discovery</h4>
                             <p>Search thousands of colleges and find your perfect match with AI-powered search.</p>
                         </div>
@@ -102,6 +103,7 @@
                     <div class="map-wrapper" style="left: 350px; top: 351px;">
                         <div class="map-point"></div>
                         <div class="map-content" style="right: 45px; top: -40px; text-align: right;">
+                            <span class="node-icon">🎯</span>
                             <h4>2. Strategy</h4>
                             <p>Generate a custom tactical plan and timeline for your specific goals.</p>
                         </div>
@@ -111,6 +113,7 @@
                     <div class="map-wrapper" style="left: 100px; top: 550px;">
                         <div class="map-point"></div>
                         <div class="map-content" style="left: 45px; top: -60px;">
+                            <span class="node-icon">✍️</span>
                             <h4>3. Narration</h4>
                             <p>Draft compelling essays with real-time conceptual AI feedback.</p>
                         </div>
@@ -121,6 +124,7 @@
                         <div class="map-point"></div>
                         <div class="map-content"
                             style="bottom: 50px; left: 50%; transform: translateX(-50%); text-align: center; width: 280px;">
+                            <span class="node-icon">🎓</span>
                             <h4>4. Acceptance</h4>
                             <p>Submit your best possible application with total confidence.</p>
                         </div>
@@ -129,25 +133,6 @@
             </div>
         </div>
     </section>
-
-
-
-
-
-    <script>
-        const map = document.getElementById('interactiveMap');
-        const reveal = document.getElementById('cursorReveal');
-
-        if (map && reveal) {
-            map.addEventListener('mousemove', (e) => {
-                const rect = map.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                reveal.style.left = `${x}px`;
-                reveal.style.top = `${y}px`;
-            });
-        }
-    </script>
 
 
 
@@ -329,14 +314,17 @@
         </div>
     </section>
 
-    <section class="py-3xl" style="background: var(--gradient-primary); color: var(--white);">
+    <section class="py-3xl" style="background: var(--gradient-primary); color: var(--fixed-white);">
         <div class="container text-center">
-            <h2 style="color: var(--white); font-size: var(--text-4xl); margin-bottom: var(--space-lg);">Ready to Take
+            <h2 style="color: var(--fixed-white); font-size: var(--text-4xl); margin-bottom: var(--space-lg);">Ready to
+                Take
                 Control of Your Applications?</h2>
-            <p style="font-size: var(--text-xl); margin-bottom: var(--space-2xl); opacity: 0.95;">Join the students who
+            <p
+                style="font-size: var(--text-xl); margin-bottom: var(--space-2xl); opacity: 0.95; color: var(--fixed-white);">
+                Join the students who
                 are applying to college with confidence.</p>
             <a href="signup.html" class="btn btn-secondary btn-lg"
-                style="background: var(--white); color: var(--primary-blue);">Start Your Application Plan</a>
+                style="background: var(--fixed-white); color: var(--primary-blue);">Start Your Application Plan</a>
         </div>
     </section>
 
