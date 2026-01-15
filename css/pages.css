@@ -1441,6 +1441,10 @@
     opacity: 0.9;
 }
 
+.map-wrapper:hover {
+    z-index: 200;
+}
+
 .map-wrapper:hover .map-content {
     opacity: 1;
     visibility: visible;
