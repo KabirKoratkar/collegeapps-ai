@@ -69,20 +69,20 @@
             </div>
             <div class="hero-image reveal-right">
                 <div class="map-container hero-map" id="interactiveMap"
-                    style="height: 320px; width: 100%; border: none; background: transparent; box-shadow: none; backdrop-filter: none; position: relative; overflow: visible;">
+                    style="height: 550px; width: 100%; max-width: 450px; border: none; background: transparent; box-shadow: none; backdrop-filter: none; position: relative; overflow: visible; margin: 0 auto;">
                     <div class="cursor-reveal" id="cursorReveal"></div>
 
-                    <!-- Swirly SVG Line -->
-                    <svg class="map-swirly-svg" viewBox="0 0 1000 320" preserveAspectRatio="none"
+                    <!-- Vertical Swirly SVG Line -->
+                    <svg class="map-swirly-svg" viewBox="0 0 400 600" preserveAspectRatio="none"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
                         <path
-                            d="M 0 160 C 150 160, 150 260, 250 260 C 350 260, 400 60, 500 60 C 600 60, 650 260, 750 260 C 850 260, 850 160, 1000 160"
+                            d="M 200 0 C 200 50, 50 50, 50 150 C 50 250, 350 250, 350 350 C 350 450, 100 450, 100 550 C 100 570, 200 580, 200 600"
                             fill="transparent" stroke="var(--gray-200)" stroke-width="4" stroke-linecap="round" />
                         <path class="animated-path" id="drawingPath"
-                            d="M 0 160 C 150 160, 150 260, 250 260 C 350 260, 400 60, 500 60 C 600 60, 650 260, 750 260 C 850 260, 850 160, 1000 160"
+                            d="M 200 0 C 200 50, 50 50, 50 150 C 50 250, 350 250, 350 350 C 350 450, 100 450, 100 550 C 100 570, 200 580, 200 600"
                             fill="transparent" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" />
                         <defs>
-                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="var(--primary-blue)" />
                                 <stop offset="100%" stop-color="var(--primary-purple)" />
                             </linearGradient>
@@ -90,9 +90,9 @@
                     </svg>
 
                     <!-- Point 1 -->
-                    <div class="map-wrapper" style="left: 25%; top: 260px;">
+                    <div class="map-wrapper" style="left: 12.5%; top: 25%;">
                         <div class="map-point"></div>
-                        <div class="map-content" style="bottom: 40px;">
+                        <div class="map-content" style="left: 110%; transform: translateY(-50%); text-align: left;">
                             <h4 style="color: var(--primary-blue); font-weight: 800;">1. Discovery</h4>
                             <p style="margin: 0; font-size: 11px;">Search thousands of colleges and find your perfect
                                 match.</p>
@@ -100,18 +100,19 @@
                     </div>
 
                     <!-- Point 2 -->
-                    <div class="map-wrapper" style="left: 50%; top: 60px;">
+                    <div class="map-wrapper" style="left: 87.5%; top: 58.3%;">
                         <div class="map-point"></div>
-                        <div class="map-content" style="top: 40px; bottom: auto;">
+                        <div class="map-content"
+                            style="right: 110%; left: auto; transform: translateY(-50%); text-align: right;">
                             <h4 style="color: var(--primary-blue); font-weight: 800;">2. Strategy</h4>
                             <p style="margin: 0; font-size: 11px;">Generate a custom tactical plan for your goals.</p>
                         </div>
                     </div>
 
                     <!-- Point 3 -->
-                    <div class="map-wrapper" style="left: 75%; top: 260px;">
+                    <div class="map-wrapper" style="left: 25%; top: 91.6%;">
                         <div class="map-point"></div>
-                        <div class="map-content" style="bottom: 40px;">
+                        <div class="map-content" style="left: 110%; transform: translateY(-50%); text-align: left;">
                             <h4 style="color: var(--primary-blue); font-weight: 800;">3. Narration</h4>
                             <p style="margin: 0; font-size: 11px;">Draft compelling essays with conceptual AI feedback.
                             </p>
@@ -119,9 +120,9 @@
                     </div>
 
                     <!-- Point 4 -->
-                    <div class="map-wrapper" style="left: 100%; top: 160px;">
+                    <div class="map-wrapper" style="left: 50%; top: 100%;">
                         <div class="map-point"></div>
-                        <div class="map-content" style="bottom: 40px; transform: translateX(-100%) translateY(20px);">
+                        <div class="map-content" style="top: -60px; left: 50%; transform: translateX(-50%);">
                             <h4 style="color: var(--primary-blue); font-weight: 800;">4. Acceptance</h4>
                             <p style="margin: 0; font-size: 11px;">Submit with confidence and get accepted.</p>
                         </div>
@@ -130,6 +131,7 @@
             </div>
         </div>
     </section>
+
 
 
 
