@@ -50,10 +50,34 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Theme Toggle Logic
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+    }
+
+    function updateThemeIcon(theme) {
+        const icon = themeToggle?.querySelector('i');
+        if (icon) {
+            icon.className = theme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+        }
+    }
+
+    // Initialize Icon
+    updateThemeIcon(document.documentElement.getAttribute('data-theme'));
+
     // Theme Watcher (Sync with other tabs)
     window.addEventListener('storage', (e) => {
         if (e.key === 'theme') {
             document.documentElement.setAttribute('data-theme', e.newValue);
+            updateThemeIcon(e.newValue);
         }
     });
 

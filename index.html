@@ -30,25 +30,40 @@
             }
         })();
     </script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="container navbar-container">
+        <div class="navbar-container">
             <a href="index.html" class="navbar-logo">
-                <img src="assets/logo.png" alt="Waypoint Logo">
+                <img src="assets/logo.png" alt="Waypoint Logo" style="height: 32px;">
                 <span class="brand-text">Waypoint</span>
             </a>
+
             <ul class="navbar-links" id="navLinks">
-                <li><a href="#features" class="navbar-link">Features</a></li>
-                <li><a href="#how-it-works" class="navbar-link">How It Works</a></li>
-                <li><a href="#pricing" class="navbar-link">Pricing</a></li>
-                <li><a href="#faq" class="navbar-link">FAQ</a></li>
-                <li><a href="login.html" class="btn btn-ghost btn-sm">Login</a></li>
-                <li><a href="signup.html" class="btn btn-primary btn-sm">Get Started</a></li>
+                <li><a href="#features" class="navbar-link"><i class="ph ph-lightning nav-icon"></i>Features</a></li>
+                <li><a href="#how-it-works" class="navbar-link"><i class="ph ph-footprints nav-icon"></i>Process</a>
+                </li>
+                <li><a href="#pricing" class="navbar-link"><i class="ph ph-tag nav-icon"></i>Pricing</a></li>
+                <li><a href="dashboard.html" class="navbar-link"><i class="ph ph-layout nav-icon"></i>Dashboard</a></li>
             </ul>
-            <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
+
+            <div class="navbar-actions">
+                <button id="themeToggle" class="theme-toggle-btn">
+                    <i class="ph ph-moon"></i>
+                </button>
+                <div id="authActions" style="display: flex; gap: 10px;">
+                    <a href="login.html" class="navbar-link">Login</a>
+                    <a href="signup.html" class="btn btn-primary btn-sm" style="border-radius: 99px;">Get Started</a>
+                </div>
+            </div>
+
+            <button class="mobile-menu-toggle" id="mobileToggle">
+                <i class="ph ph-list"></i>
+            </button>
         </div>
     </nav>
 
