@@ -27,7 +27,7 @@ const auth0Config = {
 // Initialize Auth0 WebAuth
 let webAuth = null;
 if (typeof auth0 !== 'undefined') {
-    const currentRedirectUri = window.location.origin + (window.location.pathname.includes('/') ? '' : '/') + 'callback.html';
+    const currentRedirectUri = window.location.origin + '/callback.html';
     console.log('[AUTH] Initializing Auth0 with Redirect URI:', currentRedirectUri);
 
     webAuth = new auth0.WebAuth({
