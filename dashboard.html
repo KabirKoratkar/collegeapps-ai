@@ -35,24 +35,21 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="container navbar-container">
+        <div class="navbar-container">
             <a href="dashboard.html" class="navbar-logo">
-                <img src="assets/logo.png" alt="Waypoint Logo">
-                <span class="brand-text">Waypoint</span>
+                <img src="assets/logo.png" alt="Waypoint Logo" style="height: 24px;">
+
             </a>
             <ul class="navbar-links">
                 <li><a href="dashboard.html" class="navbar-link active">Dashboard</a></li>
                 <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
                 <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
-
                 <li><a href="colleges.html" class="navbar-link">Colleges</a></li>
                 <li><a href="essays.html" class="navbar-link">Essays</a></li>
                 <li><a href="documents.html" class="navbar-link">Documents</a></li>
                 <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
-                <li><a href="settings.html" class="navbar-link">Settings</a></li>
                 <li id="user-nav-item"><span class="badge badge-primary" id="user-badge">User</span></li>
             </ul>
-            <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
         </div>
     </nav>
 
@@ -61,13 +58,13 @@
         <!-- Header -->
         <div class="dashboard-hero-container">
             <div class="dashboard-hero-content">
-                <div class="flex-between flex-wrap gap-lg">
+                <div class="flex-between flex-wrap gap-lg" style="align-items: center;">
                     <div>
                         <h1 class="dashboard-greeting" id="greeting">Good morning! 🌟</h1>
                         <p class="dashboard-date" id="currentDate">Loading date...</p>
                     </div>
                     <div id="aiStatsBreakdown" class="hero-stats-badge">
-                        <!-- Injected by JS -->
+                        <!-- Injected by js/dashboard.js -->
                     </div>
                 </div>
 
@@ -94,127 +91,90 @@
                 </div>
             </div>
         </div>
-
-        <!-- Dashboard Grid -->
+        <!-- Dashboard Grid: Tasks & Deadlines Side-by-Side -->
         <div class="dashboard-grid">
-            <!-- Main Column -->
-            <div>
-                <!-- Today's Tasks -->
-                <div class="card mb-xl">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
-                        <h2 style="font-size: var(--text-2xl); font-weight: 700;">Today's Tasks</h2>
-                        <span class="badge badge-primary">3 tasks</span>
-                    </div>
-
-                    <div class="task-card">
-                        <h3 class="task-title">Finish Common App Essay Draft</h3>
-                        <div class="task-meta">
-                            <span>📝 Essay</span>
-                            <span>⏰ Due in 2 days</span>
-                        </div>
-                    </div>
-
-                    <div class="task-card" style="border-color: var(--accent-purple);">
-                        <h3 class="task-title">Review Stanford Supplemental Prompts</h3>
-                        <div class="task-meta">
-                            <span>🎓 Stanford</span>
-                            <span>⏰ Due in 5 days</span>
-                        </div>
-                    </div>
-
-                    <div class="task-card" style="border-color: var(--success);">
-                        <h3 class="task-title">Upload Transcript to Document Vault</h3>
-                        <div class="task-meta">
-                            <span>📄 Document</span>
-                            <span>⏰ Due today</span>
-                        </div>
-                    </div>
+            <!-- Left Column: Tasks -->
+            <div id="tasks-column">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700; margin: 0;">Today's Tasks</h2>
+                    <div id="task-count-badge"
+                        style="background: rgba(96, 165, 250, 0.1); color: var(--primary-blue); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700;">
+                        0 tasks</div>
                 </div>
 
-
+                <div id="premium-tasks-container">
+                    <!-- Dynamically populated by js/dashboard.js -->
+                    <div class="task-card-premium">
+                        <div class="task-info-group">
+                            <div class="task-title-premium">Finish Common App Essay Draft</div>
+                            <div class="task-meta-premium">
+                                <span>📝 Essay</span>
+                                <span>⏰ Due in 2 days</span>
+                            </div>
+                        </div>
+                        <div class="tag-premium">HIGH</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Sidebar -->
-            <div>
-                <!-- Deadline Countdown -->
-                <div class="deadline-card mb-xl">
-                    <div class="deadline-days">15</div>
-                    <div class="deadline-label">Days Until UC Application Deadline</div>
+            <!-- Right Column: Deadlines -->
+            <div id="deadlines-column">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700;">Deadlines</h2>
                 </div>
 
-                <div class="deadline-card mb-xl" style="background: linear-gradient(135deg, #5B8DEE 0%, #8B7BF7 100%);">
-                    <div class="deadline-days">48</div>
-                    <div class="deadline-label">Days Until Regular Decision Deadlines</div>
+                <div id="premium-deadlines-container">
+                    <!-- Dynamically populated by js/dashboard.js -->
+                    <div class="status-card-premium">
+                        <div class="status-card-title">UPCOMING</div>
+                        <div class="status-card-subtitle">UC Application Deadline in 15 days</div>
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Progress Widgets -->
-                <div class="progress-widget mb-md">
+        <!-- NEW: Progress Section Below -->
+        <div class="mt-2xl">
+            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Progress Tracking</h2>
+            <div class="grid grid-3 gap-xl">
+                <div class="progress-widget">
                     <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">Essays
                         Progress</h3>
                     <div class="progress-label">
                         <span>Completed</span>
-                        <span>4/12</span>
+                        <span>0/0</span>
                     </div>
                     <div class="progress-bar progress-lg">
-                        <div class="progress-fill" style="width: 33%;"></div>
-                    </div>
-                </div>
-
-                <div class="progress-widget mb-md">
-                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">Tasks
-                        Completed</h3>
-                    <div class="progress-label">
-                        <span>Completed</span>
-                        <span>18/27</span>
-                    </div>
-                    <div class="progress-bar progress-lg">
-                        <div class="progress-fill" style="width: 67%;"></div>
+                        <div class="progress-fill" style="width: 0%;"></div>
                     </div>
                 </div>
 
                 <div class="progress-widget">
-                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">
-                        Application
-                        Progress</h3>
+                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">Tasks
+                        Completed</h3>
                     <div class="progress-label">
                         <span>Completed</span>
-                        <span>5/8</span>
+                        <span>0/0</span>
                     </div>
                     <div class="progress-bar progress-lg">
-                        <div class="progress-fill" style="width: 62.5%;"></div>
+                        <div class="progress-fill" style="width: 0%;"></div>
                     </div>
                 </div>
 
-                <!-- Quick Links -->
-                <div class="card glass-card mt-xl" style="background: var(--surface); padding: var(--space-xl);">
-                    <h3
-                        style="font-size: var(--text-xl); font-weight: 800; margin-bottom: var(--space-xl); display: flex; align-items: center; gap: 8px;">
-                        <span style="color: var(--primary-blue);">⚡</span> Quick Navigation
-                    </h3>
-                    <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-sm);">
-                        <a href="analytics.html" class="nav-btn-premium">
-                            <span class="btn-icon">📊</span>
-                            <span class="btn-text">Analytics Intelligence</span>
-                        </a>
-                        <a href="essays.html" class="nav-btn-premium">
-                            <span class="btn-icon">✍️</span>
-                            <span class="btn-text">Essay Workspace</span>
-                        </a>
-                        <a href="documents.html" class="nav-btn-premium">
-                            <span class="btn-icon">📁</span>
-                            <span class="btn-text">Document Vault</span>
-                        </a>
-                        <a href="ai-counselor.html" class="nav-btn-premium">
-                            <span class="btn-icon">🤖</span>
-                            <span class="btn-text">Ask AI Counselor</span>
-                        </a>
+                <div class="progress-widget">
+                    <h3 style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-md);">Application
+                        Progress</h3>
+                    <div class="progress-label">
+                        <span>Completed</span>
+                        <span>0% AVG</span>
+                    </div>
+                    <div class="progress-bar progress-lg">
+                        <div class="progress-fill" style="width: 0%;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <footer class="footer"
         style="padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 1px solid var(--border);">
 
@@ -232,6 +192,7 @@
 
     <script src="js/main.js"></script>
     <script type="module" src="js/dashboard.js"></script>
+    <script src="js/intel-hud.js"></script>
 </body>
 
 </html>

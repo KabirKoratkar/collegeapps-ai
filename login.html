@@ -29,6 +29,8 @@
             }
         })();
     </script>
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
 </head>
 
 <body>
@@ -46,6 +48,11 @@
             <button class="google-btn">
                 <span style="font-size: 1.5rem;">🔐</span>
                 Continue with Google
+            </button>
+
+            <button id="auth0Btn" class="google-btn auth0">
+                <span style="font-size: 1.5rem;">🛡️</span>
+                Continue with Auth0
             </button>
 
             <div class="divider-text">or log in with email</div>

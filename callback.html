@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Logging you in...</title>
+    <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="text-align: center;">
+        <h2>Authenticating...</h2>
+        <p>Please wait while we sync your session.</p>
+    </div>
+    <script>
+        const webAuth = new auth0.WebAuth({
+            domain: 'dev-n13i1lem6bavwrux.us.auth0.com',
+            clientID: 'Qa6ucqRUQu3xZfQvZ30DI0xkWQfq54Ul'
+        });
+
+        const statusEl = document.querySelector('h2');
+        const detailEl = document.querySelector('p');
+
+        webAuth.parseHash(function (err, authResult) {
+            console.log('Auth0 Response:', { err, authResult });
+
+            if (authResult && authResult.accessToken && authResult.idToken) {
+                statusEl.textContent = 'Identity Verified!';
+                detailEl.textContent = 'Syncing your Waypoint intelligence profile...';
+
+                // Set tokens
+                const expiresAt = JSON.stringify((authResult.expiresIn * 1000) + new Date().getTime());
+                localStorage.setItem('access_token', authResult.accessToken);
+                localStorage.setItem('id_token', authResult.idToken);
+                localStorage.setItem('expires_at', expiresAt);
+
+                // MOCK SESSION BRIDGE: Convert Auth0 Identity -> Waypoint Session
+                const userInfo = authResult.idTokenPayload || {};
+                const mockUser = {
+                    id: 'auth0-' + (userInfo.sub || Date.now()),
+                    email: userInfo.email || 'enterprise-user@organization.com',
+                    full_name: userInfo.name || userInfo.nickname || 'Enterprise User',
+                    created_at: new Date().toISOString(),
+                    is_premium: true
+                };
+
+                localStorage.setItem('dev_user', JSON.stringify(mockUser));
+                console.log('Session Bridged:', mockUser);
+
+                // Final jump to dashboard
+                window.location.hash = '';
+                setTimeout(() => {
+                    window.location.assign('dashboard.html');
+                }, 800);
+            } else {
+                statusEl.textContent = 'Authentication Halted';
+                statusEl.style.color = '#ef4444';
+
+                if (err) {
+                    console.error('Auth0 Hash Error:', err);
+                    detailEl.innerHTML = `Error: <strong>${err.errorDescription || err.error}</strong><br><br>Redirecting back to login...`;
+                } else {
+                    console.warn('No tokens found');
+                    detailEl.textContent = 'Missing security tokens. Redirecting...';
+                }
+
+                setTimeout(() => {
+                    window.location.assign('login.html');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+
+</html>

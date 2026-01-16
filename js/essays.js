@@ -340,16 +340,19 @@ async function switchView(view) {
         if (sampleCard) sampleCard.style.display = 'none';
         if (strategyCard) strategyCard.style.display = 'none';
 
-        const activeNav = document.getElementById(`nav-${view}`);
         if (activeNav) activeNav.classList.add('active');
 
         const title = view === 'activities' ? 'Activity List' : 'Awards & Honors';
         document.getElementById('moduleTitle').textContent = title;
 
         await loadModuleData(view);
-        // Essay view
+    } else {
+        // Essay View
         editorContainer.style.display = 'block';
         moduleContainer.style.display = 'none';
+
+        if (sampleCard) sampleCard.style.display = 'block';
+        if (strategyCard) strategyCard.style.display = 'block';
     }
 }
 

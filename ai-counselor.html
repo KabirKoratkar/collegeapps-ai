@@ -34,10 +34,10 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="container navbar-container">
+        <div class="navbar-container">
             <a href="dashboard.html" class="navbar-logo">
-                <img src="assets/logo.png" alt="Waypoint Logo">
-                <span class="brand-text">Waypoint</span>
+                <img src="assets/logo.png" alt="Waypoint Logo" style="height: 24px;">
+
             </a>
             <ul class="navbar-links">
                 <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
@@ -47,7 +47,6 @@
                 <li><a href="essays.html" class="navbar-link">Essays</a></li>
                 <li><a href="documents.html" class="navbar-link">Documents</a></li>
                 <li><a href="ai-counselor.html" class="navbar-link active">AI Counselor</a></li>
-                <li><a href="settings.html" class="navbar-link">Settings</a></li>
                 <li id="user-nav-item"><span class="badge badge-primary" id="user-badge">User</span></li>
             </ul>
             <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
@@ -64,6 +63,29 @@
         </div>
 
         <div style="max-width: 900px; margin: 0 auto;">
+            <!-- Chat Controls -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding: 0 var(--space-md);">
+                <div style="display: flex; gap: var(--space-md);">
+                    <div id="modelToggle" class="btn-group"
+                        style="background: var(--gray-100); padding: 4px; border-radius: var(--radius-lg);">
+                        <button class="btn btn-sm btn-primary active" data-model="gpt">GPT-4o</button>
+                        <button class="btn btn-sm btn-ghost" data-model="claude"
+                            style="padding: 0.25rem 0.75rem;">Claude 3.5</button>
+                    </div>
+                    <button class="btn btn-sm" id="newChatBtn"
+                        style="border-radius: var(--radius-lg); padding: 0.25rem 1rem; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); color: #ffffff !important; font-weight: 700; font-size: 11px;">+
+                        NEW CHAT</button>
+                </div>
+                <div id="voiceIndicator"
+                    style="display: flex; align-items: center; gap: var(--space-xs); font-size: var(--text-xs); color: var(--gray-500);">
+                    <span>Voice: <strong>Rachel (ElevenLabs)</strong></span>
+                    <div class="voice-wave">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Chat Container -->
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
@@ -71,8 +93,14 @@
                     <div class="chat-message">
                         <div class="chat-avatar">AI</div>
                         <div class="chat-bubble">
-                            <p style="margin: 0; margin-bottom: var(--space-sm);"><strong>Hi Sarah! 👋</strong></p>
-                            <p style="margin: 0;">I'm your AI college counselor. I can help you with:</p>
+                            <div class="bubble-actions">
+                                <button class="btn-icon btn-sm tts-btn" title="Speak Response">🔊</button>
+                            </div>
+                            <p style="margin: 0; margin-bottom: var(--space-sm);"><strong>Hi there! 👋</strong></p>
+                            <p style="font-size: 10px; color: var(--gray-400); margin-bottom: var(--space-md);">Session
+                                secured by AWS Native Identity Protection</p>
+                            <p style="margin: 0;">I'm your AI college counselor, powered by AWS Cloud Intelligence. I
+                                can help you with:</p>
                             <ul style="margin: var(--space-sm) 0; padding-left: var(--space-lg);">
                                 <li>College requirements and deadlines</li>
                                 <li>Essay prompts and brainstorming</li>
@@ -95,6 +123,9 @@
                     <div class="chat-message">
                         <div class="chat-avatar">AI</div>
                         <div class="chat-bubble">
+                            <div class="bubble-actions">
+                                <button class="btn-icon btn-sm tts-btn" title="Speak Response">🔊</button>
+                            </div>
                             <p style="margin: 0; margin-bottom: var(--space-md);"><strong>Stanford Essay Requirements
                                     for 2025-2026:</strong></p>
 
@@ -126,7 +157,8 @@
                 </div>
 
                 <!-- Chat Input -->
-                <div class="chat-input-container">
+                <div class="chat-input-container"
+                    style="background: transparent; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                     <div class="chat-suggestions" id="suggestions">
                         <div class="suggestion-chip">What essays does Stanford require?</div>
                         <div class="suggestion-chip">How many PIQs for UC?</div>
@@ -135,10 +167,32 @@
                     </div>
 
                     <div class="chat-input-wrapper">
+                        <button class="btn-icon" id="voiceModeBtn" title="Start Voice Mode"
+                            style="background: rgba(255,255,255,0.05); border-radius: 50%; width: 44px; height: 44px; font-size: 20px; transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.1);">🎙️</button>
                         <input type="text" class="input" id="chatInput"
-                            placeholder="Ask me anything about college applications...">
-                        <button class="btn btn-primary">Send</button>
+                            placeholder="Ask me anything about college applications..."
+                            style="background: rgba(255,255,255,0.05); color: #ffffff !important; border: 1px solid rgba(255,255,255,0.1); height: 48px; font-size: 15px;">
+                        <button class="btn btn-primary" id="sendBtn"
+                            style="height: 48px; padding: 0 24px; font-weight: 700;">Send</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Full Screen Voice Mode Overlay -->
+            <div id="voiceOverlay" class="voice-overlay" style="display: none;">
+                <div class="voice-overlay-content">
+                    <div class="voice-status" id="voiceStatus">Listening...</div>
+                    <div class="voice-visualizer">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </div>
+                    <div class="voice-transcript" id="voiceTranscript">"What do I need for Stanford?"</div>
+                    <button id="closeVoiceMode" class="btn btn-outline"
+                        style="color: white; border-color: white; margin-top: 40px;">End Conversation</button>
                 </div>
             </div>
 
@@ -181,6 +235,7 @@
 
     <script src="js/main.js"></script>
     <script type="module" src="js/ai-counselor.js"></script>
+    <script src="js/intel-hud.js"></script>
 </body>
 
 </html>

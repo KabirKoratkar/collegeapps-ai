@@ -1,4 +1,4 @@
-import { getCurrentUser, getUserProfile, upsertProfile, supabase } from './supabase-config.js';
+import { getCurrentUser, getUserProfile, upsertProfile, supabase, addCollege } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 import config from './config.js';
 
@@ -34,8 +34,15 @@ async function loadSettings(profile = null) {
     }
 
     // Theme Setting
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    document.getElementById('darkModeToggle').checked = (currentTheme === 'dark');
+    // Theme Setting
+    const localTheme = localStorage.getItem('theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const currentAttribute = document.documentElement.getAttribute('data-theme');
+
+    // logic: if explicitly 'dark' in storage OR attribute, OR nosave+system=dark
+    const isDark = (localTheme === 'dark') || (currentAttribute === 'dark') || (!localTheme && systemDark);
+
+    document.getElementById('darkModeToggle').checked = isDark;
 
     // Profile Settings
     document.getElementById('profName').value = profile.full_name || '';
@@ -146,6 +153,36 @@ function setupEventListeners() {
             syncBtn.innerHTML = originalText;
         }
     });
+
+    // Seed Demo Data
+    const seedBtn = document.getElementById('seedDemoDataBtn');
+    if (seedBtn) {
+        seedBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+            const originalText = seedBtn.innerHTML;
+            seedBtn.disabled = true;
+            seedBtn.innerHTML = '<span class="loading-spinner"></span> Seeding... DO NOT CLOSE';
+
+            try {
+                showNotification('Adding Stanford University...', 'info');
+                await addCollege(currentUser.id, 'Stanford University', 'Reach');
+
+                showNotification('Adding University of Michigan...', 'info');
+                await addCollege(currentUser.id, 'University of Michigan', 'Target');
+
+                showNotification('Adding UC Berkeley...', 'info');
+                await addCollege(currentUser.id, 'University of California, Berkeley', 'Reach');
+
+                showNotification('✅ Demo data populated! Refreshing...', 'success');
+                setTimeout(() => window.location.reload(), 2000);
+            } catch (e) {
+                console.error(e);
+                showNotification('Error seeding: ' + e.message, 'error');
+                seedBtn.disabled = false;
+                seedBtn.innerHTML = originalText;
+            }
+        });
+    }
 
     // Theme Toggle
     document.getElementById('darkModeToggle').addEventListener('change', (e) => {

@@ -36,7 +36,7 @@
         <div class="container navbar-container">
             <a href="dashboard.html" class="navbar-logo">
                 <img src="assets/logo.png" alt="Waypoint Logo">
-                <span class="brand-text">Waypoint</span>
+
             </a>
             <ul class="navbar-links">
                 <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
@@ -46,7 +46,6 @@
                 <li><a href="essays.html" class="navbar-link">Essays</a></li>
                 <li><a href="documents.html" class="navbar-link">Documents</a></li>
                 <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
-                <li><a href="settings.html" class="navbar-link active">Settings</a></li>
                 <li id="user-nav-item"><span class="badge badge-primary" id="user-badge">User</span></li>
             </ul>
             <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
@@ -65,8 +64,7 @@
         <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--space-2xl);">
             <!-- Sidebar Tabs -->
             <aside>
-                <div class="card card-compact"
-                    style="padding: var(--space-sm); position: sticky; top: var(--space-xl);">
+                <div class="card card-compact" style="padding: var(--space-sm); position: sticky; top: 110px;">
                     <button class="settings-tab active" data-tab="strategy">
                         <span style="font-size: 1.2rem;">🗓️</span>
                         Planner Strategy
@@ -277,6 +275,14 @@
                                 <span style="font-size: 1.2rem; margin-right: 8px;">📄</span> Terms of Service
                             </a>
                         </div>
+                    </div>
+
+                    <div class="card mb-xl" style="padding: var(--space-xl); border: 1px dashed var(--primary-blue);">
+                        <h3 class="mb-lg" style="color: var(--primary-blue);">💎 Hackathon Demo Tools</h3>
+                        <p style="color: var(--gray-600); margin-bottom: var(--space-md);">Quickly populate your account
+                            with sample data for demonstration purposes.</p>
+                        <button id="seedDemoDataBtn" class="btn btn-primary" style="width: 100%;">⚡ Populate Demo
+                            Colleges & Schedule</button>
                     </div>
 
                     <div class="card" style="padding: var(--space-xl);">

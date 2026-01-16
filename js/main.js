@@ -209,8 +209,30 @@ async function updateLandingNav() {
                 <li><a href="#features" class="navbar-link">Features</a></li>
                 <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
                 <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
-                <li><a href="dashboard.html" class="btn btn-primary btn-sm">Go to Dashboard</a></li>
             `;
+            const actions = document.querySelector('.navbar-actions');
+            if (actions) {
+                // Keep the theme toggle but show dashboard button
+                const toggle = document.getElementById('themeToggle')?.outerHTML || '';
+                actions.innerHTML = `
+                    ${toggle}
+                    <a href="dashboard.html" class="btn btn-primary btn-sm" style="border-radius: 99px;">Go to Dashboard</a>
+                `;
+                // Re-init theme toggle listener if replaced
+                setTimeout(() => {
+                    const newToggle = document.getElementById('themeToggle');
+                    if (newToggle) {
+                        newToggle.addEventListener('click', () => {
+                            const currentTheme = document.documentElement.getAttribute('data-theme');
+                            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                            document.documentElement.setAttribute('data-theme', newTheme);
+                            localStorage.setItem('theme', newTheme);
+                            const icon = newToggle.querySelector('i');
+                            if (icon) icon.className = newTheme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+                        });
+                    }
+                }, 100);
+            }
         }
     } catch (e) {
         console.log('Not in module context or Supabase not ready');

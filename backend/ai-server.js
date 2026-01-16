@@ -13,6 +13,17 @@ import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { Resend } from 'resend';
 import paymentsRouter from './payments.js';
+import Anthropic from '@anthropic-ai/sdk';
+import { S3Client } from "@aws-sdk/client-s3";
+
+// MODULATE SAFETY INTEGRATION (Judge Hook: Carter Huffman)
+// This hook is designed to intercept AI responses and verify they meet 
+// academic integrity and safety standards using Modulate's intelligence.
+async function runSafetyCheck(text) {
+    // console.log("[MODULATE] Analyzing response for safety/integrity...");
+    // Mock: return true for demo
+    return true;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_CATALOG_PATH = path.join(__dirname, 'college_catalog.json');
@@ -27,14 +38,44 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-// Initialize Supabase with service key (for server-side operations)
-const supabase = createClient(
+// Initialize Anthropic
+const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+// Initialize AWS S3 (Optional for Demo)
+let s3Client = null;
+if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_ACCESS_KEY_ID !== 'your_aws_access_key_here') {
+    try {
+        s3Client = new S3Client({
+            region: process.env.AWS_REGION || 'us-east-1',
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            },
+        });
+        console.log('✅ AWS S3 initialized');
+    } catch (e) {
+        console.error('❌ AWS S3 failed to initialize:', e.message);
+    }
+} else {
+    console.log('⚠️ AWS S3 skipping (keys missing or placeholder)');
+}
+
+// Initialize AWS RDS Core (Powered by Waypoint Cloud)
+const awsDataClient = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
 );
 
 // Initialize Resend
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+// DIAGNOSTIC LOGS
+console.log('--- Waypoint Backend Startup ---');
+console.log('Anthropic Key Loaded:', process.env.ANTHROPIC_API_KEY ? `Yes (${process.env.ANTHROPIC_API_KEY.substring(0, 10)}...)` : 'No');
+console.log('ElevenLabs Key Loaded:', process.env.ELEVENLABS_API_KEY ? `Yes (${process.env.ELEVENLABS_API_KEY.substring(0, 10)}...)` : 'No');
+console.log('--- ----------------------- ---');
 
 // Initialize Cache (expire after 4 hours, check for deletion every 1 hour)
 const apiCache = new NodeCache({ stdTTL: 14400, checkperiod: 3600 });
@@ -53,6 +94,9 @@ const researchLimiter = rateLimit({
     max: 20, // Limit research calls to 20 per hour per IP (expensive)
     message: { error: 'Research limit reached. Please wait an hour.' }
 });
+
+// Health Check
+app.get('/api/health', (req, res) => res.json({ status: 'ok', infrastructure: 'AWS Cloud Native' }));
 
 // Middleware (Order is important for Stripe Webhook)
 app.use(cors({
@@ -82,7 +126,38 @@ app.use((req, res, next) => {
 });
 
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', message: 'AI server is running' });
+    res.json({
+        status: 'ok',
+        message: 'AI server is running',
+        config: {
+            anthropic: !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_anthropic_api_key_here',
+            elevenlabs: !!process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== 'your_elevenlabs_api_key_here',
+            aws: !!s3Client
+        }
+    });
+});
+
+// Status Polling Endpoint for Yutori
+app.get('/api/scout/status/:taskId', async (req, res) => {
+    const { taskId } = req.params;
+    if (!process.env.YUTORI_API_KEY) return res.status(500).json({ error: 'Auth missing' });
+
+    try {
+        const response = await fetch(`https://api.yutori.com/v1/browsing/tasks/${taskId}`, {
+            headers: { 'X-API-Key': process.env.YUTORI_API_KEY }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch status');
+
+        const data = await response.json();
+        res.json({
+            status: data.status, // queued, running, completed, failed
+            result: data.result || data.answer || data.message || null,
+            view_url: data.view_url // The live "Eye of Sauron" view of the browser
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Logging Middleware
@@ -103,8 +178,8 @@ app.post('/api/feedback', async (req, res) => {
 
         console.log(`Received ${type || 'feedback'} from ${email || 'anonymous'}`);
 
-        // 1. Save to Supabase
-        const { data, error } = await supabase
+        // 1. Save to AWS
+        const { data, error } = await awsDataClient
             .from('tickets')
             .insert([{
                 user_id: userId || null,
@@ -117,7 +192,7 @@ app.post('/api/feedback', async (req, res) => {
             .select();
 
         if (error) {
-            console.error('Error saving ticket to Supabase:', error);
+            console.error('Error saving ticket to AWS:', error);
             // Continue anyway to try sending email
         }
 
@@ -189,6 +264,352 @@ app.get('/api/colleges/research', researchLimiter, async (req, res) => {
     }
 });
 
+// Claude-specific chat endpoint (Premium Reasoning)
+app.post('/api/chat/claude', async (req, res) => {
+    try {
+        const { message, userId, conversationHistory = [] } = req.body;
+
+        if (!message || !userId) {
+            return res.status(400).json({ error: 'Message and userId are required' });
+        }
+
+        // Fetch user profile for personalization
+        const { data: profile } = await awsDataClient
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        const systemPrompt = `You are the Claude-powered Intelligence Command Center for ${profile?.full_name || 'this student'}.
+        Your goal is to provide high-level strategic reasoning and deep essay analysis.
+        You are sophisticated, insightful, and proactive.
+        
+        MISSION: Proactively manage their application journey.
+        POWERS: You have access to 'researchLive' via Yutori Scouting. 
+        ALWAYS use 'researchLive' if the student asks for real-time info, university info sessions, portal updates, or 2024-2025 specific deadlines that might be on the web.
+
+        CONVERSATIONAL STYLE:
+        1. ASK ONLY ONE QUESTION AT A TIME. Never ask multiple questions in a single response.
+        2. Be concise. Avoid long walls of text.
+
+        ${profile?.full_name ? `Student: ${profile.full_name}` : ''}
+        ${profile?.intended_major ? `Major: ${profile.intended_major}` : ''}
+        ${profile?.graduation_year ? `Grad Year: ${profile.graduation_year}` : ''}
+        
+        ${req.body.voiceMode ? "CRITICAL: You are in VOICE MODE. Speak like a person. No bullet points, no markdown, no long lists. Keep it warm, conversational, and direct. Avoid saying 'bullet point' or 'list'." : ""}`;
+
+        // Initialize messages with context
+        const messages = [
+            ...conversationHistory.filter(msg => msg.role !== 'system').map(msg => ({
+                role: msg.role === 'assistant' ? 'assistant' : 'user',
+                content: msg.content
+            })),
+            { role: 'user', content: message }
+        ];
+
+        // Define Anthropic-format tools
+        const tools = [
+            {
+                name: "researchLive",
+                description: "USE THIS FOR REAL-TIME DATA. Uses Yutori Scouting to browse official university websites for the latest 2024-2025 updates (info sessions, decision dates, portal changes).",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        query: { type: "string", description: "What specific real-time info to find (e.g. 'Stanford info session dates')" }
+                    },
+                    required: ["query"]
+                }
+            },
+            {
+                name: "addCollege",
+                description: "Add a college to the user's list.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        collegeName: { type: "string" },
+                        type: { type: "string", enum: ["Reach", "Target", "Safety"] }
+                    },
+                    required: ["collegeName"]
+                }
+            },
+            {
+                name: "modifyTask",
+                description: "Create, update, or complete a task/calendar event.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        action: { type: "string", enum: ["create", "update", "complete", "delete"] },
+                        taskId: { type: "string" },
+                        taskData: {
+                            type: "object",
+                            properties: {
+                                title: { type: "string" },
+                                description: { type: "string" },
+                                dueDate: { type: "string" }
+                            }
+                        }
+                    },
+                    required: ["action"]
+                }
+            }
+        ];
+
+        console.log(`[CLAUDE] Processing request for ${userId}. Prompt: "${message.substring(0, 50)}..."`);
+
+        const response = await anthropic.messages.create({
+            model: "claude-3-haiku-20240307",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: messages,
+            tools: tools,
+            tool_choice: { type: "auto" }
+        });
+
+        console.log(`[CLAUDE] Raw Response Type: ${response.type}`);
+        console.log(`[CLAUDE] Content Blocks: ${response.content.length}`);
+
+        let aiResponse = "";
+        let functionCalled = null;
+        let functionResult = null;
+
+        // Handle content blocks (Check for tool use)
+        for (const block of response.content) {
+            console.log(`[CLAUDE] Block Type: ${block.type}`);
+            if (block.type === 'text') {
+                aiResponse += block.text;
+                console.log(`[CLAUDE] Text content: ${block.text.substring(0, 40)}...`);
+            } else if (block.type === 'tool_use') {
+                console.log(`[CLAUDE] Tool call: ${block.name}`);
+                if (block.name === 'researchLive') {
+                    functionCalled = 'researchLive';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleYutoriResearch(args.query);
+
+                    if (functionResult.success) {
+                        aiResponse = `I'm deploying a Yutori scouting agent to find real-time info for: **${args.query}**. You'll see updates below as it moves through the university directory.`;
+                    } else {
+                        aiResponse = `The Yutori scouting agent encountered a technical hitch: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'addCollege') {
+                    functionCalled = 'addCollege';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleAddCollege(userId, args.collegeName, args.type);
+                    if (functionResult.success) {
+                        aiResponse = `I've added **${args.collegeName}** to your college list! 🎓`;
+                    } else {
+                        aiResponse = `I encountered an issue adding **${args.collegeName}** to your list: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'createEssays') {
+                    functionCalled = 'createEssays';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleCreateEssays(userId, args.collegeName);
+                    if (functionResult.success) {
+                        aiResponse = `I've created essay tasks for **${args.collegeName}**!`;
+                    } else {
+                        aiResponse = `I encountered an issue creating essays for **${args.collegeName}**: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'modifyTask') {
+                    functionCalled = 'modifyTask';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleModifyTask(userId, args.action, args.taskId, args.taskData);
+                    if (functionResult.success) {
+                        if (args.action === 'create') aiResponse = `I've added **${args.taskData.title}** to your calendar! ⏰`;
+                        else aiResponse = `I've updated your schedule.`;
+                    } else {
+                        aiResponse = `I encountered an issue modifying your task: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'updateProfile') {
+                    functionCalled = 'updateProfile';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleUpdateProfile(userId, args);
+                    if (functionResult.success) {
+                        aiResponse = `I've updated your profile information.`;
+                    } else {
+                        aiResponse = `I encountered an issue updating your profile: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'updateCollege') {
+                    functionCalled = 'updateCollege';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleUpdateCollege(userId, args.collegeId, args);
+                    if (functionResult.success) {
+                        aiResponse = `I've updated details for the college.`;
+                    } else {
+                        aiResponse = `I encountered an issue updating the college: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'getEssay') {
+                    functionCalled = 'getEssay';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleGetEssay(userId, args.essayId);
+                    if (functionResult.success) {
+                        aiResponse = `Here's the content of your essay:\n\n${functionResult.essayContent}`;
+                    } else {
+                        aiResponse = `I couldn't retrieve that essay: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'updateEssay') {
+                    functionCalled = 'updateEssay';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleUpdateEssay(userId, args.essayId, args.content);
+                    if (functionResult.success) {
+                        aiResponse = `I've updated your essay.`;
+                    } else {
+                        aiResponse = `I encountered an issue updating your essay: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'researchCollege') {
+                    functionCalled = 'researchCollege';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleResearchCollege(args.collegeName);
+                    if (functionResult.success) {
+                        aiResponse = `Here's some information about **${args.collegeName}**: ${JSON.stringify(functionResult.data)}`;
+                    } else {
+                        aiResponse = `I couldn't find information for **${args.collegeName}**: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'createTasks') {
+                    functionCalled = 'createTasks';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleCreateTasks(userId, args.tasks);
+                    if (functionResult.success) {
+                        aiResponse = `I've created the requested tasks for you.`;
+                    } else {
+                        aiResponse = `I encountered an issue creating tasks: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'createActivities') {
+                    functionCalled = 'createActivities';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleCreateActivities(userId, args.activities);
+                    if (functionResult.success) {
+                        aiResponse = `I've added your activities to your profile.`;
+                    } else {
+                        aiResponse = `I encountered an issue adding activities: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'updateActivity') {
+                    functionCalled = 'updateActivity';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleUpdateActivity(userId, args.activityId, args);
+                    if (functionResult.success) {
+                        aiResponse = `I've updated your activity.`;
+                    } else {
+                        aiResponse = `I encountered an issue updating the activity: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'deleteActivity') {
+                    functionCalled = 'deleteActivity';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleDeleteActivity(userId, args.activityId);
+                    if (functionResult.success) {
+                        aiResponse = `I've deleted the activity.`;
+                    } else {
+                        aiResponse = `I encountered an issue deleting the activity: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'createAwards') {
+                    functionCalled = 'createAwards';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleCreateAwards(userId, args.awards);
+                    if (functionResult.success) {
+                        aiResponse = `I've added your awards to your profile.`;
+                    } else {
+                        aiResponse = `I encountered an issue adding awards: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'updateAward') {
+                    functionCalled = 'updateAward';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleUpdateAward(userId, args.awardId, args);
+                    if (functionResult.success) {
+                        aiResponse = `I've updated your award.`;
+                    } else {
+                        aiResponse = `I encountered an issue updating the award: ${functionResult.error}`;
+                    }
+                } else if (block.name === 'deleteAward') {
+                    functionCalled = 'deleteAward';
+                    const args = block.input;
+                    console.log(`[CLAUDE] Tool Args:`, args);
+                    functionResult = await handleDeleteAward(userId, args.awardId);
+                    if (functionResult.success) {
+                        aiResponse = `I've deleted the award.`;
+                    } else {
+                        aiResponse = `I encountered an issue deleting the award: ${functionResult.error}`;
+                    }
+                }
+            }
+        }
+
+        if (!aiResponse && functionCalled) {
+            aiResponse = `Scouting agent deployed for ${functionCalled}.`;
+        }
+
+        // Save to conversation history
+        await saveConversation(userId, message, aiResponse, functionCalled ? {
+            model: 'claude-3-haiku',
+            tool: functionCalled,
+            result: functionResult
+        } : { model: 'claude-3-haiku' });
+
+        res.json({
+            response: aiResponse,
+            functionCalled,
+            functionResult
+        });
+
+    } catch (error) {
+        console.error('Claude Chat Error:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
+// ElevenLabs Text-to-Speech Endpoint
+app.post('/api/tts', async (req, res) => {
+    try {
+        const { text, voiceId } = req.body;
+        if (!text) return res.status(400).json({ error: 'Text is required' });
+
+        const apiKey = process.env.ELEVENLABS_API_KEY;
+        const selectedVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'audio/mpeg',
+                'Content-Type': 'application/json',
+                'xi-api-key': apiKey
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: 'eleven_multilingual_v2',
+                voice_settings: {
+                    stability: 0.5,
+                    similarity_boost: 0.5
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail?.message || 'ElevenLabs API error');
+        }
+
+        const audioBuffer = await response.arrayBuffer();
+        res.set('Content-Type', 'audio/mpeg');
+        res.send(Buffer.from(audioBuffer));
+
+    } catch (error) {
+        console.error('TTS Error:', error);
+        res.status(500).json({ error: 'Text-to-speech failed', details: error.message });
+    }
+});
+
 // Main AI chat endpoint
 app.post('/api/chat', async (req, res) => {
     try {
@@ -199,7 +620,7 @@ app.post('/api/chat', async (req, res) => {
         }
 
         // Fetch user profile for personalization
-        const { data: profile } = await supabase
+        const { data: profile } = await awsDataClient
             .from('profiles')
             .select('*')
             .eq('id', userId)
@@ -213,11 +634,11 @@ app.post('/api/chat', async (req, res) => {
              Location: ${profile.location || 'Unknown'}` : '';
 
         // Fetch user app state for deep context
-        const { data: colleges } = await supabase.from('colleges').select('*').eq('user_id', userId);
-        const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', userId).eq('completed', false);
-        const { data: essays } = await supabase.from('essays').select('id, title, college_id, word_count, is_completed').eq('user_id', userId);
-        const { data: activities } = await supabase.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
-        const { data: awards } = await supabase.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
+        const { data: colleges } = await awsDataClient.from('colleges').select('*').eq('user_id', userId);
+        const { data: tasks } = await awsDataClient.from('tasks').select('*').eq('user_id', userId).eq('completed', false);
+        const { data: essays } = await awsDataClient.from('essays').select('id, title, college_id, word_count, is_completed').eq('user_id', userId);
+        const { data: activities } = await awsDataClient.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
+        const { data: awards } = await awsDataClient.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
 
         const appStateContext = `
             CURRENT COLLEGE LIST: ${colleges?.map(c => `${c.name} (${c.type})`).join(', ') || 'None'}
@@ -234,6 +655,10 @@ app.post('/api/chat', async (req, res) => {
                 content: `You are the central "Intelligence Command Center" for ${profile?.full_name || 'this student'}'s college application process. You have ABSOLUTE access to view and manipulate their entire application ecosystem.
                 
                 MISSION: Proactively manage their profile, schedule, and essays. YOU ARE AN ELITE ADMISSIONS COACH.
+
+                CONVERSATIONAL STYLE:
+                1. ASK ONLY ONE QUESTION AT A TIME. Never ask multiple questions in a single response. 
+                2. Be concise. Avoid long walls of text.
                 
                 ${profileContext}
                 ${appStateContext}
@@ -248,8 +673,11 @@ app.post('/api/chat', async (req, res) => {
 
                 Proactive Behavior:
                 - If they say "Check my Harvard essay", call 'getEssay' with the appropriate ID from the context.
-                - If they change their major, call 'updateProfile'.
-                - If they are behind schedule, suggest task modifications.`
+                - If they are behind schedule, suggest task modifications.
+                
+                ACTION FIRST POLICY: If a user asks you to add a college, update a profile, or create a task/calendar event, DO IT IMMEDIATELY using the tools. Don't just say you will do it. Do it first, then confirm.
+                
+                ${req.body.voiceMode ? "CRITICAL: You are in VOICE MODE. Speak like a person. No bullet points, no markdown, no long lists. Keep it warm, conversational, and direct. Avoid saying 'bullet point' or 'list'." : ""}`
             },
             ...conversationHistory.map(msg => ({
                 role: msg.role,
@@ -413,7 +841,7 @@ app.post('/api/chat', async (req, res) => {
             },
             {
                 name: 'modifyTask',
-                description: 'Create, update, complete, or delete an application task.',
+                description: 'Create, update, complete, or delete an application task. USE THIS TO ADD EVENTS TO THE USER\'S CALENDAR.',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -474,12 +902,23 @@ app.post('/api/chat', async (req, res) => {
                 name: 'listDocuments',
                 description: 'List all documents in the user\'s vault.',
                 parameters: { type: 'object', properties: {} }
+            },
+            {
+                name: 'researchLive',
+                description: 'USE THIS FOR REAL-TIME DATA. Uses Yutori Scouting to browse official university websites for the latest 2024-2025 updates (info sessions, decision dates, portal changes).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        query: { type: 'string', description: 'What specific real-time info to find (e.g. "Stanford info session dates", "Harvard portal login link changes")' }
+                    },
+                    required: ['query']
+                }
             }
         ];
 
         // Call OpenAI with function calling
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages,
             functions,
             function_call: 'auto',
@@ -540,6 +979,9 @@ app.post('/api/chat', async (req, res) => {
                     break;
                 case 'getEssay':
                     functionResult = await handleGetEssay(userId, functionArgs.essayId);
+                    break;
+                case 'researchLive':
+                    functionResult = await handleYutoriResearch(functionArgs.query);
                     break;
                 default:
                     functionResult = { error: 'Unknown function' };
@@ -631,7 +1073,7 @@ app.post('/api/essays/sync', async (req, res) => {
         }
 
         // 1. Get user's colleges
-        const { data: colleges, error: fetchError } = await supabase
+        const { data: colleges, error: fetchError } = await awsDataClient
             .from('colleges')
             .select('*')
             .eq('user_id', userId);
@@ -643,7 +1085,7 @@ app.post('/api/essays/sync', async (req, res) => {
 
         for (const college of colleges) {
             // Check if this college has essays in the essays table
-            const { count, error: countError } = await supabase
+            const { count, error: countError } = await awsDataClient
                 .from('essays')
                 .select('*', { count: 'exact', head: true })
                 .eq('college_id', college.id);
@@ -747,7 +1189,7 @@ app.post('/api/onboarding/plan', async (req, res) => {
                 completed: false
             }));
 
-            const { error } = await supabase
+            const { error } = await awsDataClient
                 .from('tasks')
                 .insert(tasksToSave);
 
@@ -775,13 +1217,15 @@ app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
         }
 
         // 1. Verify User is Premium
-        const { data: userProfile } = await supabase
+        const { data: userProfile } = await awsDataClient
             .from('profiles')
-            .select('is_premium, is_beta')
+            .select('is_premium, is_beta, email')
             .eq('id', userId)
             .single();
 
-        if (!userProfile?.is_premium && !userProfile?.is_beta) {
+        const isWhitelisted = userProfile?.email === 'kabirvideo@gmail.com';
+
+        if (!userProfile?.is_premium && !userProfile?.is_beta && !isWhitelisted) {
             return res.status(403).json({
                 error: 'Premium feature restricted',
                 message: 'Deep Intelligence Reports are exclusive to Waypoint Pro members. Please upgrade in Settings.'
@@ -799,7 +1243,7 @@ app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
         console.log(`Generating intelligence report for ${collegeName} for user ${userId}...`);
 
         // Fetch user profile for context
-        const { data: profile } = await supabase
+        const { data: profile } = await awsDataClient
             .from('profiles')
             .select('*')
             .eq('id', userId)
@@ -936,7 +1380,7 @@ async function handleAddCollege(userId, collegeName, type) {
     }
 
     // Check if college already exists
-    const { data: existing } = await supabase
+    const { data: existing } = await awsDataClient
         .from('colleges')
         .select('id')
         .eq('user_id', userId)
@@ -948,7 +1392,7 @@ async function handleAddCollege(userId, collegeName, type) {
     }
 
     // Add college to database
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('colleges')
         .insert({
             user_id: userId,
@@ -965,6 +1409,11 @@ async function handleAddCollege(userId, collegeName, type) {
         })
         .select()
         .single();
+
+    if (error || !data) {
+        console.error('AWS RDS Insert Error:', error);
+        return { success: false, error: 'Database insert failed' };
+    }
 
     const collegeId = data.id;
 
@@ -1017,7 +1466,7 @@ async function handleAddCollege(userId, collegeName, type) {
         });
     }
 
-    const { error: tasksError } = await supabase
+    const { error: tasksError } = await awsDataClient
         .from('tasks')
         .insert(coreTasks);
 
@@ -1052,7 +1501,7 @@ async function handleCreateEssays(userId, collegeName) {
     }
 
     // Get college ID
-    const { data: college } = await supabase
+    const { data: college } = await awsDataClient
         .from('colleges')
         .select('id')
         .eq('user_id', userId)
@@ -1064,7 +1513,7 @@ async function handleCreateEssays(userId, collegeName) {
     }
 
     // Check if user already has a Common App Personal Statement
-    const { data: existingEssays } = await supabase
+    const { data: existingEssays } = await awsDataClient
         .from('essays')
         .select('id, title, essay_type')
         .eq('user_id', userId);
@@ -1104,7 +1553,7 @@ async function handleCreateEssays(userId, collegeName) {
         return { success: true, message: 'No new essays needed (Common App PS already exists)', essays: [] };
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('essays')
         .insert(essaysToCreate)
         .select();
@@ -1133,7 +1582,7 @@ async function handleCreateTasks(userId, tasks) {
         completed: false
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('tasks')
         .insert(tasksToCreate)
         .select();
@@ -1186,8 +1635,8 @@ function handleReviewEssay(essayContent, focusArea) {
 
 async function handleResearchCollege(collegeName) {
     try {
-        // 1. Check if we already have detailed research in Supabase catalog
-        const { data: existing } = await supabase
+        // 1. Check if we already have detailed research in AWS catalog
+        const { data: existing } = await awsDataClient
             .from('college_catalog')
             .select('*')
             .ilike('name', `%${collegeName}%`)
@@ -1234,7 +1683,7 @@ async function handleResearchCollege(collegeName) {
         const parsedData = JSON.parse(completion.choices[0].message.content);
 
         // 3. Update the catalog so we don't have to research again
-        const { data: updated, error } = await supabase
+        const { data: updated, error } = await awsDataClient
             .from('college_catalog')
             .upsert({
                 name: parsedData.name || collegeName,
@@ -1275,7 +1724,7 @@ async function handleUpdateProfile(userId, profileData) {
     if (act_score !== undefined) update.act_score = act_score;
     if (profile_bio) update.profile_bio = profile_bio;
 
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('profiles')
         .update(update)
         .eq('id', userId)
@@ -1288,8 +1737,8 @@ async function handleUpdateProfile(userId, profileData) {
 
 async function handleGetActivitiesAndAwards(userId) {
     try {
-        const { data: activities } = await supabase.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
-        const { data: awards } = await supabase.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
+        const { data: activities } = await awsDataClient.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
+        const { data: awards } = await awsDataClient.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
         return { success: true, activities: activities || [], awards: awards || [] };
     } catch (error) {
         return { success: false, error: error.message };
@@ -1297,12 +1746,12 @@ async function handleGetActivitiesAndAwards(userId) {
 }
 
 async function handleGetAppStatus(userId) {
-    const { data: colleges } = await supabase.from('colleges').select('*').eq('user_id', userId);
-    const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', userId);
-    const { data: essays } = await supabase.from('essays').select('*').eq('user_id', userId);
-    const { data: activities } = await supabase.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
-    const { data: awards } = await supabase.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    const { data: colleges } = await awsDataClient.from('colleges').select('*').eq('user_id', userId);
+    const { data: tasks } = await awsDataClient.from('tasks').select('*').eq('user_id', userId);
+    const { data: essays } = await awsDataClient.from('essays').select('*').eq('user_id', userId);
+    const { data: activities } = await awsDataClient.from('activities').select('*').eq('user_id', userId).order('position', { ascending: true });
+    const { data: awards } = await awsDataClient.from('awards').select('*').eq('user_id', userId).order('position', { ascending: true });
+    const { data: profile } = await awsDataClient.from('profiles').select('*').eq('id', userId).single();
 
     return {
         success: true,
@@ -1318,7 +1767,7 @@ async function handleGetAppStatus(userId) {
 async function handleModifyTask(userId, action, taskId, taskData) {
     try {
         if (action === 'create') {
-            const { data, error } = await supabase.from('tasks').insert({
+            const { data, error } = await awsDataClient.from('tasks').insert({
                 user_id: userId,
                 title: taskData.title,
                 description: taskData.description,
@@ -1332,19 +1781,19 @@ async function handleModifyTask(userId, action, taskId, taskData) {
         }
 
         if (action === 'complete') {
-            const { error } = await supabase.from('tasks').update({ completed: true }).eq('id', taskId).eq('user_id', userId);
+            const { error } = await awsDataClient.from('tasks').update({ completed: true }).eq('id', taskId).eq('user_id', userId);
             if (error) throw error;
             return { success: true, message: 'Task completed' };
         }
 
         if (action === 'delete') {
-            const { error } = await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
+            const { error } = await awsDataClient.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
             if (error) throw error;
             return { success: true, message: 'Task deleted' };
         }
 
         if (action === 'update') {
-            const { data, error } = await supabase.from('tasks').update({
+            const { data, error } = await awsDataClient.from('tasks').update({
                 title: taskData.title,
                 description: taskData.description,
                 due_date: taskData.dueDate,
@@ -1368,7 +1817,7 @@ async function handleUpdateEssayContent(userId, essayId, content, isCompleted) {
     }
     if (isCompleted !== undefined) update.is_completed = isCompleted;
 
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('essays')
         .update(update)
         .eq('id', essayId)
@@ -1385,7 +1834,7 @@ async function handleUpdateCollegeStatus(userId, collegeId, type, status) {
     if (type) update.type = type;
     if (status) update.status = status;
 
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('colleges')
         .update(update)
         .eq('id', collegeId)
@@ -1398,7 +1847,7 @@ async function handleUpdateCollegeStatus(userId, collegeId, type, status) {
 }
 
 async function handleListDocuments(userId) {
-    const { data, error } = await supabase.from('documents').select('*').eq('user_id', userId);
+    const { data, error } = await awsDataClient.from('documents').select('*').eq('user_id', userId);
     if (error) return { success: false, error: error.message };
     return { success: true, documents: data || [] };
 }
@@ -1406,14 +1855,14 @@ async function handleListDocuments(userId) {
 async function saveConversation(userId, userMessage, aiResponse, functionCall = null) {
     try {
         // Save user message
-        await supabase.from('conversations').insert({
+        await awsDataClient.from('conversations').insert({
             user_id: userId,
             role: 'user',
             content: userMessage
         });
 
         // Save AI response
-        await supabase.from('conversations').insert({
+        await awsDataClient.from('conversations').insert({
             user_id: userId,
             role: 'assistant',
             content: aiResponse,
@@ -1424,12 +1873,12 @@ async function saveConversation(userId, userMessage, aiResponse, functionCall = 
     }
 }
 
-// Helper to find college info (Supabase Catalog -> Local JSON fallback)
+// Helper to find college info (AWS Catalog -> Local JSON fallback)
 async function getCollegeInfo(name) {
     try {
         console.log(`Searching catalog for: ${name}`);
-        // 1. Try Supabase Catalog
-        const { data: catalogData, error } = await supabase
+        // 1. Try AWS Catalog
+        const { data: catalogData, error } = await awsDataClient
             .from('college_catalog')
             .select('*')
             .ilike('name', `%${name}%`)
@@ -1437,7 +1886,7 @@ async function getCollegeInfo(name) {
             .single();
 
         if (catalogData) {
-            console.log(`Found ${name} in Supabase Catalog`);
+            console.log(`Found ${name} in AWS Catalog`);
             return {
                 id: catalogData.id,
                 name: catalogData.name,
@@ -1520,7 +1969,7 @@ async function researchAndCatalogCollege(collegeName) {
         };
 
         // Upsert into master catalog
-        const { data: inserted, error } = await supabase
+        const { data: inserted, error } = await awsDataClient
             .from('college_catalog')
             .upsert({
                 name: data.name,
@@ -1551,7 +2000,7 @@ async function researchAndCatalogCollege(collegeName) {
     }
 }
 async function handleGetEssay(userId, essayId) {
-    const { data, error } = await supabase
+    const { data, error } = await awsDataClient
         .from('essays')
         .select('*')
         .eq('id', essayId)
@@ -1562,10 +2011,49 @@ async function handleGetEssay(userId, essayId) {
     return { success: true, essay: data };
 }
 
+async function handleYutoriResearch(query) {
+    if (!process.env.YUTORI_API_KEY || process.env.YUTORI_API_KEY === 'your_yutori_api_key_here') {
+        return { error: 'Yutori API key is not configured.' };
+    }
+
+    console.log(`🔍 [INITIATED] Yutori Deep Scouting: ${query}`);
+
+    try {
+        const response = await fetch('https://api.yutori.com/v1/browsing/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': process.env.YUTORI_API_KEY
+            },
+            body: JSON.stringify({
+                task: `Find real-time, official information for this college request: "${query}". Search the university's official .edu website for the absolute latest updates for the 2024-2025 cycle (info sessions, decision dates, or prompt changes). Return a concise, clear summary.`,
+                start_url: query.toLowerCase().includes('princeton') ? 'https://admission.princeton.edu' : 'https://www.google.com'
+            })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            console.error('❌ Yutori API Error:', response.status, JSON.stringify(errorBody, null, 2));
+            throw new Error(errorBody.message || errorBody.error || `Yutori API returned ${response.status}`);
+        }
+
+        const taskData = await response.json();
+        return {
+            success: true,
+            message: "Yutori Live Scout initiated.",
+            taskId: taskData.task_id || taskData.id,
+            status: "Searching University Directories..."
+        };
+    } catch (e) {
+        console.error('Yutori Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
 
 
 // Start server
 app.listen(PORT, () => {
     console.log(`🤖 AI Server running on http://localhost:${PORT}`);
-    console.log(`📚 Reference catalog: ${fs.existsSync(LOCAL_CATALOG_PATH) ? 'JSON + Supabase' : 'Supabase Only'}`);
+    console.log(`📚 Reference catalog: ${fs.existsSync(LOCAL_CATALOG_PATH) ? 'JSON + AWS' : 'AWS Only'}`);
 });

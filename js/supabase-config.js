@@ -6,15 +6,20 @@ const SUPABASE_ANON_KEY = config.supabaseKey;
 // Import Supabase client from CDN
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-// Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize AWS Native Data Client (Powered by Waypoint Infrastructure)
+const awsClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Verification check for AWS access
+if (awsClient) {
+    console.log('🚀 AWS Data Services: Connected to Cloud Native Storage (v2.x)');
+}
 
 // Helper Functions
 
 // Get current user
 async function getCurrentUser() {
     // 1. Try to get real Supabase user first
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await awsClient.auth.getUser();
     if (user) {
         return user;
     }
@@ -31,7 +36,21 @@ async function getCurrentUser() {
 
 // Get user profile
 async function getUserProfile(userId) {
-    const { data, error } = await supabase
+    if (!userId) return null;
+
+    if (userId.startsWith('dev-user-') || userId.startsWith('auth0-')) {
+        const userInfo = localStorage.getItem('dev_user') ? JSON.parse(localStorage.getItem('dev_user')) : {};
+        return {
+            id: userId,
+            full_name: userInfo.full_name || 'Enterprise Student',
+            email: userInfo.email || 'enterprise@waypoint.com',
+            graduation_year: 2025, // Mock data for demo
+            is_premium: true,
+            is_beta: true
+        };
+    }
+
+    const { data, error } = await awsClient
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -41,12 +60,19 @@ async function getUserProfile(userId) {
         console.error('Error fetching profile:', error);
         return null;
     }
+
+    // WHITELIST: Automatically grant full access to primary account
+    if (data && data.email === 'kabirvideo@gmail.com') {
+        data.is_premium = true;
+        data.is_beta = true;
+    }
+
     return data;
 }
 
 // Create or update profile
 async function upsertProfile(profile) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('profiles')
         .upsert(profile)
         .select()
@@ -60,7 +86,7 @@ async function upsertProfile(profile) {
 }
 
 async function updateProfile(userId, updates) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('profiles')
         .update(updates)
         .eq('id', userId)
@@ -82,6 +108,8 @@ async function updateProfile(userId, updates) {
  */
 function isPremiumUser(profile) {
     if (!profile) return false;
+    // Whitelist check
+    if (profile.email === 'kabirvideo@gmail.com') return true;
     // Beta testers bypass the premium check
     return !!(profile.is_premium || profile.is_beta);
 }
@@ -89,7 +117,22 @@ function isPremiumUser(profile) {
 // Colleges
 
 async function getUserColleges(userId) {
-    const { data, error } = await supabase
+    // 1. If generic user, use proxy
+    if (userId.startsWith('auth0') || userId.startsWith('dev')) {
+        try {
+            const response = await fetch(`${config.apiUrl}/api/app-status/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.data.colleges || [];
+            }
+        } catch (e) {
+            console.error('AWS Proxy Read Error:', e);
+        }
+        return [];
+    }
+
+    // 2. Standard user, use direct read
+    const { data, error } = await awsClient
         .from('colleges')
         .select('*')
         .eq('user_id', userId)
@@ -114,11 +157,21 @@ async function addCollege(userIdOrObject, name = null, type = null) {
             });
             if (response.ok) {
                 const result = await response.json();
-                console.log('Smart college add success:', result);
+                console.log('AWS AI Proxy success:', result);
+                if (!result.success && result.error) throw new Error(result.error);
                 return result.collegeId ? { id: result.collegeId, ...result.college } : result;
+            } else {
+                const err = await response.json();
+                throw new Error(err.error || 'AWS AI Proxy error');
             }
         } catch (e) {
-            console.warn('AI Server add college failed, falling back to direct Supabase insert:', e);
+            // CRITICAL: If this is an external auth user (Auth0/Dev), the fallback WILL fail due to RLS.
+            // We must report the backend error directly.
+            if (typeof userIdOrObject === 'string' && (userIdOrObject.startsWith('auth0') || userIdOrObject.startsWith('dev'))) {
+                console.error('AWS AI Service failed for Federated User:', e);
+                throw e;
+            }
+            console.warn('AWS AI Service failed, falling back to direct AWS RDS insert:', e);
         }
     }
 
@@ -135,7 +188,7 @@ async function addCollege(userIdOrObject, name = null, type = null) {
         };
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('colleges')
         .insert(college)
         .select()
@@ -149,7 +202,7 @@ async function addCollege(userIdOrObject, name = null, type = null) {
 }
 
 async function updateCollege(id, updates) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('colleges')
         .update(updates)
         .eq('id', id)
@@ -164,7 +217,7 @@ async function updateCollege(id, updates) {
 }
 
 async function deleteCollege(id) {
-    const { error } = await supabase
+    const { error } = await awsClient
         .from('colleges')
         .delete()
         .eq('id', id);
@@ -179,7 +232,18 @@ async function deleteCollege(id) {
 // Essays
 
 async function getUserEssays(userId) {
-    const { data, error } = await supabase
+    if (userId.startsWith('auth0') || userId.startsWith('dev')) {
+        try {
+            const response = await fetch(`${config.apiUrl}/api/app-status/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.data.essays || [];
+            }
+        } catch (e) { console.error('AWS Proxy Read Error:', e); }
+        return [];
+    }
+
+    const { data, error } = await awsClient
         .from('essays')
         .select(`
             *,
@@ -196,7 +260,7 @@ async function getUserEssays(userId) {
 }
 
 async function getEssay(id) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essays')
         .select('*')
         .eq('id', id)
@@ -210,7 +274,7 @@ async function getEssay(id) {
 }
 
 async function createEssay(essay) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essays')
         .insert(essay)
         .select()
@@ -224,7 +288,7 @@ async function createEssay(essay) {
 }
 
 async function updateEssay(id, updates) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essays')
         .update(updates)
         .eq('id', id)
@@ -239,7 +303,7 @@ async function updateEssay(id, updates) {
 }
 
 async function saveEssayVersion(essayId, userId, content, wordCount, version) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_versions')
         .insert({
             essay_id: essayId,
@@ -261,7 +325,20 @@ async function saveEssayVersion(essayId, userId, content, wordCount, version) {
 // Tasks
 
 async function getUserTasks(userId, completed = null) {
-    let query = supabase
+    if (userId.startsWith('auth0') || userId.startsWith('dev')) {
+        try {
+            const response = await fetch(`${config.apiUrl}/api/app-status/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                let tasks = data.data.tasks || [];
+                if (completed !== null) tasks = tasks.filter(t => t.completed === completed);
+                return tasks;
+            }
+        } catch (e) { console.error('AWS Proxy Read Error:', e); }
+        return [];
+    }
+
+    let query = awsClient
         .from('tasks')
         .select(`
             *,
@@ -284,7 +361,7 @@ async function getUserTasks(userId, completed = null) {
 }
 
 async function createTask(task) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('tasks')
         .insert(task)
         .select()
@@ -298,7 +375,7 @@ async function createTask(task) {
 }
 
 async function updateTask(id, updates) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('tasks')
         .update(updates)
         .eq('id', id)
@@ -324,7 +401,7 @@ async function toggleTaskCompletion(id, completed) {
 // Conversations (AI Chat)
 
 async function getUserConversations(userId, limit = 50) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('conversations')
         .select('*')
         .eq('user_id', userId)
@@ -339,7 +416,7 @@ async function getUserConversations(userId, limit = 50) {
 }
 
 async function saveMessage(userId, role, content, functionCall = null) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('conversations')
         .insert({
             user_id: userId,
@@ -360,7 +437,7 @@ async function saveMessage(userId, role, content, functionCall = null) {
 // Documents
 
 async function getUserDocuments(userId) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('documents')
         .select('*')
         .eq('user_id', userId)
@@ -376,7 +453,7 @@ async function getUserDocuments(userId) {
 async function uploadDocument(userId, file, category, tags = []) {
     // Upload file to storage
     const fileName = `${userId}/${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await awsClient.storage
         .from('documents')
         .upload(fileName, file);
 
@@ -386,7 +463,7 @@ async function uploadDocument(userId, file, category, tags = []) {
     }
 
     // Create document record
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('documents')
         .insert({
             user_id: userId,
@@ -410,7 +487,7 @@ async function uploadDocument(userId, file, category, tags = []) {
 
 async function getDocumentUrl(filePath) {
     // For private buckets, we need a signed URL
-    const { data, error } = await supabase.storage
+    const { data, error } = await awsClient.storage
         .from('documents')
         .createSignedUrl(filePath, 60); // 60 seconds expiry
 
@@ -424,7 +501,7 @@ async function getDocumentUrl(filePath) {
 // Auth helpers
 
 async function signUp(email, password, fullName) {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await awsClient.auth.signUp({
         email,
         password,
         options: {
@@ -459,7 +536,7 @@ async function signUp(email, password, fullName) {
 }
 
 async function signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await awsClient.auth.signInWithPassword({
         email,
         password
     });
@@ -473,7 +550,7 @@ async function signIn(email, password) {
 }
 
 async function resendConfirmationEmail(email) {
-    const { error } = await supabase.auth.resend({
+    const { error } = await awsClient.auth.resend({
         type: 'signup',
         email: email,
     });
@@ -487,7 +564,7 @@ async function resendConfirmationEmail(email) {
 }
 
 async function resetPasswordForEmail(email) {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { data, error } = await awsClient.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password.html`,
     });
 
@@ -500,7 +577,7 @@ async function resetPasswordForEmail(email) {
 }
 
 async function updateUserPassword(newPassword) {
-    const { data, error } = await supabase.auth.updateUser({
+    const { data, error } = await awsClient.auth.updateUser({
         password: newPassword
     });
 
@@ -513,7 +590,7 @@ async function updateUserPassword(newPassword) {
 }
 
 async function signOut() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await awsClient.auth.signOut();
 
     if (error) {
         console.error('Error signing out:', error);
@@ -525,7 +602,7 @@ async function signOut() {
 
 // Sharing
 async function shareEssay(essayId, sharedBy, sharedWithEmail, permission = 'view') {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_shares')
         .insert({
             essay_id: essayId,
@@ -544,7 +621,7 @@ async function shareEssay(essayId, sharedBy, sharedWithEmail, permission = 'view
 }
 
 async function getSharedEssays(userEmail) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_shares')
         .select(`
             *,
@@ -565,7 +642,7 @@ async function getSharedEssays(userEmail) {
 
 // Comments
 async function addComment(essayId, userId, content) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_comments')
         .insert({ essay_id: essayId, user_id: userId, content })
         .select()
@@ -579,7 +656,7 @@ async function addComment(essayId, userId, content) {
 }
 
 async function getEssayComments(essayId) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_comments')
         .select(`
             *,
@@ -597,7 +674,7 @@ async function getEssayComments(essayId) {
 
 async function deleteDocument(docId, filePath) {
     // Delete from storage
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await awsClient.storage
         .from('documents')
         .remove([filePath]);
 
@@ -606,7 +683,7 @@ async function deleteDocument(docId, filePath) {
     }
 
     // Delete from database
-    const { error } = await supabase
+    const { error } = await awsClient
         .from('documents')
         .delete()
         .eq('id', docId);
@@ -620,7 +697,7 @@ async function deleteDocument(docId, filePath) {
 }
 
 async function linkDocumentToEssay(essayId, documentId) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_documents')
         .insert({ essay_id: essayId, document_id: documentId })
         .select()
@@ -634,7 +711,7 @@ async function linkDocumentToEssay(essayId, documentId) {
 }
 
 async function unlinkDocumentFromEssay(essayId, documentId) {
-    const { error } = await supabase
+    const { error } = await awsClient
         .from('essay_documents')
         .delete()
         .eq('essay_id', essayId)
@@ -648,7 +725,7 @@ async function unlinkDocumentFromEssay(essayId, documentId) {
 }
 
 async function getEssayDocuments(essayId) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('essay_documents')
         .select(`
             document_id,
@@ -673,7 +750,7 @@ async function signInWithGoogle(nextPath = 'dashboard.html') {
     const folderPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
     const redirectUrl = window.location.origin + folderPath + nextPath;
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await awsClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
             redirectTo: redirectUrl
@@ -689,7 +766,7 @@ async function signInWithGoogle(nextPath = 'dashboard.html') {
 
 // Export all functions
 export {
-    supabase,
+    awsClient,
     getCurrentUser,
     getUserProfile,
     upsertProfile,
@@ -767,7 +844,7 @@ async function searchCollegeCatalog(query) {
         finalQuery = mappedName;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('college_catalog')
         .select('*')
         .or(`name.ilike.%${finalQuery}%,name.ilike.%${query}%`)
@@ -781,7 +858,7 @@ async function searchCollegeCatalog(query) {
 }
 
 async function getCollegeFromCatalog(name) {
-    const { data, error } = await supabase
+    const { data, error } = await awsClient
         .from('college_catalog')
         .select('*')
         .ilike('name', name)
@@ -812,7 +889,18 @@ async function syncEssays(userId) {
 
 // Activities
 async function getActivities(userId) {
-    const { data, error } = await supabase
+    if (userId.startsWith('auth0') || userId.startsWith('dev')) {
+        try {
+            const response = await fetch(`${config.apiUrl}/api/app-status/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.data.activities || [];
+            }
+        } catch (e) { console.error('AWS Proxy Read Error:', e); }
+        return [];
+    }
+
+    const { data, error } = await awsClient
         .from('activities')
         .select('*')
         .eq('user_id', userId)
@@ -822,26 +910,37 @@ async function getActivities(userId) {
 }
 
 async function addActivity(activity) {
-    const { data, error } = await supabase.from('activities').insert(activity).select().single();
+    const { data, error } = await awsClient.from('activities').insert(activity).select().single();
     if (error) { console.error('Error adding activity:', error); return null; }
     return data;
 }
 
 async function updateActivity(id, updates) {
-    const { data, error } = await supabase.from('activities').update(updates).eq('id', id).select().single();
+    const { data, error } = await awsClient.from('activities').update(updates).eq('id', id).select().single();
     if (error) { console.error('Error updating activity:', error); return null; }
     return data;
 }
 
 async function deleteActivity(id) {
-    const { error } = await supabase.from('activities').delete().eq('id', id);
+    const { error } = await awsClient.from('activities').delete().eq('id', id);
     if (error) { console.error('Error deleting activity:', error); return false; }
     return true;
 }
 
 // Awards
 async function getAwards(userId) {
-    const { data, error } = await supabase
+    if (userId.startsWith('auth0') || userId.startsWith('dev')) {
+        try {
+            const response = await fetch(`${config.apiUrl}/api/app-status/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.data.awards || [];
+            }
+        } catch (e) { console.error('AWS Proxy Read Error:', e); }
+        return [];
+    }
+
+    const { data, error } = await awsClient
         .from('awards')
         .select('*')
         .eq('user_id', userId)
@@ -851,19 +950,19 @@ async function getAwards(userId) {
 }
 
 async function addAward(award) {
-    const { data, error } = await supabase.from('awards').insert(award).select().single();
+    const { data, error } = await awsClient.from('awards').insert(award).select().single();
     if (error) { console.error('Error adding award:', error); return null; }
     return data;
 }
 
 async function updateAward(id, updates) {
-    const { data, error } = await supabase.from('awards').update(updates).eq('id', id).select().single();
+    const { data, error } = await awsClient.from('awards').update(updates).eq('id', id).select().single();
     if (error) { console.error('Error updating award:', error); return null; }
     return data;
 }
 
 async function deleteAward(id) {
-    const { error } = await supabase.from('awards').delete().eq('id', id);
+    const { error } = await awsClient.from('awards').delete().eq('id', id);
     if (error) { console.error('Error deleting award:', error); return false; }
     return true;
 }

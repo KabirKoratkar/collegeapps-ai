@@ -10,7 +10,10 @@ export function updateNavbarUser(user, profile = null) {
     if (!userBadge || !user) return;
 
     // Get name from profile metadata or use email
-    const name = user.user_metadata?.full_name || profile?.full_name || user.email.split('@')[0];
+    const name = user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        profile?.full_name ||
+        (user.email ? user.email.split('@')[0] : 'Student');
 
     // Check for premium/beta status
     let statusBadge = '';
@@ -24,16 +27,13 @@ export function updateNavbarUser(user, profile = null) {
 
     userBadge.innerHTML = name + statusBadge;
 
-    // Add a logout listener to the parent item if we want
+    // Add a settings listener to the parent item
     const userNavItem = document.getElementById('user-nav-item');
     if (userNavItem) {
         userNavItem.style.cursor = 'pointer';
-        userNavItem.title = 'Click to Sign Out';
-        userNavItem.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to sign out?')) {
-                await signOut();
-                window.location.href = new URL('index.html', window.location.href).href;
-            }
+        userNavItem.title = 'Account Settings';
+        userNavItem.addEventListener('click', () => {
+            window.location.assign('settings.html');
         });
     }
 }

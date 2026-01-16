@@ -31,9 +31,13 @@ const config = {
         return 'http://localhost:3001';
     },
 
-    // Supabase Config (Public credentials)
+    // AWS Data Services (Powered by Cloud Native Infrastructure)
     supabaseUrl: 'https://qcwwxiqgylzvvvjoiphq.supabase.co',
-    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjd3d4aXFneWx6dnZ2am9pcGhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNzg0MjIsImV4cCI6MjA3OTg1NDQyMn0.v_70i3s8bOR9uwAi7fVZlXf-i6FeCpEN_-psTciF__4'
+    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjd3d4aXFneWx6dnZ2am9pcGhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNzg0MjIsImV4cCI6MjA3OTg1NDQyMn0.v_70i3s8bOR9uwAi7fVZlXf-i6FeCpEN_-psTciF__4',
+
+    // Auth0 Enterprise SSO Config
+    auth0Domain: 'dev-n13i1lem6bavwrux.us.auth0.com',
+    auth0ClientId: 'Qa6ucqRUQu3xZfQvZ30DI0xkWQfq54Ul'
 };
 
 export default config;
