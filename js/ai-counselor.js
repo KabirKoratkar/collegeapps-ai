@@ -15,7 +15,7 @@ const AI_SERVER_URL = config.apiUrl;
 
 let conversationHistory = [];
 let currentUser = null;
-let currentModel = 'gpt';
+let currentModel = 'claude';
 let isVoiceMode = false;
 let recognition = null;
 let currentTtsAudio = null;
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             this.classList.remove('btn-ghost');
             this.classList.add('btn-primary', 'active');
             currentModel = this.dataset.model;
-            showNotification(`Switched to ${currentModel === 'claude' ? 'Claude 3.5' : 'GPT-4o'}`, 'info');
+            showNotification(`Switched to ${currentModel === 'claude' ? 'Claude 3.5 Sonnet' : 'GPT-4o'}`, 'info');
         });
     });
 
@@ -297,7 +297,7 @@ async function sendMessage(message) {
         const data = await response.json();
 
         if (window.addIntelLog) {
-            window.addIntelLog(`Message processed by ${currentModel === 'claude' ? 'Claude 3.5' : 'GPT-4o'}`, "success");
+            window.addIntelLog(`Message processed by ${currentModel === 'claude' ? 'Claude 3.5 Sonnet' : 'GPT-4o'}`, "success");
             window.addIntelLog("Modulate: Content safety verified", "success");
         }
 
