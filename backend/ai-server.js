@@ -298,14 +298,30 @@ app.post('/api/chat/claude', async (req, res) => {
         
         ${req.body.voiceMode ? "CRITICAL: You are in VOICE MODE. Speak like a person. No bullet points, no markdown, no long lists. Keep it warm, conversational, and direct. Avoid saying 'bullet point' or 'list'." : ""}`;
 
-        // Initialize messages with context
-        const messages = [
-            ...conversationHistory.filter(msg => msg.role !== 'system').map(msg => ({
-                role: msg.role === 'assistant' ? 'assistant' : 'user',
-                content: msg.content
-            })),
-            { role: 'user', content: message }
-        ];
+        // Initialize messages with context, ensuring roles alternate strictly for Anthropic
+        let messages = [];
+        let lastRole = null;
+
+        conversationHistory.forEach(msg => {
+            if (msg.role === 'system') return;
+            const role = msg.role === 'assistant' ? 'assistant' : 'user';
+
+            // Anthropic requires strictly alternating roles
+            if (role !== lastRole) {
+                messages.push({ role, content: msg.content });
+                lastRole = role;
+            } else if (role === 'user') {
+                // If same role twice, combine them
+                messages[messages.length - 1].content += "\n\n" + msg.content;
+            }
+        });
+
+        // Add the current message
+        if (lastRole === 'user') {
+            messages[messages.length - 1].content += "\n\n" + message;
+        } else {
+            messages.push({ role: 'user', content: message });
+        }
 
         // Define Anthropic-format tools
         const tools = [
@@ -333,6 +349,17 @@ app.post('/api/chat/claude', async (req, res) => {
                 }
             },
             {
+                name: "createEssays",
+                description: "Create all required essays for a college.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        collegeName: { type: "string" }
+                    },
+                    required: ["collegeName"]
+                }
+            },
+            {
                 name: "modifyTask",
                 description: "Create, update, or complete a task/calendar event.",
                 input_schema: {
@@ -351,14 +378,66 @@ app.post('/api/chat/claude', async (req, res) => {
                     },
                     required: ["action"]
                 }
+            },
+            {
+                name: "researchCollege",
+                description: "Search for detailed college information from the internal catalog.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        collegeName: { type: "string" }
+                    },
+                    required: ["collegeName"]
+                }
+            },
+            {
+                name: "getEssay",
+                description: "Fetch the content of a specific essay.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        essayId: { type: "string" }
+                    },
+                    required: ["essayId"]
+                }
+            },
+            {
+                name: "updateEssay",
+                description: "Save content to an essay draft.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        essayId: { type: "string" },
+                        content: { type: "string" }
+                    },
+                    required: ["essayId", "content"]
+                }
+            },
+            {
+                name: "updateProfile",
+                description: "Update the user's academic profile and stats.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        intended_major: { type: "string" },
+                        location: { type: "string" },
+                        unweighted_gpa: { type: "number" },
+                        sat_score: { type: "number" }
+                    }
+                }
+            },
+            {
+                name: "getAppStatus",
+                description: "Get a full status report of the user's application ecosystem.",
+                input_schema: { type: "object", properties: {} }
             }
         ];
 
-        console.log(`[CLAUDE] Processing request for ${userId}. Prompt: "${message.substring(0, 50)}..."`);
+        console.log(`[CLAUDE] Processing request for ${userId} with Claude 3.5 Sonnet.`);
 
         const response = await anthropic.messages.create({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 1024,
+            model: "claude-3-5-sonnet-20241022",
+            max_tokens: 2048,
             system: systemPrompt,
             messages: messages,
             tools: tools,
@@ -368,194 +447,111 @@ app.post('/api/chat/claude', async (req, res) => {
         console.log(`[CLAUDE] Raw Response Type: ${response.type}`);
         console.log(`[CLAUDE] Content Blocks: ${response.content.length}`);
 
-        let aiResponse = "";
-        let functionCalled = null;
-        let functionResult = null;
+        let toolCalledInThisTurn = false;
+        let toolResults = [];
+        let finalText = "";
 
-        // Handle content blocks (Check for tool use)
+        // Handle content blocks (Process tools and collect results)
         for (const block of response.content) {
-            console.log(`[CLAUDE] Block Type: ${block.type}`);
             if (block.type === 'text') {
-                aiResponse += block.text;
-                console.log(`[CLAUDE] Text content: ${block.text.substring(0, 40)}...`);
+                finalText += block.text;
             } else if (block.type === 'tool_use') {
-                console.log(`[CLAUDE] Tool call: ${block.name}`);
-                if (block.name === 'researchLive') {
-                    functionCalled = 'researchLive';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleYutoriResearch(args.query);
+                toolCalledInThisTurn = true;
+                functionCalled = block.name;
+                const toolArgs = block.input;
+                console.log(`[CLAUDE] Executed tool: ${functionCalled}`);
 
-                    if (functionResult.success) {
-                        aiResponse = `I'm deploying a Yutori scouting agent to find real-time info for: **${args.query}**. You'll see updates below as it moves through the university directory.`;
-                    } else {
-                        aiResponse = `The Yutori scouting agent encountered a technical hitch: ${functionResult.error}`;
+                try {
+                    switch (functionCalled) {
+                        case 'researchLive':
+                            functionResult = await handleYutoriResearch(toolArgs.query);
+                            break;
+                        case 'addCollege':
+                            functionResult = await handleAddCollege(userId, toolArgs.collegeName, toolArgs.type);
+                            break;
+                        case 'createEssays':
+                            functionResult = await handleCreateEssays(userId, toolArgs.collegeName);
+                            break;
+                        case 'modifyTask':
+                            functionResult = await handleModifyTask(userId, toolArgs.action, toolArgs.taskId, toolArgs.taskData);
+                            break;
+                        case 'updateProfile':
+                            functionResult = await handleUpdateProfile(userId, toolArgs);
+                            break;
+                        case 'updateCollege':
+                            functionResult = await handleUpdateCollege(userId, toolArgs.collegeId, toolArgs);
+                            break;
+                        case 'getEssay':
+                            functionResult = await handleGetEssay(userId, toolArgs.essayId);
+                            break;
+                        case 'updateEssay':
+                            functionResult = await handleUpdateEssay(userId, toolArgs.essayId, toolArgs.content);
+                            break;
+                        case 'researchCollege':
+                            functionResult = await handleResearchCollege(toolArgs.collegeName);
+                            break;
+                        case 'createTasks':
+                            functionResult = await handleCreateTasks(userId, toolArgs.tasks);
+                            break;
+                        default:
+                            functionResult = { error: 'Unknown tool' };
                     }
-                } else if (block.name === 'addCollege') {
-                    functionCalled = 'addCollege';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleAddCollege(userId, args.collegeName, args.type);
-                    if (functionResult.success) {
-                        aiResponse = `I've added **${args.collegeName}** to your college list! 🎓`;
-                    } else {
-                        aiResponse = `I encountered an issue adding **${args.collegeName}** to your list: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'createEssays') {
-                    functionCalled = 'createEssays';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleCreateEssays(userId, args.collegeName);
-                    if (functionResult.success) {
-                        aiResponse = `I've created essay tasks for **${args.collegeName}**!`;
-                    } else {
-                        aiResponse = `I encountered an issue creating essays for **${args.collegeName}**: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'modifyTask') {
-                    functionCalled = 'modifyTask';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleModifyTask(userId, args.action, args.taskId, args.taskData);
-                    if (functionResult.success) {
-                        if (args.action === 'create') aiResponse = `I've added **${args.taskData.title}** to your calendar! ⏰`;
-                        else aiResponse = `I've updated your schedule.`;
-                    } else {
-                        aiResponse = `I encountered an issue modifying your task: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'updateProfile') {
-                    functionCalled = 'updateProfile';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleUpdateProfile(userId, args);
-                    if (functionResult.success) {
-                        aiResponse = `I've updated your profile information.`;
-                    } else {
-                        aiResponse = `I encountered an issue updating your profile: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'updateCollege') {
-                    functionCalled = 'updateCollege';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleUpdateCollege(userId, args.collegeId, args);
-                    if (functionResult.success) {
-                        aiResponse = `I've updated details for the college.`;
-                    } else {
-                        aiResponse = `I encountered an issue updating the college: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'getEssay') {
-                    functionCalled = 'getEssay';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleGetEssay(userId, args.essayId);
-                    if (functionResult.success) {
-                        aiResponse = `Here's the content of your essay:\n\n${functionResult.essayContent}`;
-                    } else {
-                        aiResponse = `I couldn't retrieve that essay: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'updateEssay') {
-                    functionCalled = 'updateEssay';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleUpdateEssay(userId, args.essayId, args.content);
-                    if (functionResult.success) {
-                        aiResponse = `I've updated your essay.`;
-                    } else {
-                        aiResponse = `I encountered an issue updating your essay: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'researchCollege') {
-                    functionCalled = 'researchCollege';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleResearchCollege(args.collegeName);
-                    if (functionResult.success) {
-                        aiResponse = `Here's some information about **${args.collegeName}**: ${JSON.stringify(functionResult.data)}`;
-                    } else {
-                        aiResponse = `I couldn't find information for **${args.collegeName}**: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'createTasks') {
-                    functionCalled = 'createTasks';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleCreateTasks(userId, args.tasks);
-                    if (functionResult.success) {
-                        aiResponse = `I've created the requested tasks for you.`;
-                    } else {
-                        aiResponse = `I encountered an issue creating tasks: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'createActivities') {
-                    functionCalled = 'createActivities';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleCreateActivities(userId, args.activities);
-                    if (functionResult.success) {
-                        aiResponse = `I've added your activities to your profile.`;
-                    } else {
-                        aiResponse = `I encountered an issue adding activities: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'updateActivity') {
-                    functionCalled = 'updateActivity';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleUpdateActivity(userId, args.activityId, args);
-                    if (functionResult.success) {
-                        aiResponse = `I've updated your activity.`;
-                    } else {
-                        aiResponse = `I encountered an issue updating the activity: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'deleteActivity') {
-                    functionCalled = 'deleteActivity';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleDeleteActivity(userId, args.activityId);
-                    if (functionResult.success) {
-                        aiResponse = `I've deleted the activity.`;
-                    } else {
-                        aiResponse = `I encountered an issue deleting the activity: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'createAwards') {
-                    functionCalled = 'createAwards';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleCreateAwards(userId, args.awards);
-                    if (functionResult.success) {
-                        aiResponse = `I've added your awards to your profile.`;
-                    } else {
-                        aiResponse = `I encountered an issue adding awards: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'updateAward') {
-                    functionCalled = 'updateAward';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleUpdateAward(userId, args.awardId, args);
-                    if (functionResult.success) {
-                        aiResponse = `I've updated your award.`;
-                    } else {
-                        aiResponse = `I encountered an issue updating the award: ${functionResult.error}`;
-                    }
-                } else if (block.name === 'deleteAward') {
-                    functionCalled = 'deleteAward';
-                    const args = block.input;
-                    console.log(`[CLAUDE] Tool Args:`, args);
-                    functionResult = await handleDeleteAward(userId, args.awardId);
-                    if (functionResult.success) {
-                        aiResponse = `I've deleted the award.`;
-                    } else {
-                        aiResponse = `I encountered an issue deleting the award: ${functionResult.error}`;
-                    }
+                } catch (err) {
+                    console.error(`[CLAUDE] Tool Error (${functionCalled}):`, err);
+                    functionResult = { success: false, error: err.message };
                 }
+
+                toolResults.push({
+                    type: "tool_result",
+                    tool_use_id: block.id,
+                    content: JSON.stringify(functionResult)
+                });
             }
         }
 
-        if (!aiResponse && functionCalled) {
-            aiResponse = `Scouting agent deployed for ${functionCalled}.`;
+        // FEEDBACK LOOP: If tools were used, feed results back to Claude for a final personalized response
+        if (toolCalledInThisTurn) {
+            console.log(`[CLAUDE] Feeding tool results back for final contextual response...`);
+
+            // Add the assistant's previous message (containing tool_use blocks)
+            messages.push({
+                role: "assistant",
+                content: response.content
+            });
+
+            // Add the tool results
+            messages.push({
+                role: "user",
+                content: toolResults
+            });
+
+            const finalResponse = await anthropic.messages.create({
+                model: "claude-3-5-sonnet-20241022",
+                max_tokens: 1024,
+                system: systemPrompt,
+                messages: messages
+            });
+
+            aiResponse = finalResponse.content.filter(b => b.type === 'text').map(b => b.text).join(' ');
+        } else {
+            aiResponse = finalText;
+        }
+
+        // Fallback for empty responses
+        if (!aiResponse) {
+            if (functionCalled) {
+                aiResponse = `I've processed the ${functionCalled} command for you. Is there anything else I can assist with?`;
+            } else {
+                aiResponse = "I'm sorry, I couldn't generate a response. Could you try rephrasing your question?";
+            }
         }
 
         // Save to conversation history
         await saveConversation(userId, message, aiResponse, functionCalled ? {
-            model: 'claude-3-haiku',
+            model: 'claude-3.5-sonnet',
             tool: functionCalled,
             result: functionResult
-        } : { model: 'claude-3-haiku' });
+        } : { model: 'claude-3.5-sonnet' });
 
         res.json({
             response: aiResponse,
