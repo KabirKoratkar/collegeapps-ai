@@ -177,6 +177,73 @@
     }
 }
 
+/* Chat Enhancements */
+.chat-bubble {
+    position: relative;
+}
+
+.bubble-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.chat-bubble:hover .bubble-actions {
+    opacity: 1;
+}
+
+.voice-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 12px;
+}
+
+.voice-wave span {
+    width: 2px;
+    height: 100%;
+    background: var(--primary-blue);
+    border-radius: 1px;
+    animation: wave 1s ease-in-out infinite;
+}
+
+.voice-wave span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.voice-wave span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes wave {
+
+    0%,
+    100% {
+        height: 4px;
+    }
+
+    50% {
+        height: 12px;
+    }
+}
+
+.btn-group {
+    display: flex;
+    gap: 2px;
+}
+
+.btn-group .btn {
+    border-radius: var(--radius-md);
+}
+
+.btn-group .btn.active {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    color: var(--primary-blue);
+}
+
 /* Chat Input */
 .chat-window-input {
     padding: var(--space-md) var(--space-lg);

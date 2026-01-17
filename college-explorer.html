@@ -141,16 +141,51 @@
 
         .tab-link {
             padding: var(--space-sm) var(--space-xl);
-            font-weight: 600;
+            font-weight: 700;
             color: var(--gray-500);
             cursor: pointer;
+            border: none;
+            background: none;
             border-bottom: 3px solid transparent;
             transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-size: var(--text-base);
         }
 
         .tab-link.active {
             color: var(--primary-blue);
             border-bottom-color: var(--primary-blue);
+        }
+
+        .tab-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .tab-pane {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .essay-nav-item:hover {
+            background: var(--gray-50) !important;
+            border-color: var(--primary-blue) !important;
+        }
+
+        .essay-nav-item.active {
+            background: var(--gradient-subtle) !important;
+            border-color: var(--primary-blue) !important;
+            box-shadow: var(--shadow-sm);
         }
 
         #loadingOverlay {
@@ -246,27 +281,15 @@
         </div>
     </header>
 
-    <main class="container mb-3xl">
-        <!-- Stats Row -->
-        <div class="stat-grid">
-            <div class="stat-card-explorer">
-                <div class="stat-value" id="acceptanceRate">--%</div>
-                <div class="stat-label">Acceptance Rate</div>
-            </div>
-            <div class="stat-card-explorer">
-                <div class="stat-value" id="medianSAT">----</div>
-                <div class="stat-label">Median SAT</div>
-            </div>
-            <div class="stat-card-explorer">
-                <div class="stat-value" id="medianACT">--</div>
-                <div class="stat-label">Median ACT</div>
-            </div>
-            <div class="stat-card-explorer">
-                <div class="stat-value" id="avgGPA">--</div>
-                <div class="stat-label">Average GPA</div>
-            </div>
-        </div>
+    <!-- Tabs Navigation -->
+    <div
+        style="display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); border-bottom: 1px solid var(--gray-200); padding-bottom: -1px; overflow-x: auto;">
+        <button class="tab-link active" data-tab="overview">Overview</button>
+        <button class="tab-link" data-tab="requirements">Requirements</button>
+        <button class="tab-link" data-tab="workspace">Essay Workspace</button>
+    </div>
 
+    <div id="overviewTab" class="tab-pane active">
         <div class="explorer-grid">
             <!-- Left Column: Overview & Admissions -->
             <div class="fade-in">
@@ -297,7 +320,8 @@
                                 <div class="sidebar-icon">👥</div>
                                 <div>
                                     <div style="font-weight: 700;" id="totalEnrollment">--</div>
-                                    <div style="color: var(--gray-500); font-size: var(--text-sm);">Total Undergraduates
+                                    <div style="color: var(--gray-500); font-size: var(--text-sm);">Total
+                                        Undergraduates
                                     </div>
                                 </div>
                             </div>
@@ -339,13 +363,124 @@
                 </div>
 
                 <div class="card">
-                    <h3 class="h4 mb-lg">Requirements</h3>
-                    <ul id="requirementsList" style="list-style: none; padding: 0;">
+                    <h3 class="h4 mb-lg">Admission Checklist</h3>
+                    <ul id="quickRequirementsList" style="list-style: none; padding: 0;">
                         <!-- JS populated -->
                     </ul>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="requirementsTab" class="tab-pane" style="display: none;">
+        <div class="grid grid-2 gap-2xl">
+            <div class="card">
+                <h2 class="h3 mb-xl">Core Application Requirements</h2>
+                <div id="fullRequirementsList">
+                    <!-- JS populated -->
+                </div>
+            </div>
+            <div class="card">
+                <h2 class="h3 mb-xl">Letters of Recommendation</h2>
+                <div id="lorDetails" class="card card-compact" style="background: var(--gray-50);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <div
+                            style="width: 40px; height: 40px; background: var(--success); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                            ✉️</div>
+                        <div>
+                            <div id="lorCount" style="font-weight: 800; font-size: var(--text-xl);">2 LORs Required
+                            </div>
+                            <p style="margin: 0; color: var(--gray-500); font-size: var(--text-sm);">Typically 1
+                                counselor + 1-2 teachers</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: var(--space-xl);">
+                    <h4 class="mb-md">Strategic Tips for LORs</h4>
+                    <p style="font-size: var(--text-sm); line-height: 1.6; color: var(--gray-600);">
+                        For this college, focus on teachers who can speak to your <b>collaborative spirit</b> and
+                        <b>intellectual initiative</b>. If applying for STEM, at least one LOR from a math or
+                        science teacher is strongly recommended.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="workspaceTab" class="tab-pane" style="display: none;">
+        <div id="workspacePrompt" class="card text-center py-4xl" style="display: none;">
+            <span style="font-size: 48px; margin-bottom: var(--space-lg); display: block;">🔒</span>
+            <h3 class="h3 mb-md">Add to List to Unlock Workspace</h3>
+            <p style="color: var(--gray-600); margin-bottom: var(--space-xl);">Track your progress and write your
+                essays directly on this page.</p>
+            <button class="btn btn-primary btn-lg" onclick="document.getElementById('addCollegeBtn').click()">+ Add
+                to List</button>
+        </div>
+
+        <div id="workspaceContent">
+            <div class="essay-workspace-grid" style="grid-template-columns: 280px 1fr;">
+                <!-- Left: Essay Selector -->
+                <div class="card" style="padding: var(--space-md);">
+                    <h3
+                        style="font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-bottom: var(--space-md); font-weight: 800;">
+                        Supplemental Essays</h3>
+                    <div id="collegeEssaysList" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+
+                <!-- Right: Editor Area -->
+                <div id="editorContainer" style="display: none;">
+                    <div class="essay-editor-card card" style="box-shadow: none; border: 1px solid var(--gray-100);">
+                        <div class="essay-toolbar" style="top: 0; background: var(--white);">
+                            <div style="display: flex; align-items: center; gap: var(--space-md);">
+                                <div class="badge badge-primary" id="essayTypeBadge">Supplemental</div>
+                                <div id="save-status" style="font-size: var(--text-xs); color: var(--gray-400);">
+                                    Saved locally</div>
+                            </div>
+                            <div style="flex: 1;"></div>
+                            <button class="btn btn-sm btn-primary" id="saveDraftBtn">💾 Save Draft</button>
+                        </div>
+
+                        <div class="essay-prompt-container"
+                            style="background: var(--gray-50); border: 1px solid var(--gray-100); margin: var(--space-lg); border-radius: var(--radius-lg);">
+                            <h4
+                                style="margin: 0 0 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-blue); font-weight: 800;">
+                                OFFICIAL PROMPT</h4>
+                            <div id="currentPrompt"
+                                style="font-weight: 600; font-size: 0.95rem; color: var(--gray-800); line-height: 1.5;">
+                                Select an essay to begin.
+                            </div>
+                            <div id="wordLimitLabel"
+                                style="margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--gray-500);">Max
+                                250 words</div>
+                        </div>
+
+                        <textarea class="essay-textarea" id="essayEditor" placeholder="Start writing..."
+                            style="min-height: 400px; padding: var(--space-xl);"></textarea>
+
+                        <div class="essay-footer">
+                            <div class="stats-group">
+                                <span><strong>Words:</strong> <span id="wordCount">0</span></span>
+                                <span id="progressBar"
+                                    style="display: inline-block; width: 100px; height: 6px; background: var(--gray-200); border-radius: 3px; position: relative; overflow: hidden; margin-left: 10px;">
+                                    <div id="progressFill"
+                                        style="position: absolute; left: 0; top: 0; height: 100%; background: var(--primary-blue); width: 0%;">
+                                    </div>
+                                </span>
+                            </div>
+                            <button class="btn btn-sm btn-ghost" id="getAIFeedbackBtn">🤖 Get AI Feedback</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="noEssaySelected" class="card text-center py-4xl"
+                    style="background: var(--gray-50); border: 1px dashed var(--gray-200);">
+                    <p style="color: var(--gray-500);">Select an essay from the list on the left to start writing.</p>
+                </div>
+            </div>
+        </div>
+    </div>
     </main>
 
     <footer class="footer">

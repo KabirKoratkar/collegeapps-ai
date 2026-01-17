@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Logging you in...</title>
+    <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="text-align: center;">
+        <h2>Authenticating...</h2>
+        <p>Please wait while we sync your session.</p>
+    </div>
+    <script>
+        const webAuth = new auth0.WebAuth({
+            domain: 'YOUR_AUTH0_DOMAIN',
+            clientID: 'YOUR_AUTH0_CLIENT_ID'
+        });
+
+        webAuth.parseHash(function (err, authResult) {
+            if (authResult && authResult.accessToken && authResult.idToken) {
+                // Set the time that the access token will expire at
+                const expiresAt = JSON.stringify((authResult.expiresIn * 1000) + new Date().getTime());
+                localStorage.setItem('access_token', authResult.accessToken);
+                localStorage.setItem('id_token', authResult.idToken);
+                localStorage.setItem('expires_at', expiresAt);
+
+                // Redirect to dashboard
+                window.location.hash = '';
+                window.location.assign('dashboard.html');
+            } else if (err) {
+                console.log(err);
+                alert('Error: ' + err.errorDescription);
+                window.location.assign('login.html');
+            }
+        });
+    </script>
+</body>
+
+</html>

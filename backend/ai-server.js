@@ -13,6 +13,7 @@ import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { Resend } from 'resend';
 import paymentsRouter from './payments.js';
+import Anthropic from '@anthropic-ai/sdk';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_CATALOG_PATH = path.join(__dirname, 'college_catalog.json');
@@ -25,6 +26,11 @@ const PORT = process.env.PORT || 3001;
 // Initialize OpenAI
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
+});
+
+// Initialize Anthropic
+const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 // Initialize Supabase with service key (for server-side operations)
@@ -186,6 +192,99 @@ app.get('/api/colleges/research', researchLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error researching college:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Claude-specific chat endpoint (Premium Reasoning)
+app.post('/api/chat/claude', async (req, res) => {
+    try {
+        const { message, userId, conversationHistory = [] } = req.body;
+
+        if (!message || !userId) {
+            return res.status(400).json({ error: 'Message and userId are required' });
+        }
+
+        // Fetch user profile for personalization
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        const systemPrompt = `You are the Claude-powered Intelligence Command Center for ${profile?.full_name || 'this student'}.
+        Your goal is to provide high-level strategic reasoning and deep essay analysis.
+        You are sophisticated, insightful, and proactive.
+        
+        ${profile?.full_name ? `Student: ${profile.full_name}` : ''}
+        ${profile?.intended_major ? `Major: ${profile.intended_major}` : ''}
+        ${profile?.graduation_year ? `Grad Year: ${profile.graduation_year}` : ''}`;
+
+        const messages = [
+            ...conversationHistory.filter(msg => msg.role !== 'system').map(msg => ({
+                role: msg.role === 'assistant' ? 'assistant' : 'user',
+                content: msg.content
+            })),
+            { role: 'user', content: message }
+        ];
+
+        const response = await anthropic.messages.create({
+            model: "claude-3-5-sonnet-20240620",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: messages,
+        });
+
+        const aiResponse = response.content[0].text;
+
+        // Save to conversation history (reusing the same table)
+        await saveConversation(userId, message, aiResponse, { model: 'claude-3.5-sonnet' });
+
+        res.json({ response: aiResponse });
+
+    } catch (error) {
+        console.error('Claude Chat Error:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
+// ElevenLabs Text-to-Speech Endpoint
+app.post('/api/tts', async (req, res) => {
+    try {
+        const { text, voiceId } = req.body;
+        if (!text) return res.status(400).json({ error: 'Text is required' });
+
+        const apiKey = process.env.ELEVENLABS_API_KEY;
+        const selectedVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'audio/mpeg',
+                'Content-Type': 'application/json',
+                'xi-api-key': apiKey
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: 'eleven_monolingual_v1',
+                voice_settings: {
+                    stability: 0.5,
+                    similarity_boost: 0.5
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail?.message || 'ElevenLabs API error');
+        }
+
+        const audioBuffer = await response.arrayBuffer();
+        res.set('Content-Type', 'audio/mpeg');
+        res.send(Buffer.from(audioBuffer));
+
+    } catch (error) {
+        console.error('TTS Error:', error);
+        res.status(500).json({ error: 'Text-to-speech failed', details: error.message });
     }
 });
 
@@ -479,7 +578,7 @@ app.post('/api/chat', async (req, res) => {
 
         // Call OpenAI with function calling
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages,
             functions,
             function_call: 'auto',
@@ -554,7 +653,7 @@ app.post('/api/chat', async (req, res) => {
             });
 
             const secondCompletion = await openai.chat.completions.create({
-                model: 'gpt-4o-mini',
+                model: 'gpt-4o',
                 messages,
                 temperature: 0.7
             });
@@ -693,7 +792,7 @@ app.post('/api/onboarding/plan', async (req, res) => {
         const leeway = profile?.submission_leeway || 3;
 
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
                 {
                     role: 'system',
@@ -808,7 +907,7 @@ app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
         const major = profile?.intended_major || 'undecided';
 
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
                 {
                     role: 'system',
@@ -1201,12 +1300,16 @@ async function handleResearchCollege(collegeName) {
         // 2. If not, use AI to research the college
         console.log(`Researching college: ${collegeName} via AI...`);
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
                 {
                     role: 'system',
                     content: `You are a college data expert. Provide detailed statistics and information about the requested college in valid JSON format.
-                    Include: description (2-3 sentences), location (City, State), website, median_sat (e.g. 1450), median_act (e.g. 32), avg_gpa (e.g. 3.9), acceptance_rate (e.g. 4.5), enrollment (integer), cost_of_attendance (integer), and image_url (use a professional unsplash link related to college architecture).
+                    Include: 
+                    1. GENERAL: description (2-3 sentences), location (City, State), website, image_url (professional unsplash link).
+                    2. STATS: median_sat (integer), median_act (integer), avg_gpa (decimal), acceptance_rate (decimal), enrollment (integer), cost_of_attendance (integer).
+                    3. ADMISSIONS: application_platform (Common App, UC App, etc.), deadline_date (YYYY-MM-DD for RD), deadline_type (RD, EA, ED), test_policy (Test Optional, Test Required, Test Blind), lors_required (integer), portfolio_required (boolean), and essays (array of objects with title, essay_type, prompt, word_limit).
+                    
                     Important: Provide REAL, accurate data as of 2024-2025.
                     Format:
                     {
@@ -1220,7 +1323,14 @@ async function handleResearchCollege(collegeName) {
                         "acceptance_rate": 4.5,
                         "enrollment": 15000,
                         "cost_of_attendance": 85000,
-                        "image_url": "..."
+                        "image_url": "...",
+                        "application_platform": "...",
+                        "deadline_date": "...",
+                        "deadline_type": "...",
+                        "test_policy": "...",
+                        "lors_required": 2,
+                        "portfolio_required": false,
+                        "essays": [...]
                     }`
                 },
                 {
@@ -1248,6 +1358,13 @@ async function handleResearchCollege(collegeName) {
                 enrollment: parsedData.enrollment,
                 cost_of_attendance: parsedData.cost_of_attendance,
                 image_url: parsedData.image_url,
+                application_platform: parsedData.application_platform,
+                deadline_date: parsedData.deadline_date,
+                deadline_type: parsedData.deadline_type,
+                test_policy: parsedData.test_policy,
+                lors_required: parsedData.lors_required,
+                portfolio_required: parsedData.portfolio_required,
+                essays: parsedData.essays,
                 verified: false
             }, { onConflict: 'name' })
             .select()
@@ -1477,7 +1594,7 @@ async function researchAndCatalogCollege(collegeName) {
 
     try {
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
                 {
                     role: 'system',

@@ -64,6 +64,26 @@
         </div>
 
         <div style="max-width: 900px; margin: 0 auto;">
+            <!-- Chat Controls -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding: 0 var(--space-md);">
+                <div style="display: flex; gap: var(--space-sm);">
+                    <div id="modelToggle" class="btn-group"
+                        style="background: var(--gray-100); padding: 4px; border-radius: var(--radius-lg);">
+                        <button class="btn btn-sm btn-primary active" data-model="gpt">GPT-4o</button>
+                        <button class="btn btn-sm btn-ghost" data-model="claude"
+                            style="padding: 0.25rem 0.75rem;">Claude 3.5</button>
+                    </div>
+                </div>
+                <div id="voiceIndicator"
+                    style="display: flex; align-items: center; gap: var(--space-xs); font-size: var(--text-xs); color: var(--gray-500);">
+                    <span>Voice: <strong>Rachel (ElevenLabs)</strong></span>
+                    <div class="voice-wave">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Chat Container -->
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
@@ -71,7 +91,10 @@
                     <div class="chat-message">
                         <div class="chat-avatar">AI</div>
                         <div class="chat-bubble">
-                            <p style="margin: 0; margin-bottom: var(--space-sm);"><strong>Hi Sarah! 👋</strong></p>
+                            <div class="bubble-actions">
+                                <button class="btn-icon btn-sm tts-btn" title="Speak Response">🔊</button>
+                            </div>
+                            <p style="margin: 0; margin-bottom: var(--space-sm);"><strong>Hi there! 👋</strong></p>
                             <p style="margin: 0;">I'm your AI college counselor. I can help you with:</p>
                             <ul style="margin: var(--space-sm) 0; padding-left: var(--space-lg);">
                                 <li>College requirements and deadlines</li>
@@ -95,6 +118,9 @@
                     <div class="chat-message">
                         <div class="chat-avatar">AI</div>
                         <div class="chat-bubble">
+                            <div class="bubble-actions">
+                                <button class="btn-icon btn-sm tts-btn" title="Speak Response">🔊</button>
+                            </div>
                             <p style="margin: 0; margin-bottom: var(--space-md);"><strong>Stanford Essay Requirements
                                     for 2025-2026:</strong></p>
 

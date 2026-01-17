@@ -15,11 +15,11 @@ const AI_SERVER_URL = config.apiUrl;
 
 let conversationHistory = [];
 let currentUser = null;
+let currentModel = 'gpt';
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // Get current user
+    // ... existing init code ...
     currentUser = await getCurrentUser();
-
     if (!currentUser) {
         window.location.href = new URL('login.html', window.location.href).href;
         return;
@@ -27,47 +27,54 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const profile = await getUserProfile(currentUser.id);
     updateNavbarUser(currentUser, profile);
-
-    // Load conversation history
     await loadConversationHistory(profile);
 
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
     const suggestions = document.querySelectorAll('.suggestion-chip');
 
+    // Model Toggle Logic
+    const modelButtons = document.querySelectorAll('#modelToggle button');
+    modelButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            modelButtons.forEach(b => {
+                b.classList.remove('btn-primary', 'active');
+                b.classList.add('btn-ghost');
+            });
+            this.classList.remove('btn-ghost');
+            this.classList.add('btn-primary', 'active');
+            currentModel = this.dataset.model;
+            showNotification(`Switched to ${currentModel === 'claude' ? 'Claude 3.5' : 'GPT-4o'}`, 'info');
+        });
+    });
+
     // Handle suggestion chips
     suggestions.forEach(chip => {
         chip.addEventListener('click', function () {
-            const message = this.textContent;
-            sendMessage(message);
+            sendMessage(this.textContent);
         });
     });
 
     // Handle send button
-    const sendBtn = document.querySelector('.chat-input-wrapper .btn-primary');
-    if (sendBtn) {
-        sendBtn.addEventListener('click', function () {
+    document.getElementById('sendBtn')?.addEventListener('click', () => {
+        const message = chatInput.value.trim();
+        if (message) {
+            sendMessage(message);
+            chatInput.value = '';
+        }
+    });
+
+    // Handle Enter key
+    chatInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             const message = chatInput.value.trim();
             if (message) {
                 sendMessage(message);
                 chatInput.value = '';
             }
-        });
-    }
-
-    // Handle Enter key
-    if (chatInput) {
-        chatInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                const message = this.value.trim();
-                if (message) {
-                    sendMessage(message);
-                    this.value = '';
-                }
-            }
-        });
-    }
+        }
+    });
 });
 
 async function loadConversationHistory(profile = null) {
@@ -82,11 +89,9 @@ async function loadConversationHistory(profile = null) {
     }
     const firstName = profile?.full_name ? profile.full_name.split(' ')[0] : (currentUser.user_metadata?.full_name?.split(' ')[0] || 'there');
 
-    // Clear current messages except welcome
     const chatMessages = document.getElementById('chatMessages');
     const welcomeMessage = chatMessages.querySelector('.chat-message:first-child');
 
-    // Update welcome message name
     if (welcomeMessage) {
         const welcomeTitle = welcomeMessage.querySelector('strong');
         if (welcomeTitle) {
@@ -97,6 +102,11 @@ async function loadConversationHistory(profile = null) {
     chatMessages.innerHTML = '';
     if (welcomeMessage) {
         chatMessages.appendChild(welcomeMessage);
+        // Add listener to initial welcome message TTS button
+        const initialTtsBtn = welcomeMessage.querySelector('.tts-btn');
+        if (initialTtsBtn) {
+            initialTtsBtn.addEventListener('click', () => playTTS(welcomeMessage.querySelector('.chat-bubble').innerText, initialTtsBtn));
+        }
     }
 
     // Display history
@@ -105,7 +115,6 @@ async function loadConversationHistory(profile = null) {
         chatMessages.appendChild(msgElement);
     });
 
-    // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -115,8 +124,6 @@ async function sendMessage(message) {
     // Add user message to UI
     const userMsg = createMessageElement(message, true);
     chatMessages.appendChild(userMsg);
-
-    // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     // Show typing indicator
@@ -125,31 +132,28 @@ async function sendMessage(message) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     try {
-        // Limit check for free users
         const profile = await getUserProfile(currentUser.id);
         const hasPremium = isPremiumUser(profile);
 
-        if (!hasPremium && conversationHistory.length >= 10) { // 10 messages = 5 exchanges
+        if (!hasPremium && conversationHistory.length >= 10) {
             typingIndicator.remove();
-            const limitMsg = createMessageElement("You've reached the free message limit for this conversation. Join our Pro plan or Beta program for unlimited guidance!", false);
+            const limitMsg = createMessageElement("You've reached the limit. Upgrade to Pro for unlimited Claude access and voice features!", false);
             chatMessages.appendChild(limitMsg);
 
-            // Add an upgrade button
             const upgradeDiv = document.createElement('div');
             upgradeDiv.style.cssText = 'margin-top: 10px; text-align: center;';
             upgradeDiv.innerHTML = '<a href="settings.html" class="btn btn-primary btn-sm">Upgrade to Pro</a>';
             chatMessages.appendChild(upgradeDiv);
-
             chatMessages.scrollTop = chatMessages.scrollHeight;
             return;
         }
 
-        // Send to AI server
-        const response = await fetch(`${AI_SERVER_URL}/api/chat`, {
+        // Endpoint depends on selected model
+        const endpoint = currentModel === 'claude' ? `${AI_SERVER_URL}/api/chat/claude` : `${AI_SERVER_URL}/api/chat`;
+
+        const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 message,
                 userId: currentUser.id,
@@ -160,13 +164,9 @@ async function sendMessage(message) {
             })
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to get AI response');
-        }
-
+        if (!response.ok) throw new Error('Failed to get AI response');
         const data = await response.json();
 
-        // Remove typing indicator
         typingIndicator.remove();
 
         // Add AI response to UI
@@ -174,66 +174,76 @@ async function sendMessage(message) {
         chatMessages.appendChild(aiMsg);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Update conversation history
+        // Auto-play TTS for Claude if premium (optionally)
+        if (currentModel === 'claude' && hasPremium) {
+            const ttsBtn = aiMsg.querySelector('.tts-btn');
+            playTTS(data.response, ttsBtn);
+        }
+
         conversationHistory.push(
             { role: 'user', content: message },
             { role: 'assistant', content: data.response }
         );
 
-        // Show notification if function was called
+        // Handle function calls if any (GPT-4 only currently)
         if (data.functionCalled) {
-            const functionName = data.functionCalled;
-            let notificationMessage = '';
-            const status = data.functionResult?.success;
-
-            if (status) {
-                switch (functionName) {
-                    case 'addCollege':
-                        notificationMessage = `Added ${data.functionResult.college?.name || 'College'} to your list! 🎓`;
-                        break;
-                    case 'updateProfile':
-                        notificationMessage = `Profile updated! I've logged your new preferences. ✅`;
-                        break;
-                    case 'modifyTask':
-                        const action = data.functionResult.message || 'Task updated';
-                        notificationMessage = `${action}! I've adjusted your schedule. ⏰`;
-                        break;
-                    case 'updateEssay':
-                        notificationMessage = `Essay draft updated! I've saved the changes for you. ✍️`;
-                        break;
-                    case 'updateCollege':
-                        notificationMessage = `College status updated! Strategy confirmed. 🎯`;
-                        break;
-                    case 'createEssays':
-                        notificationMessage = `Essays loaded! Head to the workspace to start writing. 📝`;
-                        break;
-                    case 'createTasks':
-                        notificationMessage = `Plan generated! Check your dashboard for the new milestones. 📊`;
-                        break;
-                }
-            }
-
-            if (notificationMessage) {
-                setTimeout(() => {
-                    showNotification(notificationMessage, status ? 'success' : 'warning');
-                }, 500);
-            }
+            handleFunctionNotification(data.functionCalled, data.functionResult);
         }
 
     } catch (error) {
         console.error('Error sending message:', error);
         typingIndicator.remove();
-
-        // Show error message
-        const errorMsg = createMessageElement(
-            'Sorry, I\'m having trouble connecting to the AI server. Please make sure the backend server is running on port 3001.',
-            false
-        );
+        const errorMsg = createMessageElement('Connection error. Please try again.', false);
         chatMessages.appendChild(errorMsg);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        showNotification('Failed to connect to AI. Check console for details.', 'error');
     }
+}
+
+async function playTTS(text, button) {
+    if (button.classList.contains('playing')) return;
+
+    button.classList.add('playing');
+    button.textContent = '⌛';
+
+    try {
+        const response = await fetch(`${AI_SERVER_URL}/api/tts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) throw new Error('TTS failed');
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        button.textContent = '🔊';
+        document.querySelector('.voice-wave')?.classList.add('active');
+
+        audio.onended = () => {
+            button.classList.remove('playing');
+            document.querySelector('.voice-wave')?.classList.remove('active');
+        };
+
+        await audio.play();
+    } catch (err) {
+        console.error('TTS Playback Error:', err);
+        button.classList.remove('playing');
+        button.textContent = '🔊';
+    }
+}
+
+function handleFunctionNotification(name, result) {
+    if (!result?.success) return;
+    let msg = '';
+    switch (name) {
+        case 'addCollege': msg = `Added ${result.college?.name}! 🎓`; break;
+        case 'updateProfile': msg = `Profile updated! ✅`; break;
+        case 'modifyTask': msg = `Schedule adjusted! ⏰`; break;
+        case 'createEssays': msg = `Essays loaded! 📝`; break;
+    }
+    if (msg) showNotification(msg, 'success');
 }
 
 function createMessageElement(text, isUser) {
@@ -242,14 +252,26 @@ function createMessageElement(text, isUser) {
 
     const avatar = document.createElement('div');
     avatar.className = 'chat-avatar';
-    avatar.textContent = isUser ? currentUser?.email?.[0]?.toUpperCase() || 'U' : 'AI';
+    avatar.textContent = isUser ? 'U' : 'AI';
 
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
 
-    // Convert markdown-style formatting to HTML
-    const formattedText = formatMessageText(text);
-    bubble.innerHTML = formattedText;
+    if (!isUser) {
+        const actions = document.createElement('div');
+        actions.className = 'bubble-actions';
+        const ttsBtn = document.createElement('button');
+        ttsBtn.className = 'btn-icon btn-sm tts-btn';
+        ttsBtn.title = 'Speak Response';
+        ttsBtn.textContent = '🔊';
+        ttsBtn.addEventListener('click', () => playTTS(text, ttsBtn));
+        actions.appendChild(ttsBtn);
+        bubble.appendChild(actions);
+    }
+
+    const content = document.createElement('div');
+    content.innerHTML = formatMessageText(text);
+    bubble.appendChild(content);
 
     div.appendChild(avatar);
     div.appendChild(bubble);
@@ -258,33 +280,17 @@ function createMessageElement(text, isUser) {
 }
 
 function formatMessageText(text) {
-    // Convert markdown-style formatting
-    let formatted = text
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Bold
-        .replace(/\*(.+?)\*/g, '<em>$1</em>') // Italic
-        .replace(/\n/g, '<br>'); // Line breaks
-
-    return formatted;
+    return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
 }
 
 function createTypingIndicator() {
     const div = document.createElement('div');
     div.className = 'chat-message';
-    div.id = 'typing-indicator';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'chat-avatar';
-    avatar.textContent = 'AI';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble';
-    bubble.innerHTML = '<span style="opacity: 0.6;">Typing...</span>';
-
-    div.appendChild(avatar);
-    div.appendChild(bubble);
-
+    div.innerHTML = `<div class="chat-avatar">AI</div><div class="chat-bubble"><span style="opacity: 0.6;">Thinking...</span></div>`;
     return div;
 }
 
-// Override the old sendMessage function
 window.sendMessage = sendMessage;

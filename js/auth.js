@@ -15,10 +15,41 @@ function createDevSession(email, fullName) {
     return mockUser;
 }
 
+// Auth0 Configuration (Example)
+const auth0Config = {
+    domain: 'YOUR_AUTH0_DOMAIN',
+    clientId: 'YOUR_AUTH0_CLIENT_ID',
+    audience: 'https://api.waypoint.com'
+};
+
+// Initialize Auth0 WebAuth
+let webAuth = null;
+if (typeof auth0 !== 'undefined') {
+    webAuth = new auth0.WebAuth({
+        domain: auth0Config.domain,
+        clientID: auth0Config.clientId,
+        redirectUri: window.location.origin + '/callback.html',
+        responseType: 'token id_token',
+        scope: 'openid profile email'
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const signupForm = document.getElementById('signupForm');
     const loginForm = document.getElementById('loginForm');
     const googleBtn = document.querySelector('.google-btn');
+    const auth0Btn = document.getElementById('auth0Btn');
+
+    // Auth0 Login
+    if (auth0Btn) {
+        auth0Btn.addEventListener('click', function () {
+            if (webAuth) {
+                webAuth.authorize();
+            } else {
+                showNotification('Auth0 SDK not loaded', 'error');
+            }
+        });
+    }
 
     // Google Sign In
     if (googleBtn) {
