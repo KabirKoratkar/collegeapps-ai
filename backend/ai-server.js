@@ -360,6 +360,29 @@ app.post('/api/chat/claude', async (req, res) => {
                 }
             },
             {
+                name: "createTasks",
+                description: "Bulk create application tasks.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        tasks: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    title: { type: "string" },
+                                    description: { type: "string" },
+                                    dueDate: { type: "string" },
+                                    category: { type: "string", enum: ["Essay", "Document", "LOR", "General"] },
+                                    priority: { type: "string", enum: ["High", "Medium", "Low"] }
+                                }
+                            }
+                        }
+                    },
+                    required: ["tasks"]
+                }
+            },
+            {
                 name: "modifyTask",
                 description: "Create, update, or complete a task/calendar event.",
                 input_schema: {
@@ -372,7 +395,9 @@ app.post('/api/chat/claude', async (req, res) => {
                             properties: {
                                 title: { type: "string" },
                                 description: { type: "string" },
-                                dueDate: { type: "string" }
+                                dueDate: { type: "string" },
+                                category: { type: "string" },
+                                priority: { type: "string" }
                             }
                         }
                     },
@@ -408,9 +433,10 @@ app.post('/api/chat/claude', async (req, res) => {
                     type: "object",
                     properties: {
                         essayId: { type: "string" },
-                        content: { type: "string" }
+                        content: { type: "string" },
+                        isCompleted: { type: "boolean" }
                     },
-                    required: ["essayId", "content"]
+                    required: ["essayId"]
                 }
             },
             {
@@ -429,6 +455,35 @@ app.post('/api/chat/claude', async (req, res) => {
             {
                 name: "getAppStatus",
                 description: "Get a full status report of the user's application ecosystem.",
+                input_schema: { type: "object", properties: {} }
+            },
+            {
+                name: "brainstormEssay",
+                description: "Start a directed brainstorming session for an essay.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        prompt: { type: "string" },
+                        context: { type: "string" }
+                    },
+                    required: ["prompt"]
+                }
+            },
+            {
+                name: "reviewEssay",
+                description: "Provide a quick review summary of an essay draft.",
+                input_schema: {
+                    type: "object",
+                    properties: {
+                        essayContent: { type: "string" },
+                        focusArea: { type: "string" }
+                    },
+                    required: ["essayContent"]
+                }
+            },
+            {
+                name: "listDocuments",
+                description: "List all files in the user vault.",
                 input_schema: { type: "object", properties: {} }
             }
         ];
@@ -485,13 +540,25 @@ app.post('/api/chat/claude', async (req, res) => {
                             functionResult = await handleGetEssay(userId, toolArgs.essayId);
                             break;
                         case 'updateEssay':
-                            functionResult = await handleUpdateEssay(userId, toolArgs.essayId, toolArgs.content);
+                            functionResult = await handleUpdateEssayContent(userId, toolArgs.essayId, toolArgs.content, toolArgs.isCompleted);
                             break;
                         case 'researchCollege':
                             functionResult = await handleResearchCollege(toolArgs.collegeName);
                             break;
                         case 'createTasks':
                             functionResult = await handleCreateTasks(userId, toolArgs.tasks);
+                            break;
+                        case 'getAppStatus':
+                            functionResult = await handleGetAppStatus(userId);
+                            break;
+                        case 'brainstormEssay':
+                            functionResult = handleBrainstormEssay(toolArgs.prompt, toolArgs.context);
+                            break;
+                        case 'reviewEssay':
+                            functionResult = handleReviewEssay(toolArgs.essayContent, toolArgs.focusArea);
+                            break;
+                        case 'listDocuments':
+                            functionResult = await handleListDocuments(userId);
                             break;
                         default:
                             functionResult = { error: 'Unknown tool' };
@@ -527,7 +594,7 @@ app.post('/api/chat/claude', async (req, res) => {
 
             const finalResponse = await anthropic.messages.create({
                 model: "claude-3-5-sonnet-20241022",
-                max_tokens: 1024,
+                max_tokens: 2048,
                 system: systemPrompt,
                 messages: messages
             });
