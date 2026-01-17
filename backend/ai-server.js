@@ -220,19 +220,55 @@ app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
             model: 'gpt-4o',
             messages: [{
                 role: 'system',
-                content: `You are an Admissions Intelligence Analyst. Generate a deep "Intelligence Report" for ${collegeName}. 
-                Include: 
-                - "Insider Sentiment": What they really look for beyond stats.
-                - "Strategic Angle": How this user should position themselves.
-                - "Red Flags": Common mistakes.
-                Format as JSON: { "report": "markdown formatted report content" }`
+                content: `Generate a comprehensive "Intelligence Report" for ${collegeName}. 
+                You are a senior admissions insider with specialized knowledge of this specific university.
+
+                Format the response as a JSON object with this exact structure:
+                {
+                  "college": "${collegeName}",
+                  "summary": "A 1-2 sentence high-level executive summary.",
+                  "modules": {
+                    "academics": {
+                      "headline": "Intellectual Climate",
+                      "items": [
+                        { "title": "Academic Rigor", "content": "..." },
+                        { "title": "Unique Programs", "content": "..." }
+                      ]
+                    },
+                    "culture": {
+                      "headline": "Campus Life & Values",
+                      "items": [
+                        { "title": "Student Vibe", "content": "..." },
+                        { "title": "Core Values", "content": "..." }
+                      ]
+                    },
+                    "career": {
+                      "headline": "Post-Grad Intelligence",
+                      "items": [
+                        { "title": "Industry Pipelines", "content": "..." },
+                        { "title": "Network Strength", "content": "..." }
+                      ]
+                    },
+                    "admissions": {
+                      "headline": "Admissions Insider",
+                      "items": [
+                        { "title": "What They Look For", "content": "..." },
+                        { "title": "Essay Strategy", "content": "..." }
+                      ]
+                    },
+                    "edge": {
+                      "content": "Specific actionable advice to win."
+                    }
+                  }
+                }`
             }],
             response_format: { type: "json_object" }
         });
 
-        const report = JSON.parse(completion.choices[0].message.content).report;
-        res.json({ success: true, report });
+        const findings = JSON.parse(completion.choices[0].message.content);
+        res.json({ success: true, findings });
     } catch (error) {
+        console.error('Deep Research Error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

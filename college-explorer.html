@@ -242,7 +242,7 @@
         <div class="container navbar-container">
             <a href="dashboard.html" class="navbar-logo">
                 <img src="assets/logo.png" alt="Waypoint Logo">
-                
+
             </a>
             <ul class="navbar-links">
                 <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
@@ -280,9 +280,31 @@
         </div>
     </header>
 
+    <div class="container mb-2xl">
+        <div class="stat-grid">
+            <div class="stat-card-explorer">
+                <div class="stat-value" id="acceptanceRate">--%</div>
+                <div class="stat-label">Acceptance Rate</div>
+            </div>
+            <div class="stat-card-explorer">
+                <div class="stat-value" id="medianSAT">--</div>
+                <div class="stat-label">Median SAT</div>
+            </div>
+            <div class="stat-card-explorer">
+                <div class="stat-value" id="medianACT">--</div>
+                <div class="stat-label">Median ACT</div>
+            </div>
+            <div class="stat-card-explorer">
+                <div class="stat-value" id="avgGPA">--</div>
+                <div class="stat-label">Average GPA</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tabs Navigation -->
-    <div
-        style="display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); border-bottom: 1px solid var(--gray-200); padding-bottom: -1px; overflow-x: auto;">
+    <div class="container">
+        style="display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); border-bottom: 1px solid
+        var(--gray-200); padding-bottom: -1px; overflow-x: auto;">
         <button class="tab-link active" data-tab="overview">Overview</button>
         <button class="tab-link" data-tab="requirements">Requirements</button>
         <button class="tab-link" data-tab="workspace">Essay Workspace</button>
