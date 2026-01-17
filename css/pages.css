@@ -1023,11 +1023,17 @@
     color: var(--gray-900);
     margin-bottom: var(--space-xs);
     font-size: var(--text-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 var(--space-xs);
 }
 
 .file-size {
     font-size: var(--text-xs);
     color: var(--gray-500);
+    word-break: break-all;
+    padding: 0 var(--space-xs);
 }
 
 /* CHAT INTERFACE */

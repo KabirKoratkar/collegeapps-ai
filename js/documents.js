@@ -141,8 +141,8 @@ function renderGrid(docs) {
     grid.innerHTML = docs.map(doc => `
         <div class="file-card">
             <div class="file-icon">${getFileIcon(doc.category)}</div>
-            <div class="file-name">${doc.name}</div>
-            <div class="file-size">${(doc.file_size / 1024 / 1024).toFixed(2)} MB • ${doc.file_type.split('/')[1]?.toUpperCase() || 'FILE'}</div>
+            <div class="file-name" title="${doc.name}">${doc.name}</div>
+            <div class="file-size">${(doc.file_size / 1024 / 1024).toFixed(2)} MB • ${getCleanFileType(doc.file_type)}</div>
             <div style="margin-top: var(--space-md);">
                 <span class="badge ${getCategoryClass(doc.category)}">${doc.category}</span>
             </div>
@@ -251,6 +251,23 @@ async function reviewWithAI(name, category) {
 function getFileIcon(cat) {
     const icons = { 'Transcript': '📄', 'Resume': '📋', 'Award': '🏆', 'Certificate': '📜', 'Test Score': '📊', 'Essay Draft': '✍️' };
     return icons[cat] || '📄';
+}
+
+function getCleanFileType(fileType) {
+    if (!fileType) return 'FILE';
+    const type = fileType.toLowerCase();
+    if (type.includes('wordprocessingml')) return 'DOCX';
+    if (type.includes('spreadsheetml')) return 'XLSX';
+    if (type.includes('presentationml')) return 'PPTX';
+    if (type.includes('pdf')) return 'PDF';
+    if (type.includes('png')) return 'PNG';
+    if (type.includes('jpeg') || type.includes('jpg')) return 'JPG';
+
+    // Default to the subtype if it exists
+    if (fileType.includes('/')) {
+        return fileType.split('/')[1].toUpperCase();
+    }
+    return fileType.toUpperCase();
 }
 
 function getCategoryClass(cat) {
