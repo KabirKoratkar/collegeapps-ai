@@ -473,30 +473,61 @@ async function handleCreateEssays(userId, collegeName) {
         const research = await handleResearchCollege(collegeName);
         const catalogEntry = research.college;
 
-        if (!catalogEntry || !catalogEntry.essays) return { success: true, count: 0 };
+        if (!catalogEntry) return { success: true, count: 0 };
 
         let count = 0;
-        for (const essay of catalogEntry.essays) {
-            const { data: existing } = await supabase
-                .from('essays')
+        // 1. Create Essays
+        if (catalogEntry.essays) {
+            for (const essay of catalogEntry.essays) {
+                const { data: existing } = await supabase
+                    .from('essays')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('college_id', collegeEntry.id)
+                    .eq('title', `${collegeEntry.name} - ${essay.title}`)
+                    .maybeSingle();
+
+                if (!existing) {
+                    await supabase.from('essays').insert({
+                        user_id: userId,
+                        college_id: collegeEntry.id,
+                        title: `${collegeEntry.name} - ${essay.title}`,
+                        prompt: essay.prompt,
+                        word_limit: essay.word_limit,
+                        essay_type: essay.essay_type || 'Supplemental',
+                        status: 'Not Started',
+                        content: ''
+                    });
+                    count++;
+                }
+            }
+        }
+
+        // 2. Create Default Tasks
+        const defaultTasks = [
+            { title: `Draft Supplemental Essays for ${collegeEntry.name}`, priority: 'High' },
+            { title: `Request Transcripts for ${collegeEntry.name}`, priority: 'Medium' },
+            { title: `Finalize LORs for ${collegeEntry.name}`, priority: 'Medium' }
+        ];
+
+        for (const task of defaultTasks) {
+            const { data: existingTask } = await supabase
+                .from('tasks')
                 .select('id')
                 .eq('user_id', userId)
                 .eq('college_id', collegeEntry.id)
-                .eq('title', `${collegeEntry.name} - ${essay.title}`)
+                .eq('title', task.title)
                 .maybeSingle();
 
-            if (!existing) {
-                await supabase.from('essays').insert({
+            if (!existingTask) {
+                await supabase.from('tasks').insert({
                     user_id: userId,
                     college_id: collegeEntry.id,
-                    title: `${collegeEntry.name} - ${essay.title}`,
-                    prompt: essay.prompt,
-                    word_limit: essay.word_limit,
-                    essay_type: essay.essay_type || 'Supplemental',
-                    status: 'Not Started',
-                    content: ''
+                    title: task.title,
+                    priority: task.priority,
+                    completed: false,
+                    status: 'Todo'
                 });
-                count++;
             }
         }
 

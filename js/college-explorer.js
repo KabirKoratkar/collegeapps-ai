@@ -4,7 +4,10 @@ import {
     getUserProfile,
     getUserColleges,
     getUserEssays,
-    updateEssay
+    getUserTasks,
+    getUserDocuments,
+    updateEssay,
+    toggleTaskCompletion
 } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
 
@@ -12,6 +15,8 @@ let enrollmentChart = null;
 let currentCollege = null;
 let userColleges = [];
 let userEssays = [];
+let userTasks = [];
+let userDocuments = [];
 let selectedEssay = null;
 let autoSaveInterval = null;
 let currentUser = null;
@@ -36,10 +41,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // Parallel load college data and user's context
-        const [researchData, colleges, essays] = await Promise.all([
+        const [researchData, colleges, essays, tasks, documents] = await Promise.all([
             fetch(`${config.apiUrl}/api/colleges/research?name=${encodeURIComponent(collegeName)}`).then(r => r.json()),
             getUserColleges(currentUser.id),
-            getUserEssays(currentUser.id)
+            getUserEssays(currentUser.id),
+            getUserTasks(currentUser.id),
+            getUserDocuments(currentUser.id)
         ]);
 
         if (!researchData.success) throw new Error(researchData.error || 'Failed to fetch college data');
@@ -47,6 +54,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentCollege = researchData.college;
         userColleges = colleges;
         userEssays = essays;
+        userTasks = tasks;
+        userDocuments = documents;
 
         renderCollegeData(currentCollege);
         setupTabs();
@@ -187,6 +196,10 @@ function setupTabs() {
 
             if (target === 'workspace') {
                 loadWorkspace();
+            } else if (target === 'requirements') {
+                renderTasks();
+            } else if (target === 'documents') {
+                renderDocuments();
             }
         };
     });
@@ -194,10 +207,10 @@ function setupTabs() {
 
 function checkUserStatus() {
     if (!currentCollege) return;
-    const existing = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
+    const userCollege = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
     const addBtn = document.getElementById('addCollegeBtn');
 
-    if (existing) {
+    if (userCollege) {
         if (addBtn) {
             addBtn.innerHTML = '✅ Added to List';
             addBtn.classList.replace('btn-primary', 'btn-ghost');
@@ -212,13 +225,183 @@ function checkUserStatus() {
         const workspaceContent = document.getElementById('workspaceContent');
         if (workspacePrompt) workspacePrompt.style.display = 'none';
         if (workspaceContent) workspaceContent.style.display = 'block';
+
+        // Render application progress header
+        renderApplicationStatus(userCollege);
     } else {
         const workspacePrompt = document.getElementById('workspacePrompt');
         const workspaceContent = document.getElementById('workspaceContent');
         if (workspacePrompt) workspacePrompt.style.display = 'block';
         if (workspaceContent) workspaceContent.style.display = 'none';
+
+        const statusCard = document.getElementById('applicationStatusCard');
+        if (statusCard) statusCard.style.display = 'none';
     }
 }
+
+function renderApplicationStatus(userCollege) {
+    const statusCard = document.getElementById('applicationStatusCard');
+    if (!statusCard) return;
+
+    statusCard.style.display = 'block';
+
+    // Calculate progress
+    const progress = calculateSmartProgress(userCollege, userEssays, userTasks);
+
+    const progressVal = document.getElementById('headerProgressVal');
+    const progressBar = document.getElementById('headerProgressBar');
+    const deadlineCountdown = document.getElementById('headerDeadlineCountdown');
+
+    if (progressVal) progressVal.textContent = `${progress}%`;
+    if (progressBar) progressBar.style.width = `${progress}%`;
+
+    // Countdown
+    if (deadlineCountdown) {
+        if (userCollege.deadline) {
+            const deadline = new Date(userCollege.deadline);
+            const now = new Date();
+            const diff = deadline - now;
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+            if (days < 0) {
+                deadlineCountdown.textContent = 'Deadline passed';
+                deadlineCountdown.style.color = 'var(--error)';
+            } else if (days === 0) {
+                deadlineCountdown.textContent = 'Due TODAY';
+                deadlineCountdown.style.color = 'var(--warning)';
+            } else {
+                deadlineCountdown.textContent = `${days} days left until deadline`;
+            }
+        } else {
+            deadlineCountdown.textContent = 'Deadline TBD';
+        }
+    }
+}
+
+function calculateSmartProgress(college, allEssays, allTasks) {
+    const collegeEssays = allEssays.filter(e => e.college_id === college.id);
+    const collegeTasks = allTasks.filter(t => t.college_id === college.id);
+
+    if (collegeEssays.length === 0 && collegeTasks.length === 0) return 0;
+
+    let essayScore = 0;
+    if (collegeEssays.length > 0) {
+        const totalEssayProgress = collegeEssays.reduce((acc, essay) => {
+            if (essay.is_completed) return acc + 1;
+            const wordProgress = essay.word_limit > 0 ? Math.min(essay.word_count / essay.word_limit, 1) : 0;
+            return acc + (wordProgress * 0.8);
+        }, 0);
+        essayScore = totalEssayProgress / collegeEssays.length;
+    }
+
+    let taskScore = 0;
+    if (collegeTasks.length > 0) {
+        const completedTasks = collegeTasks.filter(t => t.completed).length;
+        taskScore = completedTasks / collegeTasks.length;
+    }
+
+    // Weighting: 40% Essays, 60% Tasks
+    let essayWeight = 0.4;
+    let taskWeight = 0.6;
+    if (collegeEssays.length === 0) { taskWeight = 1.0; essayWeight = 0; }
+    if (collegeTasks.length === 0) { essayWeight = 1.0; taskWeight = 0; }
+
+    return Math.round((essayScore * essayWeight + taskScore * taskWeight) * 100);
+}
+
+function renderTasks() {
+    const userCollege = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
+    if (!userCollege) return;
+
+    const collegeTasks = userTasks.filter(t => t.college_id === userCollege.id);
+    const listContainer = document.getElementById('collegeTasksList');
+    if (!listContainer) return;
+
+    if (collegeTasks.length === 0) {
+        listContainer.innerHTML = '<p style="color: var(--gray-500); font-size: var(--text-sm); font-style: italic;">No specific tasks for this college yet. Try adding some from the Dashboard.</p>';
+        return;
+    }
+
+    listContainer.innerHTML = collegeTasks.map(task => `
+        <div class="card card-compact" style="display: flex; align-items: center; gap: var(--space-md); ${task.completed ? 'opacity: 0.7;' : ''}">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                   onchange="window.handleToggleTask('${task.id}', this.checked)"
+                   style="width: 18px; height: 18px; cursor: pointer;">
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: var(--text-sm); ${task.completed ? 'text-decoration: line-through;' : ''}">${task.title}</div>
+                ${task.due_date ? `<div style="font-size: 11px; color: var(--gray-500);">Due: ${new Date(task.due_date).toLocaleDateString()}</div>` : ''}
+            </div>
+            <div class="badge ${task.priority === 'High' ? 'badge-error' : (task.priority === 'Medium' ? 'badge-warning' : 'badge-primary')}" style="font-size: 10px;">${task.priority}</div>
+        </div>
+    `).join('');
+}
+
+window.handleToggleTask = async (taskId, completed) => {
+    try {
+        const updated = await toggleTaskCompletion(taskId, completed);
+        if (updated) {
+            // Update local state
+            const index = userTasks.findIndex(t => t.id === taskId);
+            if (index !== -1) userTasks[index] = updated;
+
+            // Re-render tasks and status
+            renderTasks();
+            const userCollege = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
+            renderApplicationStatus(userCollege);
+
+            if (window.showNotification) window.showNotification('Task status updated!', 'success');
+        }
+    } catch (error) {
+        console.error('Error toggling task:', error);
+    }
+};
+
+function renderDocuments() {
+    const listContainer = document.getElementById('collegeDocumentsGrid');
+    const emptyMsg = document.getElementById('noDocumentsMsg');
+    if (!listContainer || !emptyMsg) return;
+
+    if (!userDocuments || userDocuments.length === 0) {
+        listContainer.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        return;
+    }
+
+    listContainer.style.display = 'grid';
+    emptyMsg.style.display = 'none';
+
+    listContainer.innerHTML = userDocuments.map(doc => `
+        <div class="card card-compact" style="display: flex; flex-direction: column; gap: var(--space-sm); background: var(--white); border: 1px solid var(--gray-100);">
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                <span style="font-size: 20px;">${getFileIcon(doc.file_type)}</span>
+                <div style="flex: 1; overflow: hidden;">
+                    <div style="font-weight: 700; font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${doc.name}">${doc.name}</div>
+                    <div style="font-size: 10px; color: var(--gray-500);">${doc.category || 'General'}</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: var(--space-xs); margin-top: 4px;">
+                <button class="btn btn-ghost btn-sm flex-1" style="font-size: 11px; padding: 4px;" onclick="window.viewDocument('${doc.file_path}')">View</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getFileIcon(type) {
+    if (type?.includes('pdf')) return '📄';
+    if (type?.includes('image')) return '🖼️';
+    if (type?.includes('word') || type?.includes('officedocument')) return '📝';
+    return '📁';
+}
+
+window.viewDocument = async (filePath) => {
+    const { getDocumentUrl } = await import('./supabase-config.js');
+    const url = await getDocumentUrl(filePath);
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        if (window.showNotification) window.showNotification('Could not open document.', 'error');
+    }
+};
 
 async function addCollegeToList(name) {
     const btn = document.getElementById('addCollegeBtn');
@@ -241,8 +424,12 @@ async function addCollegeToList(name) {
             if (window.showNotification) window.showNotification(`Successfully added ${name}!`, 'success');
 
             // Refresh local data
-            userColleges = await getUserColleges(currentUser.id);
-            userEssays = await getUserEssays(currentUser.id);
+            const [colleges, essays] = await Promise.all([
+                getUserColleges(currentUser.id),
+                getUserEssays(currentUser.id)
+            ]);
+            userColleges = colleges;
+            userEssays = essays;
 
             checkUserStatus();
 
@@ -251,7 +438,11 @@ async function addCollegeToList(name) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: currentUser.id })
-            }).then(() => getUserEssays(currentUser.id).then(essays => { userEssays = essays; }));
+            }).then(async () => {
+                userEssays = await getUserEssays(currentUser.id);
+                const userCollege = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
+                renderApplicationStatus(userCollege);
+            });
 
         } else {
             if (window.showNotification) window.showNotification('Could not add college: ' + result.error, 'error');
@@ -347,6 +538,10 @@ async function saveCurrentEssay() {
             const index = userEssays.findIndex(e => e.id === selectedEssay.id);
             if (index !== -1) userEssays[index] = updated;
             loadWorkspace();
+
+            // Update header progress
+            const userCollege = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
+            renderApplicationStatus(userCollege);
         }
     } catch (error) {
         if (status) status.textContent = 'Error saving';
@@ -552,4 +747,3 @@ function showResearchModal(findings) {
 
 // Make it available globally for the explorer button
 window.showResearchModal = showResearchModal;
-
