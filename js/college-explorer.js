@@ -14,6 +14,7 @@ let userColleges = [];
 let userEssays = [];
 let selectedEssay = null;
 let autoSaveInterval = null;
+let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -24,21 +25,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const user = await getCurrentUser();
-    if (!user) {
+    currentUser = await getCurrentUser();
+    if (!currentUser) {
         window.location.href = 'login.html';
         return;
     }
 
-    const profile = await getUserProfile(user.id);
-    updateNavbarUser(user, profile);
+    const profile = await getUserProfile(currentUser.id);
+    updateNavbarUser(currentUser, profile);
 
     try {
         // Parallel load college data and user's context
         const [researchData, colleges, essays] = await Promise.all([
             fetch(`${config.apiUrl}/api/colleges/research?name=${encodeURIComponent(collegeName)}`).then(r => r.json()),
-            getUserColleges(user.id),
-            getUserEssays(user.id)
+            getUserColleges(currentUser.id),
+            getUserEssays(currentUser.id)
         ]);
 
         if (!researchData.success) throw new Error(researchData.error || 'Failed to fetch college data');
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderCollegeData(currentCollege);
         setupTabs();
         checkUserStatus();
+        setupIntelligenceReport();
 
     } catch (error) {
         console.error('Error loading college data:', error);
@@ -62,23 +64,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function renderCollegeData(college) {
     // Basic Info
-    document.getElementById('collegeName').textContent = college.name;
+    const safeSetText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    safeSetText('collegeName', college.name);
     document.title = `${college.name} - Waypoint Explorer`;
-    document.getElementById('collegeLocation').textContent = college.location || 'Location Unknown';
-    document.getElementById('collegeWebsite').href = college.website || '#';
-    document.getElementById('collegeDescription').textContent = college.description || 'No description available.';
+    safeSetText('collegeLocation', college.location || 'Location Unknown');
+
+    const websiteEl = document.getElementById('collegeWebsite');
+    if (websiteEl) websiteEl.href = college.website || '#';
+
+    safeSetText('collegeDescription', college.description || 'No description available.');
 
     // Stats
-    document.getElementById('acceptanceRate').textContent = college.acceptance_rate ? `${college.acceptance_rate}%` : '--%';
-    document.getElementById('medianSAT').textContent = college.median_sat || 'N/A';
-    document.getElementById('medianACT').textContent = college.median_act || 'N/A';
-    document.getElementById('avgGPA').textContent = college.avg_gpa || 'N/A';
+    safeSetText('acceptanceRate', college.acceptance_rate ? `${college.acceptance_rate}%` : '--%');
+    safeSetText('medianSAT', college.median_sat || 'N/A');
+    safeSetText('medianACT', college.median_act || 'N/A');
+    safeSetText('avgGPA', college.avg_gpa || 'N/A');
 
     // Admissions 
-    document.getElementById('totalEnrollment').textContent = college.enrollment ? college.enrollment.toLocaleString() : 'N/A';
-    document.getElementById('costOfAttendance').textContent = college.cost_of_attendance ? `$${college.cost_of_attendance.toLocaleString()}` : 'N/A';
-    document.getElementById('deadlineInfo').textContent = college.deadline_date ? new Date(college.deadline_date).toLocaleDateString() : 'TBD';
-    document.getElementById('testPolicy').textContent = college.test_policy || 'Test Optional';
+    safeSetText('totalEnrollment', college.enrollment ? college.enrollment.toLocaleString() : 'N/A');
+    safeSetText('costOfAttendance', college.cost_of_attendance ? `$${college.cost_of_attendance.toLocaleString()}` : 'N/A');
+    safeSetText('deadlineInfo', college.deadline_date ? new Date(college.deadline_date).toLocaleDateString() : 'TBD');
+    safeSetText('testPolicy', college.test_policy || 'Test Optional');
 
     // Requirements Lists
     renderRequirements(college);
@@ -88,7 +98,8 @@ function renderCollegeData(college) {
 
     // Header Background
     if (college.image_url) {
-        document.getElementById('collegeHeader').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${college.image_url})`;
+        const header = document.getElementById('collegeHeader');
+        if (header) header.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${college.image_url})`;
     }
 
     // Chart
@@ -96,12 +107,13 @@ function renderCollegeData(college) {
 
     // Setup Add Button
     const addBtn = document.getElementById('addCollegeBtn');
-    addBtn.onclick = () => addCollegeToList(college.name);
+    if (addBtn) addBtn.onclick = () => addCollegeToList(college.name);
 }
 
 function renderRequirements(college) {
     const quickList = document.getElementById('quickRequirementsList');
     const fullList = document.getElementById('fullRequirementsList');
+    if (!quickList || !fullList) return;
 
     // Quick List (Dashboard style)
     const quickItems = [
@@ -157,7 +169,8 @@ function renderRequirements(college) {
     `;
 
     // LOR Content
-    document.getElementById('lorCount').textContent = `${college.lors_required || 0} LORs Required`;
+    const lorCountEl = document.getElementById('lorCount');
+    if (lorCountEl) lorCountEl.textContent = `${college.lors_required || 0} LORs Required`;
 }
 
 function setupTabs() {
@@ -169,7 +182,8 @@ function setupTabs() {
 
             const target = tab.getAttribute('data-tab');
             document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-            document.getElementById(`${target}Tab`).style.display = 'block';
+            const targetPane = document.getElementById(`${target}Tab`);
+            if (targetPane) targetPane.style.display = 'block';
 
             if (target === 'workspace') {
                 loadWorkspace();
@@ -179,38 +193,47 @@ function setupTabs() {
 }
 
 function checkUserStatus() {
+    if (!currentCollege) return;
     const existing = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
     const addBtn = document.getElementById('addCollegeBtn');
 
     if (existing) {
-        addBtn.innerHTML = '✅ Added to List';
-        addBtn.classList.replace('btn-primary', 'btn-ghost');
-        addBtn.onclick = () => {
-            document.querySelector('[data-tab="workspace"]').click();
-        };
+        if (addBtn) {
+            addBtn.innerHTML = '✅ Added to List';
+            addBtn.classList.replace('btn-primary', 'btn-ghost');
+            addBtn.onclick = () => {
+                const workspaceTab = document.querySelector('[data-tab="workspace"]');
+                if (workspaceTab) workspaceTab.click();
+            };
+        }
 
         // Enable workspace
-        document.getElementById('workspacePrompt').style.display = 'none';
-        document.getElementById('workspaceContent').style.display = 'block';
+        const workspacePrompt = document.getElementById('workspacePrompt');
+        const workspaceContent = document.getElementById('workspaceContent');
+        if (workspacePrompt) workspacePrompt.style.display = 'none';
+        if (workspaceContent) workspaceContent.style.display = 'block';
     } else {
-        document.getElementById('workspacePrompt').style.display = 'block';
-        document.getElementById('workspaceContent').style.display = 'none';
+        const workspacePrompt = document.getElementById('workspacePrompt');
+        const workspaceContent = document.getElementById('workspaceContent');
+        if (workspacePrompt) workspacePrompt.style.display = 'block';
+        if (workspaceContent) workspaceContent.style.display = 'none';
     }
 }
 
 async function addCollegeToList(name) {
     const btn = document.getElementById('addCollegeBtn');
-    if (btn.textContent.includes('Added')) return;
+    if (btn && btn.textContent.includes('Added')) return;
 
-    btn.disabled = true;
-    btn.textContent = 'Adding...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+    }
 
     try {
-        const user = await getCurrentUser();
         const response = await fetch(`${config.apiUrl}/api/colleges/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, collegeName: name })
+            body: JSON.stringify({ userId: currentUser.id, collegeName: name })
         });
 
         const result = await response.json();
@@ -218,8 +241,8 @@ async function addCollegeToList(name) {
             if (window.showNotification) window.showNotification(`Successfully added ${name}!`, 'success');
 
             // Refresh local data
-            userColleges = await getUserColleges(user.id);
-            userEssays = await getUserEssays(user.id);
+            userColleges = await getUserColleges(currentUser.id);
+            userEssays = await getUserEssays(currentUser.id);
 
             checkUserStatus();
 
@@ -227,8 +250,8 @@ async function addCollegeToList(name) {
             fetch(`${config.apiUrl}/api/essays/sync`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id })
-            }).then(() => getUserEssays(user.id).then(essays => { userEssays = essays; }));
+                body: JSON.stringify({ userId: currentUser.id })
+            }).then(() => getUserEssays(currentUser.id).then(essays => { userEssays = essays; }));
 
         } else {
             if (window.showNotification) window.showNotification('Could not add college: ' + result.error, 'error');
@@ -236,17 +259,21 @@ async function addCollegeToList(name) {
     } catch (error) {
         console.error('Error adding college:', error);
     } finally {
-        btn.disabled = false;
-        if (!btn.textContent.includes('Added')) btn.textContent = '+ Add to List';
+        if (btn) {
+            btn.disabled = false;
+            if (!btn.textContent.includes('Added')) btn.textContent = '+ Add to List';
+        }
     }
 }
 
 function loadWorkspace() {
+    if (!currentCollege) return;
     const college = userColleges.find(c => c.name.toLowerCase() === currentCollege.name.toLowerCase());
     if (!college) return;
 
     const collegeEssays = userEssays.filter(e => e.college_id === college.id);
     const listContainer = document.getElementById('collegeEssaysList');
+    if (!listContainer) return;
 
     if (collegeEssays.length === 0) {
         listContainer.innerHTML = '<p style="font-size: var(--text-xs); color: var(--gray-500); padding: var(--space-md);">No essays found for this college yet. Try syncing or wait a moment.</p>';
@@ -270,15 +297,20 @@ window.selectEssay = async (essayId) => {
     if (!selectedEssay) return;
 
     // UI Updates
-    document.getElementById('noEssaySelected').style.display = 'none';
-    document.getElementById('editorContainer').style.display = 'block';
+    const noEssayEl = document.getElementById('noEssaySelected');
+    const editorContainer = document.getElementById('editorContainer');
+    if (noEssayEl) noEssayEl.style.display = 'none';
+    if (editorContainer) editorContainer.style.display = 'block';
 
-    document.getElementById('essayTypeBadge').textContent = selectedEssay.essay_type || 'Supplemental';
-    document.getElementById('currentPrompt').textContent = selectedEssay.prompt || 'No prompt provided.';
-    document.getElementById('wordLimitLabel').textContent = `Max ${selectedEssay.word_limit || '---'} words`;
+    const typeBadge = document.getElementById('essayTypeBadge');
+    const promptEl = document.getElementById('currentPrompt');
+    const wordLimitEl = document.getElementById('wordLimitLabel');
+    if (typeBadge) typeBadge.textContent = selectedEssay.essay_type || 'Supplemental';
+    if (promptEl) promptEl.textContent = selectedEssay.prompt || 'No prompt provided.';
+    if (wordLimitEl) wordLimitEl.textContent = `Max ${selectedEssay.word_limit || '---'} words`;
 
     const editor = document.getElementById('essayEditor');
-    editor.value = selectedEssay.content || '';
+    if (editor) editor.value = selectedEssay.content || '';
 
     updateEditorStats();
     loadWorkspace(); // Refresh active state in list
@@ -291,11 +323,13 @@ window.selectEssay = async (essayId) => {
 async function saveCurrentEssay() {
     if (!selectedEssay) return;
 
-    const content = document.getElementById('essayEditor').value;
+    const editor = document.getElementById('essayEditor');
+    if (!editor) return;
+    const content = editor.value;
     if (content === selectedEssay.content) return;
 
     const status = document.getElementById('save-status');
-    status.textContent = 'Saving...';
+    if (status) status.textContent = 'Saving...';
 
     try {
         const updated = await updateEssay(selectedEssay.id, {
@@ -307,7 +341,7 @@ async function saveCurrentEssay() {
         if (updated) {
             selectedEssay.content = content;
             selectedEssay.word_count = updated.word_count;
-            status.textContent = 'Saved at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (status) status.textContent = 'Saved at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             // Update in local list
             const index = userEssays.findIndex(e => e.id === selectedEssay.id);
@@ -315,24 +349,65 @@ async function saveCurrentEssay() {
             loadWorkspace();
         }
     } catch (error) {
-        status.textContent = 'Error saving';
+        if (status) status.textContent = 'Error saving';
         console.error('Auto-save error:', error);
     }
 }
 
 function updateEditorStats() {
-    const content = document.getElementById('essayEditor').value;
+    const editor = document.getElementById('essayEditor');
+    if (!editor) return;
+    const content = editor.value;
     const words = content.split(/\s+/).filter(w => w.length > 0).length;
-    document.getElementById('wordCount').textContent = words;
+    const wordCountEl = document.getElementById('wordCount');
+    if (wordCountEl) wordCountEl.textContent = words;
 
     if (selectedEssay && selectedEssay.word_limit) {
         const percent = Math.min((words / selectedEssay.word_limit) * 100, 100);
-        document.getElementById('progressFill').style.width = percent + '%';
-        if (words > selectedEssay.word_limit) {
-            document.getElementById('progressFill').style.background = 'var(--error)';
-        } else {
-            document.getElementById('progressFill').style.background = 'var(--primary-blue)';
+        const fill = document.getElementById('progressFill');
+        if (fill) {
+            fill.style.width = percent + '%';
+            if (words > selectedEssay.word_limit) {
+                fill.style.background = 'var(--error)';
+            } else {
+                fill.style.background = 'var(--primary-blue)';
+            }
         }
+    }
+}
+
+function setupIntelligenceReport() {
+    const reportBtn = document.getElementById('intelligenceReportBtn');
+    if (reportBtn) {
+        reportBtn.onclick = async () => {
+            if (!currentCollege) return;
+            if (window.showNotification) window.showNotification(`Building Intelligence Report for ${currentCollege.name}...`, 'info');
+
+            try {
+                const response = await fetch(`${config.apiUrl}/api/colleges/research-deep`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        collegeName: currentCollege.name
+                    })
+                });
+
+                if (!response.ok) throw new Error('Research failed');
+                const data = await response.json();
+
+                // We use showResearchModal from colleges.js if available, otherwise fallback
+                if (window.showResearchModal) {
+                    window.showResearchModal(data.findings);
+                } else {
+                    alert('Report generated! See console for data (UI component loading...)');
+                    console.log('Intelligence Report:', data.findings);
+                }
+            } catch (error) {
+                console.error('Research Error:', error);
+                if (window.showNotification) window.showNotification('Failed to generate report.', 'error');
+            }
+        };
     }
 }
 
@@ -389,3 +464,92 @@ function renderEnrollmentChart(college) {
         }
     });
 }
+
+function showResearchModal(findings) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.85); display: flex; align-items: center; justify-content: center;
+        z-index: 2000; backdrop-filter: blur(16px);
+    `;
+
+    const renderModule = (mod, icon, color) => {
+        if (!mod || !mod.items) return '';
+        const itemsHtml = mod.items.map(item => `
+            <div style="margin-bottom: var(--space-md);">
+                <div style="font-weight: 700; font-size: var(--text-sm); font-family: 'Outfit', sans-serif; color: var(--gray-900);">${item.title}</div>
+                <div style="font-size: var(--text-sm); color: var(--gray-600); line-height: 1.5;">${item.content}</div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="card" style="margin-bottom: var(--space-lg); border-left: 4px solid ${color};">
+                <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                    <span style="font-size: 20px;">${icon}</span>
+                    <h3 style="margin: 0; font-size: var(--text-md); text-transform: uppercase; letter-spacing: 0.05em; color: ${color};">${mod.headline}</h3>
+                </div>
+                ${itemsHtml}
+            </div>
+        `;
+    };
+
+    const modules = findings.modules;
+
+    modal.innerHTML = `
+        <div class="card" style="max-width: 800px; width: 95%; padding: 0; max-height: 90vh; overflow-y: auto; background: var(--gray-50); box-shadow: var(--shadow-2xl); border: 1px solid var(--gray-200);">
+            <!-- Header Section -->
+            <div style="position: sticky; top: 0; background: var(--white); padding: var(--space-xl) var(--space-2xl); border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; z-index: 10; backdrop-filter: blur(10px);">
+                <div style="display: flex; align-items: center; gap: var(--space-md);">
+                    <div style="width: 50px; height: 50px; background: var(--gradient-primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 24px; color: white;">🕵️</div>
+                    <div>
+                        <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: var(--text-2xl); font-weight: 800; color: var(--gray-900);">${findings.college} Intelligence Report</h2>
+                        <p style="margin: 0; font-size: var(--text-xs); color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;">Internal Personnel File: CONFIDENTIAL</p>
+                    </div>
+                </div>
+                <button onclick="this.closest('.modal-overlay').remove()" style="background:none; border:none; font-size:24px; cursor:pointer;">×</button>
+            </div>
+
+            <!-- Content Section -->
+            <div style="padding: var(--space-2xl);">
+                <!-- Executive Summary -->
+                <div class="card" style="background: var(--white); border: 1px dashed var(--primary-blue); margin-bottom: var(--space-xl);">
+                    <h4 style="margin: 0 0 8px; font-size: var(--text-xs); color: var(--primary-blue); text-transform: uppercase;">Executive Summary</h4>
+                    <p style="margin: 0; font-size: var(--text-md); font-weight: 500; font-style: italic; color: var(--gray-800);">${findings.summary}</p>
+                </div>
+
+                <!-- Grid for Modules -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                    <div style="display: flex; flex-direction: column;">
+                        ${renderModule(modules.academics, '🎓', 'var(--primary-blue)')}
+                        ${renderModule(modules.career, '💼', 'var(--success)')}
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        ${renderModule(modules.culture, '🎉', 'var(--warning)')}
+                        ${renderModule(modules.admissions, '🎯', 'var(--accent-purple)')}
+                        
+                        <!-- The Edge -->
+                        <div class="card" style="background: var(--gray-100); color: var(--gray-900); border: 1px solid var(--gray-200);">
+                            <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                                <span style="font-size: 20px;">⚔️</span>
+                                <h3 style="margin: 0; font-size: var(--text-md); text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-900);">The Competitive Edge</h3>
+                            </div>
+                            <p style="font-size: var(--text-sm); line-height: 1.6; color: var(--gray-600); margin: 0;">${modules.edge.content}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--space-xl); text-align: center;">
+                    <button class="btn btn-primary" style="height: 50px; width: 100%;" onclick="this.closest('.modal-overlay').remove()">Download Intelligence to Brain</button>
+                    <p style="font-size: 10px; color: var(--gray-400); margin-top: var(--space-md);">Verified against 2024-2025 Admissions Data • AI-Generated Insight</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+// Make it available globally for the explorer button
+window.showResearchModal = showResearchModal;
+
