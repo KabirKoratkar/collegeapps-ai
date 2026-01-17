@@ -39,9 +39,19 @@ const openai = new OpenAI({
 });
 
 // Initialize Anthropic
-const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-});
+let anthropic = null;
+if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_anthropic_api_key_here') {
+    try {
+        anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+        });
+        console.log('✅ Anthropic SDK initialized');
+    } catch (e) {
+        console.error('❌ Anthropic SDK failed to initialize:', e.message);
+    }
+} else {
+    console.log('⚠️ Anthropic SDK skipping (key missing)');
+}
 
 // Initialize AWS S3 (Optional for Demo)
 let s3Client = null;
@@ -268,6 +278,10 @@ app.get('/api/colleges/research', researchLimiter, async (req, res) => {
 app.post('/api/chat/claude', async (req, res) => {
     try {
         const { message, userId, conversationHistory = [] } = req.body;
+
+        if (!anthropic) {
+            return res.status(503).json({ error: 'Claude 3.5 Sonnet service is not configured on the server. Please check your ANTHROPIC_API_KEY.' });
+        }
 
         if (!message || !userId) {
             return res.status(400).json({ error: 'Message and userId are required' });
