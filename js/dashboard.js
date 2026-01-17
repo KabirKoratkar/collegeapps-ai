@@ -291,7 +291,8 @@ async function generateAIActionPlan(tasks, essays, colleges) {
             body: JSON.stringify({
                 message: `Give me a 2-sentence tactical action plan for TODAY based on these stats: ${statsStr}. Focus on the student's preferred ${intensity} pace. Be direct and coach-like.`,
                 userId: currentUser.id,
-                conversationHistory: []
+                conversationHistory: [],
+                saveToHistory: false
             })
         });
 

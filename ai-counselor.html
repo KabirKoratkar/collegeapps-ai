@@ -87,10 +87,18 @@
             <!-- Chat Container -->
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
-                    <div class="chat-message assistant">
-                        <div class="message-content">
-                            Hello! I'm your admissions intelligence system. How can I help you today? I can research
-                            schools, help brainstorm essays, or organize your application calendar.
+                    <!-- AI Welcome Message -->
+                    <div class="chat-message">
+                        <div class="chat-avatar">AI</div>
+                        <div class="chat-bubble">
+                            <div class="bubble-actions">
+                                <button class="btn-icon btn-sm tts-btn" title="Speak Response">🔊</button>
+                            </div>
+                            <p style="margin: 0; margin-bottom: var(--space-sm);"><strong>Hi there! 👋</strong></p>
+                            <p style="font-size: 10px; color: var(--gray-400); margin-bottom: var(--space-md);">Session
+                                secured by AWS Native Identity Protection</p>
+                            <p style="margin: 0;">I'm your AI college counselor, powered by AWS Cloud Intelligence. How
+                                can I help you today?</p>
                         </div>
                     </div>
                 </div>
