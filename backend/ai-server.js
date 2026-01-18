@@ -24,9 +24,19 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+let openai = null;
+try {
+    if (process.env.OPENAI_API_KEY) {
+        openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+        console.log('✅ OpenAI initialized');
+    } else {
+        console.warn('⚠️ OPENAI_API_KEY missing - AI features will be disabled');
+    }
+} catch (e) {
+    console.warn('⚠️ OpenAI initialization failed:', e.message);
+}
 
 // Initialize Anthropic
 let anthropic = null;
@@ -42,10 +52,20 @@ if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_ant
 }
 
 // Initialize Supabase with service key (for server-side operations)
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-);
+let supabase = null;
+try {
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+        supabase = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_KEY
+        );
+        console.log('✅ Supabase Admin initialized');
+    } else {
+        console.error('❌ Supabase credentials missing (SUPABASE_URL or SUPABASE_SERVICE_KEY)');
+    }
+} catch (e) {
+    console.error('❌ Supabase initialization failed:', e.message);
+}
 
 // Initialize Resend
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -79,6 +99,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api/', globalLimiter);
 
 // Health Check
+app.get('/', (req, res) => res.send('Waypoint AI Server is running. Access health check at /health'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', version: 'v3.0', infrastructure: 'Supabase Native' }));
 app.get('/health', (req, res) => res.json({ status: 'ok', message: 'AI server is running' }));
 
