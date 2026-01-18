@@ -346,7 +346,7 @@
     top: calc(100% + 15px);
     right: 0;
     width: 220px;
-    background: var(--fixed-white);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xl);
