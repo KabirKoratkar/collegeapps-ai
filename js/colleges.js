@@ -186,13 +186,13 @@ async function performAddCollege(collegeName, type = 'Target') {
 
 async function loadAndRenderColleges() {
     const { colleges, tasks, essays } = await fetchCollegesData(currentUser.id);
-    const tbody = document.querySelector('.college-table tbody');
+    const tbody = document.getElementById('collegeTableBody');
 
     // Update summary counts
     updateSummary(colleges);
 
     if (colleges.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: var(--space-xl);">No colleges added yet. Use the "Add College" button or ask the AI Counselor!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 100px;">No colleges added yet. Use the "Add College" button to get started!</td></tr>';
         return;
     }
 
@@ -203,39 +203,41 @@ async function loadAndRenderColleges() {
         return `
             <tr data-id="${c.id}">
                 <td>
-                    <div style="display: flex; align-items: center; gap: var(--space-sm);">
-                        <a href="college-explorer.html?name=${encodeURIComponent(c.name)}" style="color: inherit; text-decoration: none;"><strong>${c.name}</strong></a>
-                        <div style="display: flex; gap: 4px;">
-                            <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="getAIStrategy('${c.name.replace(/'/g, "\\'")}')" title="Admission Strategy">✨</button>
-                            <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="deepResearch('${c.name.replace(/'/g, "\\'")}')" title="Intelligence Report">🕵️</button>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a href="college-explorer.html?name=${encodeURIComponent(c.name)}" style="color: inherit; text-decoration: none;"><strong>${c.name}</strong></a>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="getAIStrategy('${c.name.replace(/'/g, "\\'")}')" title="Admission Strategy">✨</button>
+                                <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="deepResearch('${c.name.replace(/'/g, "\\'")}')" title="Intelligence Report">🕵️</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select class="input-sm" onchange="updateType('${c.id}', this.value)" style="padding: 2px 4px; font-size: 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface-soft); color: var(--gray-600); width: fit-content;">
+                                <option value="Reach" ${c.type === 'Reach' ? 'selected' : ''}>🚀 Reach</option>
+                                <option value="Target" ${c.type === 'Target' ? 'selected' : ''}>🎯 Target</option>
+                                <option value="Safety" ${c.type === 'Safety' ? 'selected' : ''}>🛡️ Safety</option>
+                            </select>
+                            <span style="font-size: 10px; color: var(--gray-400);">${essays.filter(e => e.college_id === c.id).length} Essays Required</span>
                         </div>
                     </div>
                 </td>
-                <td><span class="badge">${c.application_platform || 'TBD'}</span></td>
-                <td>${essays.filter(e => e.college_id === c.id).length} essays</td>
-                <td><span class="badge ${getTestPolicyClass(c.test_policy)}">${c.test_policy || 'Unknown'}</span></td>
-                <td>${c.lors_required || 0}</td>
-                <td>
-                    <select class="input-sm" onchange="updateType('${c.id}', this.value)" style="padding: 2px 4px; font-size: 11px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--gray-800);">
-                        <option value="Reach" ${c.type === 'Reach' ? 'selected' : ''}>🚀 Reach</option>
-                        <option value="Target" ${c.type === 'Target' ? 'selected' : ''}>🎯 Target</option>
-                        <option value="Safety" ${c.type === 'Safety' ? 'selected' : ''}>🛡️ Safety</option>
-                    </select>
-                </td>
-                <td>${c.deadline ? new Date(c.deadline).toLocaleDateString() : 'TBD'}</td>
+                <td><span class="badge">${c.deadline_type || 'RD'}</span></td>
+                <td>${c.deadline ? new Date(c.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</td>
+                <td><span class="badge badge-primary">${c.application_platform || 'Common App'}</span></td>
                 <td>
                     <div style="display: flex; flex-direction: column; gap: 4px; min-width: 120px;">
-                        <div style="display: flex; justify-content: space-between; font-size: var(--text-xs); font-weight: 600;">
-                            <span>${progress}%</span>
-                            <span>${progress === 100 ? 'Ready' : 'In Progress'}</span>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">
+                            <span>${progress}% Complete</span>
                         </div>
-                        <div style="width: 100%; height: 6px; background: var(--surface-soft); border: 1px solid var(--border); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 100%; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden;">
                             <div style="width: ${progress}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease;"></div>
                         </div>
                     </div>
                 </td>
                 <td>
-                    <button class="btn btn-icon btn-ghost" onclick="removeCollegeFromList('${c.id}', '${c.name.replace(/'/g, "\\'")}')" title="Remove College" style="color: var(--error);">🗑️</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-icon btn-ghost" onclick="removeCollegeFromList('${c.id}', '${c.name.replace(/'/g, "\\'")}')" title="Remove College" style="color: var(--error); border: 1px solid rgba(239, 68, 68, 0.1);">🗑️</button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -303,13 +305,15 @@ function updateSummary(collegesList) {
     const target = collegesList.filter(c => c.type === 'Target').length;
     const safety = collegesList.filter(c => c.type === 'Safety').length;
 
-    const cards = document.querySelectorAll('.grid-4 .card div:first-child');
-    if (cards.length >= 4) {
-        cards[0].textContent = total;
-        cards[1].textContent = reach;
-        cards[2].textContent = target;
-        cards[3].textContent = safety;
-    }
+    const elTotal = document.getElementById('totalColleges');
+    const elReach = document.getElementById('reachCount');
+    const elTarget = document.getElementById('targetCount');
+    const elSafety = document.getElementById('safetyCount');
+
+    if (elTotal) elTotal.textContent = total;
+    if (elReach) elReach.textContent = reach;
+    if (elTarget) elTarget.textContent = target;
+    if (elSafety) elSafety.textContent = safety;
 }
 
 async function removeCollegeFromList(id, name) {

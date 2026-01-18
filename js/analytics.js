@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             updateSummaryStats(colleges, essays, tasks);
             renderCollegeBreakdown(colleges);
-            renderAppStatus(colleges);
+            renderAppStatus(colleges, essays, tasks);
             renderActivity(activityData);
             renderEssayProgress(essays);
         } else {
@@ -134,12 +134,12 @@ function renderCollegeBreakdown(colleges) {
     });
 }
 
-function renderAppStatus(colleges) {
+function renderAppStatus(colleges, essays = [], tasks = []) {
     const ctx = document.getElementById('appStatusChart').getContext('2d');
 
     const statusCounts = { 'Not Started': 0, 'In Progress': 0, 'Completed': 0 };
     colleges.forEach(c => {
-        const progress = calculateSmartProgress(c, [], []); // Basic check with no essays/tasks for now if not available
+        const progress = calculateSmartProgress(c, essays, tasks);
         let status = 'Not Started';
         if (progress === 100) status = 'Completed';
         else if (progress > 0) status = 'In Progress';

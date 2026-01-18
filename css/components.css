@@ -155,6 +155,17 @@
     color: var(--gray-400);
 }
 
+.textarea.py-2xl {
+    padding-top: 150px;
+    /* Generous offset for floating navbar */
+    padding-bottom: var(--space-2xl);
+}
+
+.py-workspace {
+    padding-top: 100px;
+    padding-bottom: var(--space-xl);
+}
+
 .textarea {
     min-height: 120px;
     resize: vertical;
@@ -321,6 +332,88 @@
 .navbar-link.active {
     color: var(--primary-blue);
     background: rgba(91, 141, 238, 0.1);
+}
+
+/* User Dropdown */
+.user-menu-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    width: 220px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    padding: var(--space-sm);
+    display: none;
+    flex-direction: column;
+    z-index: 1001;
+    animation: slideInUp 0.2s ease-out;
+}
+
+.user-dropdown.active {
+    display: flex;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    color: var(--gray-700);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+
+.user-dropdown-item:hover {
+    background: var(--gray-100);
+    color: var(--primary-blue);
+}
+
+.user-dropdown-divider {
+    height: 1px;
+    background: var(--border);
+    margin: var(--space-xs) 0;
+}
+
+.user-dropdown-header {
+    padding: var(--space-md);
+    margin-bottom: var(--space-xs);
+}
+
+.user-dropdown-header .user-name {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.user-dropdown-header .user-email {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--gray-500);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .navbar-actions {

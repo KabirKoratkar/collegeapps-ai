@@ -27,14 +27,60 @@ export function updateNavbarUser(user, profile = null) {
 
     userBadge.innerHTML = name + statusBadge;
 
-    // Add a settings listener to the parent item
+    // Convert userNavItem into a dropdown container
     const userNavItem = document.getElementById('user-nav-item');
     if (userNavItem) {
+        userNavItem.className = 'user-menu-container';
         userNavItem.style.cursor = 'pointer';
-        userNavItem.title = 'Account Settings';
-        userNavItem.addEventListener('click', () => {
-            window.location.assign('settings.html');
-        });
+        userNavItem.title = 'Control Center';
+
+        // Create Dropdown HTML
+        const dropdown = document.createElement('div');
+        dropdown.className = 'user-dropdown';
+        dropdown.id = 'userDropdown';
+        dropdown.innerHTML = `
+            <div class="user-dropdown-header">
+                <span class="user-name">${name}</span>
+                <span class="user-email">${user.email}</span>
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <a href="settings.html" class="user-dropdown-item">
+                <span>⚙️</span> Account Settings
+            </a>
+            <a href="dashboard.html" class="user-dropdown-item">
+                <span>📊</span> My Dashboard
+            </a>
+            <a href="documents.html" class="user-dropdown-item">
+                <span>📂</span> Document Vault
+            </a>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" id="logoutBtn">
+                <span>🚪</span> Sign Out
+            </div>
+        `;
+
+        // Remove existing listeners by replacing the element or clearing innerHTML
+        // but easier to just check if dropdown already exists
+        if (!document.getElementById('userDropdown')) {
+            userNavItem.appendChild(dropdown);
+
+            userNavItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+            });
+
+            document.addEventListener('click', () => {
+                dropdown.classList.remove('active');
+            });
+
+            const logoutBtn = dropdown.querySelector('#logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    await signOut();
+                    window.location.assign('index.html');
+                });
+            }
+        }
     }
 }
 

@@ -766,6 +766,7 @@ async function signInWithGoogle(nextPath = 'dashboard.html') {
 
 // Export all functions
 export {
+    awsClient as supabase,
     awsClient,
     getCurrentUser,
     getUserProfile,

@@ -126,3 +126,4 @@ To handle high-concurrency (hundreds of simultaneous users), the following measu
 ---
 
 *Built with ❤️ for students navigating the college application journey.*
+![alt text](image.png)
