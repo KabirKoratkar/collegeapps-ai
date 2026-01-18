@@ -81,193 +81,124 @@
         <!-- Summary Cards -->
         <div class="grid grid-4 gap-lg mb-2xl">
             <div class="card card-compact text-center">
-                <div
-                    style="font-size: var(--text-3xl); font-weight: 800; color: var(--primary-blue); margin-bottom: var(--space-xs);">
-                    8</div>
-                <div style="color: var(--gray-600); font-size: var(--text-sm);">Total Colleges</div>
-            </div>
-            <div class="card card-compact text-center">
-                <div <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
-                    <div>
-                        <h1 style="font-size: var(--text-4xl); font-weight: 800; margin-bottom: var(--space-xs);">My
-                            College List 🎓</h1>
-                        <p style="color: var(--gray-600); font-size: var(--text-lg);">Your target schools and
-                            application progress</p>
-                    </div>
-                    <button class="btn btn-primary" id="addCollegeBtn">
-                        <span>+</span> Add College
-                    </button>
-                </div>
-
-                <div class="college-table-wrapper">
-                    <table class="college-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 250px;">College Name</th>
-                                <th style="width: 150px;">Deadline Type</th>
-                                <th style="width: 150px;">Date</th>
-                                <th style="width: 120px;">Platform</th>
-                                <th style="width: 150px;">Status</th>
-                                <th style="width: 100px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="collegeTableBody">
-                            <!-- Populated by js/colleges.js -->
-                            <tr>
-                                <td colspan="6" class="text-center" style="padding: 100px;">
-                                    <div class="loading-spinner"></div> Loading your college list...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Secondary Summary Stats -->
-                <div class="mt-2xl">
-                    <h3
-                        style="font-size: var(--text-xl); font-weight: 700; margin-bottom: var(--space-md); color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">
-                        Application Snapshot</h3>
-                    <div class="stats-summary" id="statsSummary">
-                        <div class="stat-card">
-                            <span class="stat-label">Total Colleges</span>
-                            <span class="stat-value" id="totalColleges">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-label">Reach Schools</span>
-                            <span class="stat-value" id="reachCount">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-label">Target Schools</span>
-                            <span class="stat-value" id="targetCount">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-label">Safety Schools</span>
-                            <span class="stat-value" id="safetyCount">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="footer"
-                style="padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 1px solid var(--border);">
-
                 <div class="container text-center">
                     <p style="color: var(--gray-500); font-size: var(--text-sm);">&copy; 2026 Waypoint. All rights
                         reserved.</p>
                 </div>
-            </footer>
+                </footer>
 
-            <!-- Add College Modal -->
-            <div id="addCollegeModal" class="modal">
-                <div class="modal-overlay" onclick="closeAddCollegeModal()"></div>
-                <div class="modal-content" style="max-width: 550px;">
-                    <div class="modal-header">
-                        <h3>✨ Add New College</h3>
-                        <button class="modal-close" onclick="closeAddCollegeModal()">×</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="input-group">
-                            <label class="input-label">Search for a College</label>
-                            <div style="position: relative;">
-                                <input type="text" id="modalSearchInput" class="input"
-                                    placeholder="e.g. Stanford, UCLA, Harvard..." autocomplete="off">
-                                <div id="modalSearchResults"
-                                    style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; display: none; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; margin-top: 4px;">
+                <!-- Add College Modal -->
+                <div id="addCollegeModal" class="modal">
+                    <div class="modal-overlay" onclick="closeAddCollegeModal()"></div>
+                    <div class="modal-content" style="max-width: 550px;">
+                        <div class="modal-header">
+                            <h3>✨ Add New College</h3>
+                            <button class="modal-close" onclick="closeAddCollegeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group">
+                                <label class="input-label">Search for a College</label>
+                                <div style="position: relative;">
+                                    <input type="text" id="modalSearchInput" class="input"
+                                        placeholder="e.g. Stanford, UCLA, Harvard..." autocomplete="off">
+                                    <div id="modalSearchResults"
+                                        style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; display: none; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; margin-top: 4px;">
+                                    </div>
+                                </div>
+                                <p
+                                    style="font-size: var(--text-xs); color: var(--gray-500); margin-top: var(--space-xs);">
+                                    Select a
+                                    college from the list to automatically fetch requirements.</p>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">Target Reach/Safety</label>
+                                <div class="grid grid-3 gap-sm">
+                                    <label class="category-card" style="cursor: pointer;">
+                                        <input type="radio" name="collegeType" value="Reach" style="display: none;">
+                                        <div class="category-content">
+                                            <span style="font-size: 20px;">🚀</span>
+                                            <strong>Reach</strong>
+                                        </div>
+                                    </label>
+                                    <label class="category-card" style="cursor: pointer;">
+                                        <input type="radio" name="collegeType" value="Target" checked
+                                            style="display: none;">
+                                        <div class="category-content">
+                                            <span style="font-size: 20px;">🎯</span>
+                                            <strong>Target</strong>
+                                        </div>
+                                    </label>
+                                    <label class="category-card" style="cursor: pointer;">
+                                        <input type="radio" name="collegeType" value="Safety" style="display: none;">
+                                        <div class="category-content">
+                                            <span style="font-size: 20px;">🛡️</span>
+                                            <strong>Safety</strong>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
-                            <p style="font-size: var(--text-xs); color: var(--gray-500); margin-top: var(--space-xs);">
-                                Select a
-                                college from the list to automatically fetch requirements.</p>
-                        </div>
 
-                        <div class="input-group">
-                            <label class="input-label">Target Reach/Safety</label>
-                            <div class="grid grid-3 gap-sm">
-                                <label class="category-card" style="cursor: pointer;">
-                                    <input type="radio" name="collegeType" value="Reach" style="display: none;">
-                                    <div class="category-content">
-                                        <span style="font-size: 20px;">🚀</span>
-                                        <strong>Reach</strong>
-                                    </div>
-                                </label>
-                                <label class="category-card" style="cursor: pointer;">
-                                    <input type="radio" name="collegeType" value="Target" checked
-                                        style="display: none;">
-                                    <div class="category-content">
-                                        <span style="font-size: 20px;">🎯</span>
-                                        <strong>Target</strong>
-                                    </div>
-                                </label>
-                                <label class="category-card" style="cursor: pointer;">
-                                    <input type="radio" name="collegeType" value="Safety" style="display: none;">
-                                    <div class="category-content">
-                                        <span style="font-size: 20px;">🛡️</span>
-                                        <strong>Safety</strong>
-                                    </div>
-                                </label>
+                            <div style="margin-top: var(--space-xl); display: flex; gap: var(--space-md);">
+                                <button class="btn btn-ghost flex-1" onclick="closeAddCollegeModal()">Cancel</button>
+                                <button class="btn btn-primary flex-1" id="confirmAddBtn" onclick="submitModalAdd()">Add
+                                    to
+                                    My
+                                    List</button>
                             </div>
-                        </div>
-
-                        <div style="margin-top: var(--space-xl); display: flex; gap: var(--space-md);">
-                            <button class="btn btn-ghost flex-1" onclick="closeAddCollegeModal()">Cancel</button>
-                            <button class="btn btn-primary flex-1" id="confirmAddBtn" onclick="submitModalAdd()">Add to
-                                My
-                                List</button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <style>
-                .category-card input:checked+.category-content {
-                    border-color: var(--primary-blue);
-                    background: rgba(91, 141, 238, 0.05);
-                    box-shadow: 0 0 0 2px var(--primary-blue);
-                }
+                <style>
+                    .category-card input:checked+.category-content {
+                        border-color: var(--primary-blue);
+                        background: rgba(91, 141, 238, 0.05);
+                        box-shadow: 0 0 0 2px var(--primary-blue);
+                    }
 
-                .category-content {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    padding: var(--space-md);
-                    border: 2px solid var(--border);
-                    border-radius: var(--radius-lg);
-                    background: var(--surface);
-                    transition: all var(--transition-base);
-                    text-align: center;
-                    gap: 4px;
-                    color: var(--gray-800);
-                }
+                    .category-content {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        padding: var(--space-md);
+                        border: 2px solid var(--border);
+                        border-radius: var(--radius-lg);
+                        background: var(--surface);
+                        transition: all var(--transition-base);
+                        text-align: center;
+                        gap: 4px;
+                        color: var(--gray-800);
+                    }
 
-                .category-content strong {
-                    font-size: var(--text-sm);
-                }
+                    .category-content strong {
+                        font-size: var(--text-sm);
+                    }
 
-                .category-content:hover {
-                    border-color: var(--primary-blue);
-                    background: var(--surface-soft);
-                }
+                    .category-content:hover {
+                        border-color: var(--primary-blue);
+                        background: var(--surface-soft);
+                    }
 
-                .modal-search-item {
-                    padding: var(--space-sm) var(--space-md);
-                    cursor: pointer;
-                    transition: background 0.2s;
-                    border-bottom: 1px solid var(--border);
-                    color: var(--gray-800);
-                }
+                    .modal-search-item {
+                        padding: var(--space-sm) var(--space-md);
+                        cursor: pointer;
+                        transition: background 0.2s;
+                        border-bottom: 1px solid var(--border);
+                        color: var(--gray-800);
+                    }
 
-                .modal-search-item:hover {
-                    background: var(--surface-soft);
-                }
+                    .modal-search-item:hover {
+                        background: var(--surface-soft);
+                    }
 
-                .modal-search-item:last-child {
-                    border-bottom: none;
-                }
-            </style>
+                    .modal-search-item:last-child {
+                        border-bottom: none;
+                    }
+                </style>
 
-            <script src="js/main.js"></script>
-            <script type="module" src="js/colleges.js"></script>
+                <script src="js/main.js"></script>
+                <script type="module" src="js/colleges.js"></script>
 </body>
 
 </html>

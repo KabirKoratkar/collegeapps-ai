@@ -305,7 +305,7 @@ function updateSummary(collegesList) {
     const target = collegesList.filter(c => c.type === 'Target').length;
     const safety = collegesList.filter(c => c.type === 'Safety').length;
 
-    const elTotal = document.getElementById('totalColleges');
+    const elTotal = document.getElementById('totalCollegesHeader');
     const elReach = document.getElementById('reachCount');
     const elTarget = document.getElementById('targetCount');
     const elSafety = document.getElementById('safetyCount');
