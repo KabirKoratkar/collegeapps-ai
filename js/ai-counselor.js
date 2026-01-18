@@ -63,6 +63,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     });
 
+    // History Button
+    const historyBtn = document.getElementById('historyBtn');
+    if (historyBtn) {
+        historyBtn.addEventListener('click', async () => {
+            await showFullHistory();
+        });
+    }
+
     // Send logic
     sendBtn.addEventListener('click', async () => {
         const text = chatInput.value.trim();
@@ -274,3 +282,74 @@ function createScoutStatusBubble() {
 }
 
 window.sendMessage = sendMessage;
+
+async function showFullHistory() {
+    if (!currentUser) return;
+
+    showNotification('Fetching archive...', 'info');
+    const messages = await getUserConversations(currentUser.id, 500); // Fetch last 500 messages
+
+    if (!messages || messages.length === 0) {
+        showNotification('No history found.', 'warning');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.85); display: flex; align-items: center; justify-content: center;
+        z-index: 2000; backdrop-filter: blur(8px);
+    `;
+
+    // Group messages by date
+    const grouped = {};
+    messages.forEach(msg => {
+        const date = new Date(msg.created_at).toLocaleDateString(undefined, {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(msg);
+    });
+
+    const contentHtml = Object.keys(grouped).map(date => `
+        <div style="margin-bottom: var(--space-xl);">
+            <div style="position: sticky; top: 0; background: var(--gray-100); padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; color: var(--gray-600); font-size: 12px; margin-bottom: var(--space-md); border: 1px solid var(--gray-200); display: inline-block;">
+                ${date}
+            </div>
+            ${grouped[date].map(msg => `
+                <div style="margin-bottom: 12px; display: flex; flex-direction: column; align-items: ${msg.role === 'user' ? 'flex-end' : 'flex-start'};">
+                    <div style="
+                        max-width: 80%; 
+                        padding: 12px 16px; 
+                        border-radius: 12px; 
+                        font-size: 14px; 
+                        line-height: 1.5;
+                        background: ${msg.role === 'user' ? 'var(--primary-blue)' : 'var(--white)'};
+                        color: ${msg.role === 'user' ? 'white' : 'var(--gray-800)'};
+                        border: ${msg.role === 'user' ? 'none' : '1px solid var(--gray-200)'};
+                    ">
+                        ${msg.content}
+                    </div>
+                    <div style="font-size: 10px; color: var(--gray-400); margin-top: 4px; padding: 0 4px;">
+                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="card" style="width: 800px; max-width: 95%; height: 90vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="padding: var(--space-lg); border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; background: var(--white);">
+                <h2 style="font-size: var(--text-xl); font-weight: 800; margin: 0;">📜 Chat History Archive</h2>
+                <button class="btn btn-icon btn-ghost" onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding: var(--space-xl); background: var(--gray-50);">
+                ${contentHtml}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
