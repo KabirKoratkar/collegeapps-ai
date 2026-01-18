@@ -86,6 +86,11 @@ const researchLimiter = rateLimit({
     message: { error: 'Research limit reached. Please wait an hour.' }
 });
 
+// Health Checks (MUST BE TOP LEVEL - Before CORS/JSON/RateLimits)
+app.get('/', (req, res) => res.status(200).send('Waypoint AI Server is running.'));
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok', infrastructure: 'Supabase Native' }));
+
 app.use(cors({ origin: '*' }));
 app.use((req, res, next) => {
     if (req.originalUrl === '/api/payments/webhook') {
@@ -98,10 +103,7 @@ app.use((req, res, next) => {
 app.use('/api/payments', paymentsRouter);
 app.use('/api/', globalLimiter);
 
-// Health Check
-app.get('/', (req, res) => res.send('Waypoint AI Server is running. Access health check at /health'));
-app.get('/api/health', (req, res) => res.json({ status: 'ok', version: 'v3.0', infrastructure: 'Supabase Native' }));
-app.get('/health', (req, res) => res.json({ status: 'ok', message: 'AI server is running' }));
+// Additional routes...
 
 // Feedback and Tickets
 app.post('/api/feedback', async (req, res) => {
