@@ -262,6 +262,13 @@ async function generateAIActionPlan(tasks, essays, colleges) {
     const pendingEssays = essays.filter(e => !e.is_completed);
     const upcomingDeadlines = colleges.filter(c => c.deadline && new Date(c.deadline) > new Date());
 
+    // Get top 3 priority items for context
+    const topTasks = pendingTasks
+        .filter(t => t.priority === 'High')
+        .slice(0, 3)
+        .map(t => t.title)
+        .join(', ');
+
     breakdownEl.innerHTML = `
         <div class="hero-stat-item">
             <div class="stat-val">${pendingTasks.length}</div>
@@ -283,13 +290,26 @@ async function generateAIActionPlan(tasks, essays, colleges) {
         const leeway = profile?.submission_leeway || 3;
         const intensity = profile?.intensity_level || 'Balanced';
 
-        const statsStr = `Tasks: ${pendingTasks.length}, Essays: ${pendingEssays.length}, Colleges: ${colleges.length}, Next: ${upcomingDeadlines[0] ? upcomingDeadlines[0].name : 'None'}, Leeway: ${leeway} days, Strategy: ${intensity} pace`;
+        const statsStr = `
+            Context:
+            - Pending Tasks: ${pendingTasks.length}
+            - Drafts In Progress: ${pendingEssays.length}
+            - Next Major Deadline: ${upcomingDeadlines[0] ? upcomingDeadlines[0].name : 'None'}
+            - Top Priority Items: ${topTasks || 'None specifically marked High'}
+            - Work Style: ${intensity} Intensity
+        `;
 
         const response = await fetch(`${config.apiUrl}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: `Give me a 2-sentence tactical action plan for TODAY based on these stats: ${statsStr}. Focus on the student's preferred ${intensity} pace. Be direct and coach-like.`,
+                message: `You are an elite college admissions strategist. 
+                Based on this student's current status: ${statsStr}
+                
+                Generate a concise, 2-sentence "Daily Briefing" that specifically lines up with their schedule. 
+                If they have high priority tasks, mention the most critical one. 
+                If they have a deadline coming up, focus on that. 
+                Be motivating but very specific. Do not use generic fluff.`,
                 userId: currentUser.id,
                 conversationHistory: [],
                 saveToHistory: false
@@ -300,7 +320,8 @@ async function generateAIActionPlan(tasks, essays, colleges) {
         const data = await response.json();
         planEl.textContent = data.response;
     } catch (error) {
-        planEl.textContent = "Focus on your upcoming deadlines and high-priority tasks!";
+        console.error("AI Plan Error", error);
+        planEl.textContent = "Review your high-priority tasks and upcoming deadlines to stay on track today!";
     }
 }
 
