@@ -159,7 +159,7 @@ app.get('/api/colleges/research', researchLimiter, async (req, res) => {
  */
 app.post('/api/chat/claude', async (req, res) => {
     try {
-        const { message, userId, conversationHistory = [], saveToHistory = true } = req.body;
+        const { message, userId, conversationHistory = [], saveToHistory = true, sessionId, category } = req.body;
         if (!anthropic) return res.status(503).json({ error: 'Claude service not configured' });
         if (!message || !userId) return res.status(400).json({ error: 'Message and userId are required' });
 
@@ -190,7 +190,7 @@ app.post('/api/chat/claude', async (req, res) => {
         });
 
         const aiResponse = response.content[0].text;
-        await saveConversation(userId, message, aiResponse, { model: 'claude-3.5-sonnet' });
+        await saveConversation(userId, message, aiResponse, { model: 'claude-3.5-sonnet', sessionId, category });
 
         res.json({ response: aiResponse });
     } catch (error) {
@@ -474,8 +474,10 @@ app.post('/api/chat', async (req, res) => {
             await saveConversation(userId, message, aiResponse, functionCalled ? {
                 model: 'claude-3.5-sonnet',
                 tool: functionCalled,
-                result: functionResult
-            } : { model: 'claude-3.5-sonnet' });
+                result: functionResult,
+                sessionId,
+                category
+            } : { model: 'claude-3.5-sonnet', sessionId, category });
         }
 
         res.json({
@@ -534,7 +536,7 @@ app.post('/api/tts', async (req, res) => {
 // Main AI chat endpoint
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message, userId, conversationHistory = [], saveToHistory = true } = req.body;
+        const { message, userId, conversationHistory = [], saveToHistory = true, sessionId, category } = req.body;
 
         if (!message || !userId) {
             return res.status(400).json({ error: 'Message and userId are required' });
@@ -1058,7 +1060,7 @@ async function handleCreateEssays(userId, collegeName) {
 
 async function saveConversation(userId, userMessage, aiResponse, metadata = {}) {
     await supabase.from('conversations').insert([
-        { user_id: userId, role: 'user', content: userMessage },
+        { user_id: userId, role: 'user', content: userMessage, metadata },
         { user_id: userId, role: 'assistant', content: aiResponse, metadata }
     ]);
 }
