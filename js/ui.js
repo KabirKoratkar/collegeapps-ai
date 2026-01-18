@@ -47,12 +47,6 @@ export function updateNavbarUser(user, profile = null) {
             <a href="settings.html" class="user-dropdown-item">
                 <span>⚙️</span> Account Settings
             </a>
-            <a href="dashboard.html" class="user-dropdown-item">
-                <span>📊</span> My Dashboard
-            </a>
-            <a href="documents.html" class="user-dropdown-item">
-                <span>📂</span> Document Vault
-            </a>
             <div class="user-dropdown-divider"></div>
             <div class="user-dropdown-item" id="logoutBtn">
                 <span>🚪</span> Sign Out
