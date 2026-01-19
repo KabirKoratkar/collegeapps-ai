@@ -81,124 +81,183 @@
         <!-- Summary Cards -->
         <div class="grid grid-4 gap-lg mb-2xl">
             <div class="card card-compact text-center">
-                <div class="container text-center">
-                    <p style="color: var(--gray-500); font-size: var(--text-sm);">&copy; 2026 Waypoint. All rights
-                        reserved.</p>
+                <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 4px;" id="totalCollegesHeader">0</h3>
+                <p
+                    style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--gray-500); letter-spacing: 0.05em;">
+                    Total Colleges</p>
+            </div>
+            <div class="card card-compact text-center" style="border-top: 4px solid var(--primary-purple);">
+                <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 4px;" id="reachCount">0</h3>
+                <p
+                    style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--gray-500); letter-spacing: 0.05em;">
+                    Reach 🚀</p>
+            </div>
+            <div class="card card-compact text-center" style="border-top: 4px solid var(--primary-blue);">
+                <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 4px;" id="targetCount">0</h3>
+                <p
+                    style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--gray-500); letter-spacing: 0.05em;">
+                    Target 🎯</p>
+            </div>
+            <div class="card card-compact text-center" style="border-top: 4px solid var(--success);">
+                <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 4px;" id="safetyCount">0</h3>
+                <p
+                    style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--gray-500); letter-spacing: 0.05em;">
+                    Safety 🛡️</p>
+            </div>
+        </div>
+
+        <!-- College List Table -->
+        <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border);">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border); background: var(--surface-soft);">
+                            <th
+                                style="padding: var(--space-md); font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; width: 35%;">
+                                College Details</th>
+                            <th
+                                style="padding: var(--space-md); font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">
+                                Deadline Type</th>
+                            <th
+                                style="padding: var(--space-md); font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">
+                                Due Date</th>
+                            <th
+                                style="padding: var(--space-md); font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">
+                                Platform</th>
+                            <th
+                                style="padding: var(--space-md); font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; width: 15%;">
+                                Readiness</th>
+                            <th
+                                style="padding: var(--space-md); font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; width: 5%;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="collegeTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div><!-- End Container -->
+
+    <!-- Footer -->
+    <footer class="footer"
+        style="padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 1px solid var(--gray-200);">
+        <div class="container text-center">
+            <p style="color: var(--gray-500); font-size: var(--text-sm);">&copy; 2026 Waypoint. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Add College Modal -->
+    <div id="addCollegeModal" class="modal">
+        <div class="modal-overlay" onclick="closeAddCollegeModal()"></div>
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3>✨ Add New College</h3>
+                <button class="modal-close" onclick="closeAddCollegeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Search for a College</label>
+                    <div style="position: relative;">
+                        <input type="text" id="modalSearchInput" class="input"
+                            placeholder="e.g. Stanford, UCLA, Harvard..." autocomplete="off">
+                        <div id="modalSearchResults"
+                            style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; display: none; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; margin-top: 4px;">
+                        </div>
+                    </div>
+                    <p style="font-size: var(--text-xs); color: var(--gray-500); margin-top: var(--space-xs);">
+                        Select a
+                        college from the list to automatically fetch requirements.</p>
                 </div>
-                </footer>
 
-                <!-- Add College Modal -->
-                <div id="addCollegeModal" class="modal">
-                    <div class="modal-overlay" onclick="closeAddCollegeModal()"></div>
-                    <div class="modal-content" style="max-width: 550px;">
-                        <div class="modal-header">
-                            <h3>✨ Add New College</h3>
-                            <button class="modal-close" onclick="closeAddCollegeModal()">×</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="input-group">
-                                <label class="input-label">Search for a College</label>
-                                <div style="position: relative;">
-                                    <input type="text" id="modalSearchInput" class="input"
-                                        placeholder="e.g. Stanford, UCLA, Harvard..." autocomplete="off">
-                                    <div id="modalSearchResults"
-                                        style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 10; display: none; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; margin-top: 4px;">
-                                    </div>
-                                </div>
-                                <p
-                                    style="font-size: var(--text-xs); color: var(--gray-500); margin-top: var(--space-xs);">
-                                    Select a
-                                    college from the list to automatically fetch requirements.</p>
+                <div class="input-group">
+                    <label class="input-label">Target Reach/Safety</label>
+                    <div class="grid grid-3 gap-sm">
+                        <label class="category-card" style="cursor: pointer;">
+                            <input type="radio" name="collegeType" value="Reach" style="display: none;">
+                            <div class="category-content">
+                                <span style="font-size: 20px;">🚀</span>
+                                <strong>Reach</strong>
                             </div>
-
-                            <div class="input-group">
-                                <label class="input-label">Target Reach/Safety</label>
-                                <div class="grid grid-3 gap-sm">
-                                    <label class="category-card" style="cursor: pointer;">
-                                        <input type="radio" name="collegeType" value="Reach" style="display: none;">
-                                        <div class="category-content">
-                                            <span style="font-size: 20px;">🚀</span>
-                                            <strong>Reach</strong>
-                                        </div>
-                                    </label>
-                                    <label class="category-card" style="cursor: pointer;">
-                                        <input type="radio" name="collegeType" value="Target" checked
-                                            style="display: none;">
-                                        <div class="category-content">
-                                            <span style="font-size: 20px;">🎯</span>
-                                            <strong>Target</strong>
-                                        </div>
-                                    </label>
-                                    <label class="category-card" style="cursor: pointer;">
-                                        <input type="radio" name="collegeType" value="Safety" style="display: none;">
-                                        <div class="category-content">
-                                            <span style="font-size: 20px;">🛡️</span>
-                                            <strong>Safety</strong>
-                                        </div>
-                                    </label>
-                                </div>
+                        </label>
+                        <label class="category-card" style="cursor: pointer;">
+                            <input type="radio" name="collegeType" value="Target" checked style="display: none;">
+                            <div class="category-content">
+                                <span style="font-size: 20px;">🎯</span>
+                                <strong>Target</strong>
                             </div>
-
-                            <div style="margin-top: var(--space-xl); display: flex; gap: var(--space-md);">
-                                <button class="btn btn-ghost flex-1" onclick="closeAddCollegeModal()">Cancel</button>
-                                <button class="btn btn-primary flex-1" id="confirmAddBtn" onclick="submitModalAdd()">Add
-                                    to
-                                    My
-                                    List</button>
+                        </label>
+                        <label class="category-card" style="cursor: pointer;">
+                            <input type="radio" name="collegeType" value="Safety" style="display: none;">
+                            <div class="category-content">
+                                <span style="font-size: 20px;">🛡️</span>
+                                <strong>Safety</strong>
                             </div>
-                        </div>
+                        </label>
                     </div>
                 </div>
 
-                <style>
-                    .category-card input:checked+.category-content {
-                        border-color: var(--primary-blue);
-                        background: rgba(91, 141, 238, 0.05);
-                        box-shadow: 0 0 0 2px var(--primary-blue);
-                    }
+                <div style="margin-top: var(--space-xl); display: flex; gap: var(--space-md);">
+                    <button class="btn btn-ghost flex-1" onclick="closeAddCollegeModal()">Cancel</button>
+                    <button class="btn btn-primary flex-1" id="confirmAddBtn" onclick="submitModalAdd()">Add
+                        to
+                        My
+                        List</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    .category-content {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        padding: var(--space-md);
-                        border: 2px solid var(--border);
-                        border-radius: var(--radius-lg);
-                        background: var(--surface);
-                        transition: all var(--transition-base);
-                        text-align: center;
-                        gap: 4px;
-                        color: var(--gray-800);
-                    }
+    <style>
+        .category-card input:checked+.category-content {
+            border-color: var(--primary-blue);
+            background: rgba(91, 141, 238, 0.05);
+            box-shadow: 0 0 0 2px var(--primary-blue);
+        }
 
-                    .category-content strong {
-                        font-size: var(--text-sm);
-                    }
+        .category-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-md);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            transition: all var(--transition-base);
+            text-align: center;
+            gap: 4px;
+            color: var(--gray-800);
+        }
 
-                    .category-content:hover {
-                        border-color: var(--primary-blue);
-                        background: var(--surface-soft);
-                    }
+        .category-content strong {
+            font-size: var(--text-sm);
+        }
 
-                    .modal-search-item {
-                        padding: var(--space-sm) var(--space-md);
-                        cursor: pointer;
-                        transition: background 0.2s;
-                        border-bottom: 1px solid var(--border);
-                        color: var(--gray-800);
-                    }
+        .category-content:hover {
+            border-color: var(--primary-blue);
+            background: var(--surface-soft);
+        }
 
-                    .modal-search-item:hover {
-                        background: var(--surface-soft);
-                    }
+        .modal-search-item {
+            padding: var(--space-sm) var(--space-md);
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid var(--border);
+            color: var(--gray-800);
+        }
 
-                    .modal-search-item:last-child {
-                        border-bottom: none;
-                    }
-                </style>
+        .modal-search-item:hover {
+            background: var(--surface-soft);
+        }
 
-                <script src="js/main.js"></script>
-                <script type="module" src="js/colleges.js"></script>
+        .modal-search-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+
+    <script src="js/main.js"></script>
+    <script type="module" src="js/colleges.js"></script>
 </body>
 
 </html>

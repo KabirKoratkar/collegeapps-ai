@@ -1,5 +1,6 @@
 import { supabase, getCurrentUser, getUserProfile, upsertProfile } from './supabase-config.js';
 import { updateNavbarUser } from './ui.js';
+import { syncSmartSchedule } from './planner.js';
 
 let currentDate = new Date();
 let allEvents = [];
@@ -20,6 +21,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadEvents();
     renderCalendar();
     setupEventListeners();
+
+    // Auto-sync on load to ensure "everything is laid out"
+    syncSmartSchedule(user.id).then(res => {
+        if (res.success && res.count > 0) {
+            console.log('Auto-synced tasks:', res.count);
+            loadEvents().then(renderCalendar);
+        }
+    });
 });
 
 async function loadLeeway(userId, profile = null) {
@@ -38,6 +47,7 @@ function setupEventListeners() {
     document.getElementById('nextMonth').addEventListener('click', () => navigateMonth(1));
     document.getElementById('collegeFilter').addEventListener('change', applyFilters);
     document.getElementById('leewaySetting').addEventListener('change', updateLeeway);
+    document.getElementById('syncBtn').addEventListener('click', handleSync);
     document.getElementById('addEventBtn').addEventListener('click', openAddModal);
     document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
     document.getElementById('addModalOverlay').addEventListener('click', closeAddModal);
@@ -156,42 +166,8 @@ async function loadEvents() {
                     });
 
                     // Add Milestones if not completed
-                    if (!essay.is_completed) {
-                        // Draft Milestone (14 days before)
-                        const draftDate = new Date(deadlineDate);
-                        draftDate.setDate(draftDate.getDate() - 14);
-                        const draftDateStr = draftDate.toISOString().split('T')[0];
-
-                        // Only add if it's in the future
-                        if (draftDate >= new Date()) {
-                            allEvents.push({
-                                id: `essay-${essay.id}-draft`,
-                                type: 'task',
-                                title: `First Draft: ${essay.title}`,
-                                date: draftDateStr,
-                                college: essay.colleges.name,
-                                collegeId: essay.college_id,
-                                details: { category: 'Essay Draft', priority: 'Medium' }
-                            });
-                        }
-
-                        // Final Review Milestone (7 days before)
-                        const reviewDate = new Date(deadlineDate);
-                        reviewDate.setDate(reviewDate.getDate() - 7);
-                        const reviewDateStr = reviewDate.toISOString().split('T')[0];
-
-                        if (reviewDate >= new Date()) {
-                            allEvents.push({
-                                id: `essay-${essay.id}-review`,
-                                type: 'task',
-                                title: `Final Review: ${essay.title}`,
-                                date: reviewDateStr,
-                                college: essay.colleges.name,
-                                collegeId: essay.college_id,
-                                details: { category: 'Essay Review', priority: 'High' }
-                            });
-                        }
-                    }
+                    // Virtual Milestones Removed - replaced by Persistent Tasks via Planner
+                    // This ensures users can check them off.
                 }
             });
         }
@@ -638,10 +614,12 @@ async function handleAddTask(e) {
     }
 }
 
-// Show notification
 function showNotification(message, type = 'info') {
-    // Reuse existing notification system from main.js if available
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    if (window.showNotification) {
+        window.showNotification(message, type);
+    } else {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
 }
 async function updateLeeway(e) {
     const leeway = parseInt(e.target.value);
@@ -660,5 +638,36 @@ async function updateLeeway(e) {
         // For now, we update the profile so future AI planning respects it.
     } catch (error) {
         console.error('Error updating leeway:', error);
+    }
+}
+
+async function handleSync() {
+    const user = await getCurrentUser();
+    if (!user) return;
+
+    const btn = document.getElementById('syncBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>⏳ Syncing...</span>';
+    btn.disabled = true;
+
+    try {
+        const result = await syncSmartSchedule(user.id);
+        if (result.success) {
+            if (result.count > 0) {
+                showNotification(`Schedule updated! Added ${result.count} new tasks.`, 'success');
+            } else {
+                showNotification('Schedule is up to date.', 'success');
+            }
+            await loadEvents();
+            renderCalendar();
+        } else {
+            throw new Error('Sync failed');
+        }
+    } catch (error) {
+        console.error('Sync error:', error);
+        showNotification('Failed to sync schedule', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 }
