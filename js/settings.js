@@ -209,6 +209,22 @@ function setupEventListeners() {
         mainUpgradeBtn.addEventListener('click', handleUpgrade);
     }
 
+    // Developer Settings
+    const currentOverride = localStorage.getItem('waypoint_api_url');
+    const overrideDisplay = document.getElementById('currentApiOverride');
+    if (overrideDisplay) {
+        overrideDisplay.textContent = currentOverride || 'None (Using Auto-Detect)';
+    }
+
+    const clearApiBtn = document.getElementById('clearApiUrlBtn');
+    if (clearApiBtn) {
+        clearApiBtn.addEventListener('click', () => {
+            localStorage.removeItem('waypoint_api_url');
+            showNotification('API URL reset! Refreshing...', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        });
+    }
+
     // Theme Watcher (Sync with other tabs)
     window.addEventListener('storage', (e) => {
         if (e.key === 'theme') {

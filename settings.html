@@ -285,6 +285,25 @@
                             Colleges & Schedule</button>
                     </div>
 
+                    <div class="card mb-xl" style="padding: var(--space-xl); border: 1px dashed var(--gray-400);">
+                        <h3 class="mb-lg" style="color: var(--gray-800);">👨‍💻 Developer Settings</h3>
+                        <p style="color: var(--gray-600); margin-bottom: var(--space-md);">If you are experiencing
+                            connection issues, clearing your local overrides may help.</p>
+
+                        <div
+                            style="background: var(--gray-50); padding: var(--space-md); border-radius: var(--radius-md); margin-bottom: var(--space-md);">
+                            <div
+                                style="font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">
+                                Current API Override</div>
+                            <div id="currentApiOverride"
+                                style="font-family: monospace; font-size: 13px; color: var(--primary-blue); margin-top: 4px;">
+                                None</div>
+                        </div>
+
+                        <button id="clearApiUrlBtn" class="btn btn-outline" style="width: 100%;">🔄 Reset API URL to
+                            Production</button>
+                    </div>
+
                     <div class="card" style="padding: var(--space-xl);">
                         <h3 class="mb-lg" style="color: var(--error);">Danger Zone</h3>
                         <p style="color: var(--gray-600); margin-bottom: var(--space-xl);">Logging out will end your
