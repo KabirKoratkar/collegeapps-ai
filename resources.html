@@ -353,15 +353,23 @@
                     body: JSON.stringify({ userId: currentUser.id, topic })
                 });
 
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Intelligence Service is updating. Please wait a minute and try again.');
+                    }
+                    const text = await response.text();
+                    throw new Error(`Server Error (${response.status}): ${text.substring(0, 100)}`);
+                }
+
                 const data = await response.json();
                 if (data.success) {
                     renderReport(data.findings);
                 } else {
-                    alert('Failed to research topic.');
+                    throw new Error(data.error || 'Failed to generate report');
                 }
             } catch (error) {
                 console.error(error);
-                alert('Error connecting to intelligence server.');
+                alert(error.message || 'Error connecting to intelligence server.');
             } finally {
                 document.getElementById('loadingState').style.display = 'none';
             }
