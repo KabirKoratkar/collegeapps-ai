@@ -232,6 +232,79 @@ app.post('/api/essays/sync', async (req, res) => {
     }
 });
 
+// GENERIC TOPIC RESEARCH ENDPOINT
+app.post('/api/resources/research', researchLimiter, async (req, res) => {
+    try {
+        const { topic, userId } = req.body;
+        if (!topic) return res.status(400).json({ error: 'Topic required' });
+
+        console.log(`🧠 Converting topic '${topic}' into intelligence report...`);
+
+        // Check cache
+        const cacheKey = `topic_research_${topic.toLowerCase().replace(/\s/g, '_')}`;
+        const cached = apiCache.get(cacheKey);
+        if (cached) {
+            console.log('⚡ Using cached research');
+            return res.json({ success: true, findings: cached });
+        }
+
+        if (!openai) throw new Error('AI not initialized');
+
+        const systemPrompt = `You are an elite college counseling strategist and knowledge base. Your goal is to provide a comprehensive, structured "Intelligence Report" on ANY topic related to college admissions (e.g., "Common App", "FAFSA", "Stanford Legacy Policy", "QuestBridge").
+
+        Return a strictly valid JSON object with the following structure:
+        {
+            "topic": "${topic}",
+            "summary": "A concise, 2-3 sentence executive summary of what this is.",
+            "modules": {
+                "overview": {
+                    "headline": "What You Need to Know",
+                    "items": [
+                        { "title": "Core Concept", "content": "..." },
+                        { "title": "Who It's For", "content": "..." }
+                    ]
+                },
+                "details": {
+                    "headline": "Deep Dive & Facts",
+                    "items": [
+                        { "title": "Key Fact 1", "content": "..." },
+                        { "title": "Timeline/Deadlines", "content": "..." }
+                    ]
+                },
+                "action": {
+                    "headline": "Action Plan",
+                    "items": [
+                        { "title": "Step 1", "content": "..." },
+                        { "title": "Step 2", "content": "..." }
+                    ]
+                },
+                "edge": {
+                    "content": "A pro-tip 'Insider Edge' paragraph giving strategic advice others might miss."
+                }
+            }
+        }`;
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Research topic: ${topic}` }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const findings = JSON.parse(completion.choices[0].message.content);
+        apiCache.set(cacheKey, findings);
+
+        res.json({ success: true, findings });
+
+    } catch (error) {
+        console.error('Topic Research Error:', error);
+        res.status(500).json({ error: 'Failed to research topic' });
+    }
+});
+
+// GET: DEEP RESEARCH (Colleges)
 app.post('/api/colleges/research-deep', researchLimiter, async (req, res) => {
     try {
         const { userId, collegeName } = req.body;

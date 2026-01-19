@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligence Search - Waypoint</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- Theme Initialization -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <style>
+        .research-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: var(--space-4xl) 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .search-container-large {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input-large {
+            width: 100%;
+            padding: var(--space-lg) var(--space-2xl);
+            padding-left: 60px;
+            font-size: var(--text-lg);
+            border-radius: var(--radius-full);
+            border: 2px solid transparent;
+            box-shadow: var(--shadow-2xl);
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .search-input-large:focus {
+            outline: none;
+            transform: scale(1.02);
+            border-color: var(--primary-blue);
+        }
+
+        .search-icon-large {
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: var(--gray-400);
+        }
+
+        .topic-chip {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--gray-200);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: var(--text-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+        }
+
+        .topic-chip:hover {
+            background: var(--white);
+            color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Result Modules */
+        .module-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            height: 100%;
+            border: 1px solid var(--gray-100);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .module-icon {
+            font-size: 32px;
+            margin-bottom: var(--space-md);
+            display: inline-block;
+        }
+
+        .module-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: var(--text-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--gray-900);
+        }
+
+        .info-item {
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-md);
+            border-bottom: 1px dashed var(--gray-200);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-title {
+            font-weight: 700;
+            font-size: var(--text-sm);
+            color: var(--gray-800);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-content {
+            font-size: var(--text-base);
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        #loadingState {
+            display: none;
+            text-align: center;
+            padding: var(--space-4xl);
+        }
+
+        .spinner-large {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-lg);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="dashboard.html" class="navbar-logo">
+                <img src="assets/logo.png" alt="Waypoint Logo">
+            </a>
+            <ul class="navbar-links">
+                <li><a href="dashboard.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="calendar.html" class="navbar-link">Calendar</a></li>
+                <li><a href="analytics.html" class="navbar-link">Analytics</a></li>
+                <li><a href="colleges.html" class="navbar-link">Colleges</a></li>
+                <li><a href="essays.html" class="navbar-link">Essays</a></li>
+                <li><a href="documents.html" class="navbar-link">Documents</a></li>
+                <li><a href="resources.html" class="navbar-link active">Research</a></li>
+                <li><a href="ai-counselor.html" class="navbar-link">AI Counselor</a></li>
+                <li id="user-nav-item"><span class="badge badge-primary" id="user-badge">User</span></li>
+            </ul>
+            <button class="mobile-menu-toggle" id="mobileToggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Header / Search -->
+    <header class="research-header">
+        <div class="container">
+            <h1
+                style="color: white; font-family: 'Outfit', sans-serif; font-size: var(--text-5xl); margin-bottom: var(--space-md);">
+                Intelligence Search</h1>
+            <p
+                style="color: var(--gray-400); font-size: var(--text-lg); margin-bottom: var(--space-2xl); max-width: 600px; margin-left: auto; margin-right: auto;">
+                Instant, AI-powered deep dives into any part of the college process. From "Common App" to "Financial Aid
+                Grants".
+            </p>
+
+            <div class="search-container-large">
+                <span class="search-icon-large">🔍</span>
+                <input type="text" id="topicInput" class="search-input-large"
+                    placeholder="What do you want to master today? (e.g. 'FAFSA Deadlines', 'QuestBridge')">
+            </div>
+
+            <div
+                style="margin-top: var(--space-xl); display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+                <button class="topic-chip" onclick="searchTopic('Common App Guide')">Common App Guide</button>
+                <button class="topic-chip" onclick="searchTopic('FAFSA Process')">FAFSA Process</button>
+                <button class="topic-chip" onclick="searchTopic('CSS Profile')">CSS Profile</button>
+                <button class="topic-chip" onclick="searchTopic('Early Decision vs Action')">ED vs EA</button>
+                <button class="topic-chip" onclick="searchTopic('Ivy League Ivy Day')">Ivy Day</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container py-xl">
+
+        <!-- Loading -->
+        <div id="loadingState">
+            <div class="spinner-large"></div>
+            <h3 style="color: var(--gray-700);">Gathering Intelligence...</h3>
+            <p style="color: var(--gray-500);">Analyzing admission databases and strategic guides.</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-4xl" style="opacity: 0.6;">
+            <div style="font-size: 64px; margin-bottom: var(--space-lg);">🧠</div>
+            <h3 class="h3" style="color: var(--gray-400);">Knowledge Awaits</h3>
+            <p>Enter a topic above to generate a comprehensive report.</p>
+        </div>
+
+        <!-- Results Container -->
+        <div id="resultsContainer" style="display: none;" class="fade-in">
+
+            <div class="card mb-2xl" style="background: var(--surface); border-left: 6px solid var(--primary-blue);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div
+                            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-blue); font-weight: 700; font-size: var(--text-sm); margin-bottom: var(--space-xs);">
+                            Intelligence Report</div>
+                        <h1 class="h2" id="reportTitle" style="margin-bottom: var(--space-md);">Topic Name</h1>
+                        <p id="reportSummary"
+                            style="font-size: var(--text-lg); color: var(--gray-700); line-height: 1.6; max-width: 800px;">
+                        </p>
+                    </div>
+                    <button class="btn btn-ghost" onclick="window.print()">🖨️ Print / Save</button>
+                </div>
+            </div>
+
+            <div class="grid grid-2 gap-xl">
+                <!-- Overview Module -->
+                <div class="module-card" style="border-left-color: var(--primary-blue);">
+                    <div class="module-icon">🔭</div>
+                    <h3 class="module-title" id="overviewHeadline">Overview</h3>
+                    <div id="overviewContent"></div>
+                </div>
+
+                <!-- Deep Dive Module -->
+                <div class="module-card" style="border-left-color: var(--primary-purple);">
+                    <div class="module-icon">🔬</div>
+                    <h3 class="module-title" id="detailsHeadline">Deets</h3>
+                    <div id="detailsContent"></div>
+                </div>
+
+                <!-- Action Plan Module -->
+                <div class="module-card" style="border-left-color: var(--success);">
+                    <div class="module-icon">✅</div>
+                    <h3 class="module-title" id="actionHeadline">Action Plan</h3>
+                    <div id="actionContent"></div>
+                </div>
+
+                <!-- Edge Module -->
+                <div class="module-card" style="background: var(--gray-900); color: white; border: none;">
+                    <div class="module-icon">⚔️</div>
+                    <h3 class="module-title" style="color: white;">The Competitive Edge</h3>
+                    <p id="edgeContent"
+                        style="font-size: var(--text-lg); line-height: 1.7; opacity: 0.9; font-style: italic;"></p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p>&copy; 2026 Waypoint. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script type="module">
+        import config from './js/config.js';
+        import { getCurrentUser, getUserProfile } from './js/supabase-config.js';
+        import { updateNavbarUser } from './js/ui.js';
+
+        let currentUser = null;
+
+        // Make globally available
+        window.searchTopic = searchTopic;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentUser = await getCurrentUser();
+            if (!currentUser) window.location.href = 'login.html';
+            updateNavbarUser(currentUser, await getUserProfile(currentUser.id));
+
+            // Enter key handler
+            document.getElementById('topicInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchTopic(e.target.value);
+            });
+        });
+
+        async function searchTopic(topic) {
+            if (!topic) return;
+
+            // UI State: Loading
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('topicInput').value = topic;
+
+            try {
+                const response = await fetch(`${config.apiUrl}/api/resources/research`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id, topic })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    renderReport(data.findings);
+                } else {
+                    alert('Failed to research topic.');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error connecting to intelligence server.');
+            } finally {
+                document.getElementById('loadingState').style.display = 'none';
+            }
+        }
+
+        function renderReport(findings) {
+            document.getElementById('resultsContainer').style.display = 'block';
+
+            // Header
+            document.getElementById('reportTitle').textContent = findings.topic;
+            document.getElementById('reportSummary').textContent = findings.summary;
+
+            // Helper to render items
+            const renderItems = (items) => {
+                return items.map(item => `
+                    <div class="info-item">
+                        <div class="info-title">
+                            <span style="width: 6px; height: 6px; background: var(--gray-400); border-radius: 50%;"></span>
+                            ${item.title}
+                        </div>
+                        <div class="info-content">${item.content}</div>
+                    </div>
+                `).join('');
+            };
+
+            // Overview
+            document.getElementById('overviewHeadline').textContent = findings.modules.overview.headline;
+            document.getElementById('overviewContent').innerHTML = renderItems(findings.modules.overview.items);
+
+            // Details
+            document.getElementById('detailsHeadline').textContent = findings.modules.details.headline;
+            document.getElementById('detailsContent').innerHTML = renderItems(findings.modules.details.items);
+
+            // Action
+            document.getElementById('actionHeadline').textContent = findings.modules.action.headline;
+            document.getElementById('actionContent').innerHTML = renderItems(findings.modules.action.items);
+
+            // Edge
+            document.getElementById('edgeContent').textContent = findings.modules.edge.content;
+
+            // Scroll to results
+            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>
