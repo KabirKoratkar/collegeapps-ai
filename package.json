@@ -11,7 +11,8 @@
         "frontend": "npx -y live-server . --port=5500",
         "backend": "npm run dev -w backend",
         "dev": "npm run backend",
-        "dev:all": "npx -y concurrently \"npm run backend\" \"npm run frontend\""
+        "dev:all": "npx -y concurrently \"npm run backend\" \"npm run frontend\"",
+        "build": "echo 'No build step required'"
     },
     "engines": {
         "node": "20.x"
