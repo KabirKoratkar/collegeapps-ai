@@ -202,7 +202,7 @@ async function loadAndRenderColleges() {
 
         return `
             <tr data-id="${c.id}">
-                <td>
+                <td style="padding: 16px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <a href="college-explorer.html?name=${encodeURIComponent(c.name)}" style="color: inherit; text-decoration: none;"><strong>${c.name}</strong></a>
@@ -221,10 +221,10 @@ async function loadAndRenderColleges() {
                         </div>
                     </div>
                 </td>
-                <td><span class="badge">${c.deadline_type || 'RD'}</span></td>
-                <td>${c.deadline ? new Date(c.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</td>
-                <td><span class="badge badge-primary">${c.application_platform || 'Common App'}</span></td>
-                <td>
+                <td style="padding: 16px;"><span class="badge">${c.deadline_type || 'RD'}</span></td>
+                <td style="padding: 16px;">${c.deadline ? new Date(c.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</td>
+                <td style="padding: 16px;"><span class="badge badge-primary">${c.application_platform || 'Common App'}</span></td>
+                <td style="padding: 16px;">
                     <div style="display: flex; flex-direction: column; gap: 4px; min-width: 120px;">
                         <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">
                             <span>${progress}% Complete</span>
@@ -234,7 +234,7 @@ async function loadAndRenderColleges() {
                         </div>
                     </div>
                 </td>
-                <td>
+                <td style="padding: 16px;">
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-icon btn-ghost" onclick="removeCollegeFromList('${c.id}', '${c.name.replace(/'/g, "\\'")}')" title="Remove College" style="color: var(--error); border: 1px solid rgba(239, 68, 68, 0.1);">🗑️</button>
                     </div>
