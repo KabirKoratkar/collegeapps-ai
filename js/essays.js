@@ -924,7 +924,7 @@ async function handleConceptualReview(selection, isModule = false) {
         <div id="${loadingId}" class="card" style="padding: var(--space-md); background: var(--gray-50); border: 1px dashed var(--accent-purple); margin-bottom: var(--space-sm);">
             <div style="display: flex; align-items: center; gap: var(--space-sm);">
                 <div class="loading-spinner" style="width: 14px; height: 14px;"></div>
-                <span style="font-size: var(--text-xs); color: var(--gray-500);">Counselor is thinking...</span>
+                <span style="font-size: var(--text-xs); color: var(--gray-500);">Counselor is reviewing...</span>
             </div>
         </div>
     `;
@@ -939,39 +939,45 @@ async function handleConceptualReview(selection, isModule = false) {
 
     try {
         let aiMessage = '';
+        const baseSystem = `
+            You are an expert Ivy League admissions officer reviewing a student's work.
+            Your goal is to provide specific, actionable feedback in the style of Google Docs comments.
+            
+            OUTPUT FORMAT:
+            You must respond with a VALID JSON array of objects. Do not include markdown code blocks.
+            Example:
+            [
+                { "quote": "I was the leader", "feedback": "Show, don't tell. Describe a specific moment of leadership.", "type": "critique" },
+                { "quote": "It was a dark and stormy night", "feedback": "Great hook! This really sets the scene.", "type": "strength" }
+            ]
+        `;
+
         if (isModule) {
             aiMessage = `
-                Review Type: ${reviewType}
-                Task: Provide EXPERT ADMISSIONS COUNSELING for this ${activeModule === 'activities' ? 'ACTIVITY LIST' : 'AWARDS LIST'}.
+                ${baseSystem}
+                Task: Review this ${activeModule === 'activities' ? 'ACTIVITY LIST' : 'AWARDS LIST'}.
                 
                 Content:
                 "${content}"
                 
-                ${selection ? `SPECIFIC FOCUS (Highlighted text): "${selection}"` : ''}
-                ${customQuestion ? `STUDENT QUESTION: "${customQuestion}"` : ''}
+                ${selection ? `FOCUS ON: "${selection}"` : ''}
+                ${customQuestion ? `USER QUESTION: "${customQuestion}"` : ''}
                 
-                CRITICAL COACHING RULES:
-                1. Review for IMPACT and QUANTIFIED RESULTS.
-                2. Check for strong ACTION VERBS.
-                3. Strategic Advice: How does this represent the student's unique brand?
-                ${!selection ? 'Provide a comprehensive overview of the entire list.' : 'Focus specifically on the highlighted part while considering the whole context.'}
-                4. NEVER rewrite content for the student. Focus on advice.
+                Generate 3-5 specific comments.
             `;
         } else {
             aiMessage = `
-                Review Type: ${reviewType}
-                Task: Provide STRATEGIC ADMISSIONS COUNSELING.
+                ${baseSystem}
+                Task: Review this ESSAY DRAFT.
+                Prompt: "${promptTitle}"
                 
-                Essay Category/Prompt: "${promptTitle}"
-                Full Essay Content: "${content}"
-                ${selection ? `HIGHLIGHTED SELECTION FOR FOCUS: "${selection}"` : 'No specific text highlighted.'}
-                ${customQuestion ? `SPECIFIC STUDENT QUESTION: "${customQuestion}"` : ''}
+                Content:
+                "${content}"
                 
-                STRICT RULES:
-                1. NEVER provide text for copy-pasting. 
-                2. NEVER rewrite sentences.
-                3. Focus on narrative impact and thematic consistency.
-                ${!selection ? 'Provide a comprehensive overview of the entire essay.' : 'Focus your advice specifically on the highlighted section.'}
+                ${selection ? `FOCUS ON SELECTION: "${selection}"` : ''}
+                ${customQuestion ? `SPECIFIC QUESTION: "${customQuestion}"` : ''}
+                
+                Generate 3-5 high-quality comments. vary between 'critique', 'strength', and 'suggestion'.
             `;
         }
 
@@ -987,30 +993,48 @@ async function handleConceptualReview(selection, isModule = false) {
 
         if (!response.ok) throw new Error('AI Server error');
         const data = await response.json();
-        const feedback = data.response;
+
+        let comments = [];
+        try {
+            // Attempt to clean logic if the LLM wraps in markdown
+            let cleanJson = data.response.trim();
+            if (cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            if (cleanJson.startsWith('```')) cleanJson = cleanJson.replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+            comments = JSON.parse(cleanJson);
+        } catch (e) {
+            // Fallback if not JSON
+            console.warn('AI did not return JSON, using text fallback', e);
+            comments = [{ quote: "General Feedback", feedback: data.response, type: "suggestion" }];
+        }
 
         const loadingEl = document.getElementById(loadingId);
-        if (loadingEl) {
-            loadingEl.innerHTML = `
-                <div style="font-size: var(--text-xs); color: var(--accent-purple); font-weight: 700; margin-bottom: var(--space-xs); display: flex; justify-content: space-between; align-items: center;">
-                    <span style="display: flex; align-items: center; gap: 4px;">✨ Counselor Insight</span>
-                    <span style="font-weight: 400; color: var(--gray-400);">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-                ${customQuestion ? `<div style="font-size: 11px; font-weight: 600; color: var(--gray-600); margin-bottom: 4px;">Q: ${customQuestion}</div>` : ''}
-                ${selection ? `
-                    <div style="font-size: 10px; color: var(--gray-400); font-style: italic; margin-bottom: var(--space-md); border-left: 2px solid var(--gray-200); padding-left: var(--space-sm); line-height: 1.4;">
-                        Ref: "${selection.length > 50 ? selection.substring(0, 50) + '...' : selection}"
+        if (loadingEl) loadingEl.remove();
+
+        // Render Comments
+        comments.forEach(c => {
+            const color = c.type === 'strength' ? 'var(--success)' : (c.type === 'critique' ? 'var(--error)' : 'var(--primary-blue)');
+            const icon = c.type === 'strength' ? '✨' : (c.type === 'critique' ? '⚠️' : '💡');
+
+            const commentHtml = `
+                <div class="card ai-comment-card" style="padding: var(--space-md); margin-bottom: var(--space-md); background: var(--white); border-left: 3px solid ${color}; transition: transform 0.2s; cursor: default;">
+                    <div style="font-size: 10px; color: var(--gray-400); margin-bottom: 4px; display: flex; justify-content: space-between;">
+                        <span style="font-weight: 700; color: ${color}; text-transform: uppercase;">${icon} ${c.type}</span>
+                        <span>Just now</span>
                     </div>
-                ` : ''}
-                <div style="font-size: var(--text-sm); line-height: 1.5; color: var(--gray-800);">
-                    ${feedback.replace(/\n/g, '<br>')}
+                    ${c.quote !== "General Feedback" ? `
+                        <div style="font-size: 11px; color: var(--gray-500); font-style: italic; background: var(--gray-50); padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; border-left: 2px solid var(--gray-200);">
+                            "${c.quote}"
+                        </div>
+                    ` : ''}
+                    <div style="font-size: var(--text-sm); color: var(--gray-800); line-height: 1.4;">
+                        ${c.feedback}
+                    </div>
                 </div>
             `;
-            loadingEl.style.background = 'var(--white)';
-            loadingEl.style.borderStyle = 'solid';
-            loadingEl.style.borderColor = 'var(--gray-100)';
-            loadingEl.style.boxShadow = 'var(--shadow-sm)';
-        }
+            feedbackContainer.insertAdjacentHTML('afterbegin', commentHtml);
+        });
+
     } catch (error) {
         console.error('AI Counseling Error:', error);
         const loadingEl = document.getElementById(loadingId);

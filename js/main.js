@@ -97,7 +97,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Scroll Reveal Animation
     initScrollReveal();
+
+    // Global Nav Check (Safety Net)
+    checkGlobalNav();
 });
+
+async function checkGlobalNav() {
+    const userBadge = document.getElementById('user-badge');
+    if (!userBadge) return;
+
+    // Avoid overwriting if it's already updated (simplistic check, but effective)
+    if (userBadge.textContent.trim() !== 'User') return;
+
+    try {
+        const { getCurrentUser, getUserProfile } = await import('./supabase-config.js');
+        const { updateNavbarUser } = await import('./ui.js');
+
+        const user = await getCurrentUser();
+        if (user) {
+            const profile = await getUserProfile(user.id);
+            updateNavbarUser(user, profile);
+        }
+    } catch (e) {
+        console.warn('Global nav check failed:', e);
+    }
+}
 
 /**
  * Interactive Hero Map Scaling and Coloring
