@@ -4,26 +4,45 @@ const SUPABASE_URL = config.supabaseUrl;
 const SUPABASE_ANON_KEY = config.supabaseKey;
 
 // Import Supabase client from CDN with fallback
+// Import Supabase client from global window object (loaded via script tag)
+// This avoids Top-Level Await issues that cause page hangs on slow connections
 let createClient;
-try {
-    const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-    createClient = mod.createClient;
-} catch (e) {
-    console.error('Failed to load Supabase client from CDN:', e);
+
+if (window.supabase && window.supabase.createClient) {
+    createClient = window.supabase.createClient;
+} else {
+    console.warn('Supabase JS not loaded globally. Using offline/mock client.');
     // Fallback Mock for Offline/Error State
     createClient = () => ({
         auth: {
             getUser: async () => ({ data: { user: null }, error: null }),
             signInWithPassword: async () => ({ data: {}, error: { message: 'Offline Mode: Cannot sign in.' } }),
-            signOut: async () => ({ error: null })
+            signOut: async () => ({ error: null }),
+            signUp: async () => ({ data: { user: { id: 'mock' } }, error: null }),
+            resetPasswordForEmail: async () => ({ data: {}, error: null }),
+            signInWithOAuth: async () => ({ data: {}, error: { message: 'Offline Mode: Cannot use OAuth.' } })
         },
         from: () => ({
-            select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }), order: () => ({ limit: () => ({ data: [], error: null }) }) }) }),
+            select: () => ({
+                eq: () => ({
+                    single: () => ({ data: null, error: null }),
+                    order: () => ({ limit: () => ({ data: [], error: null }) })
+                }),
+                order: () => ({ limit: () => ({ data: [], error: null }) }),
+                not: () => ({ order: () => ({ data: [], error: null }) })
+            }),
             insert: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }),
             update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }) }),
             delete: () => ({ eq: () => ({ error: null }) }),
             upsert: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) })
-        })
+        }),
+        storage: {
+            from: () => ({
+                upload: async () => ({ data: {}, error: null }),
+                createSignedUrl: async () => ({ data: { signedUrl: '#' }, error: null }),
+                remove: async () => ({ error: null })
+            })
+        }
     });
 }
 
