@@ -26,8 +26,32 @@ if (typeof auth0 !== 'undefined') {
 document.addEventListener('DOMContentLoaded', function () {
     const signupForm = document.getElementById('signupForm');
     const loginForm = document.getElementById('loginForm');
-    const googleBtn = document.querySelector('.google-btn');
+    const googleBtn = document.getElementById('googleBtn');
     const auth0Btn = document.getElementById('auth0Btn');
+    const devModeToggle = document.getElementById('toggleDevMode');
+
+    // Dev Mode Bypass
+    if (devModeToggle) {
+        devModeToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mockUser = {
+                id: 'dev-user-enterprise',
+                email: 'demo@waypoint.com',
+                user_metadata: { full_name: 'Demo Student' },
+                aud: 'authenticated',
+                role: 'authenticated'
+            };
+            localStorage.setItem('dev_user', JSON.stringify(mockUser));
+
+            // Set theme to dark for effect
+            localStorage.setItem('theme', 'dark');
+
+            showNotification('Dev Mode Activated! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.assign('dashboard.html');
+            }, 800);
+        });
+    }
 
     // Auth0 Login
     if (auth0Btn) {

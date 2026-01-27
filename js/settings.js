@@ -192,7 +192,7 @@ function setupEventListeners() {
     });
 
     // Logout
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
+    document.getElementById('pageLogoutBtn').addEventListener('click', async () => {
         await supabase.auth.signOut();
         localStorage.removeItem('dev_user');
         window.location.assign('index.html');

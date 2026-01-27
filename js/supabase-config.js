@@ -3,8 +3,29 @@ import config from './config.js';
 const SUPABASE_URL = config.supabaseUrl;
 const SUPABASE_ANON_KEY = config.supabaseKey;
 
-// Import Supabase client from CDN
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+// Import Supabase client from CDN with fallback
+let createClient;
+try {
+    const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    createClient = mod.createClient;
+} catch (e) {
+    console.error('Failed to load Supabase client from CDN:', e);
+    // Fallback Mock for Offline/Error State
+    createClient = () => ({
+        auth: {
+            getUser: async () => ({ data: { user: null }, error: null }),
+            signInWithPassword: async () => ({ data: {}, error: { message: 'Offline Mode: Cannot sign in.' } }),
+            signOut: async () => ({ error: null })
+        },
+        from: () => ({
+            select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }), order: () => ({ limit: () => ({ data: [], error: null }) }) }) }),
+            insert: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }),
+            update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }) }),
+            delete: () => ({ eq: () => ({ error: null }) }),
+            upsert: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) })
+        })
+    });
+}
 
 // Initialize AWS Native Data Client (Powered by Waypoint Infrastructure)
 const awsClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

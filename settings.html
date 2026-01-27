@@ -61,10 +61,10 @@
                 preferences.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--space-2xl);">
+        <div class="settings-grid">
             <!-- Sidebar Tabs -->
             <aside>
-                <div class="card card-compact" style="padding: var(--space-sm); position: sticky; top: 110px;">
+                <div class="card card-compact settings-sidebar">
                     <button class="settings-tab active" data-tab="strategy">
                         <span style="font-size: 1.2rem;">🗓️</span>
                         Planner Strategy
@@ -308,7 +308,7 @@
                         <h3 class="mb-lg" style="color: var(--error);">Danger Zone</h3>
                         <p style="color: var(--gray-600); margin-bottom: var(--space-xl);">Logging out will end your
                             current session. All your data is safely saved in our secure database.</p>
-                        <button id="logoutBtn" class="btn btn-error btn-outline">Logout of Waypoint</button>
+                        <button id="pageLogoutBtn" class="btn btn-error btn-outline">Logout of Waypoint</button>
                     </div>
                 </div>
             </main>
@@ -316,6 +316,39 @@
     </div>
 
     <style>
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: var(--space-2xl);
+        }
+
+        .settings-sidebar {
+            padding: var(--space-sm);
+            position: sticky;
+            top: 110px;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-sidebar {
+                position: static;
+                margin-bottom: var(--space-xl);
+                display: flex;
+                overflow-x: auto;
+                background: var(--surface);
+                gap: var(--space-sm);
+            }
+
+            .settings-tab {
+                white-space: nowrap;
+                width: auto;
+                flex: 0 0 auto;
+            }
+        }
+
         .settings-tab {
             display: flex;
             align-items: center;
@@ -344,10 +377,25 @@
             box-shadow: var(--shadow-md);
         }
 
+        /* Danger tab specific overrides */
+        .settings-tab[data-tab="account"] {
+            color: var(--error);
+        }
+
+        .settings-tab[data-tab="account"].active {
+            color: var(--error) !important;
+            border-color: var(--error);
+        }
+
         [data-theme="dark"] .settings-tab.active {
             background: rgba(255, 255, 255, 0.05);
             border-color: var(--primary-blue);
-            color: #ffffff !important;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .settings-tab[data-tab="account"].active {
+            color: var(--error) !important;
+            border-color: var(--error);
         }
 
         [data-theme="dark"] .settings-tab:hover {
